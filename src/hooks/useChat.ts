@@ -103,9 +103,13 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [user, selectedRoomId]);
 
-  // Send file
-  const sendFile = useCallback(async (file: File) => {
+  // Send file with optional size limit (0 = no limit)
+  const sendFile = useCallback(async (file: File, maxSizeMB: number = 0) => {
     if (!user || !selectedRoomId) return;
+    if (maxSizeMB > 0 && file.size > maxSizeMB * 1024 * 1024) {
+      alert(`파일 크기가 ${maxSizeMB}MB를 초과합니다.`);
+      return;
+    }
     const ext = file.name.split(".").pop();
     const path = `${selectedRoomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
