@@ -166,8 +166,8 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [user, selectedRoomId]);
 
-  // Send file with optional size limit (0 = no limit)
-  const sendFile = useCallback(async (file: File, maxSizeMB: number = 0) => {
+  // Send file with optional size limit (0 = no limit) and optional attached message
+  const sendFile = useCallback(async (file: File, maxSizeMB: number = 0, attachedMessage?: string) => {
     if (!user || !selectedRoomId) return;
     if (maxSizeMB > 0 && file.size > maxSizeMB * 1024 * 1024) {
       alert(`파일 크기가 ${maxSizeMB}MB를 초과합니다.`);
@@ -188,7 +188,7 @@ export function useChat() {
     const { error } = await supabase.from("chat_messages").insert({
       room_id: selectedRoomId,
       sender_id: user.id,
-      message: displayName,
+      message: attachedMessage || displayName,
       message_type: msgType,
       file_url: urlData.publicUrl,
       file_name: file.name,
@@ -198,6 +198,32 @@ export function useChat() {
     if (error) { console.error(error); return; }
     await supabase.from("chat_rooms").update({
       last_message: `📎 ${displayName}`,
+      last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+  }, [user, selectedRoomId]);
+
+  // Send confirm video (admin only)
+  const sendConfirmVideo = useCallback(async (file: File, attachedMessage?: string) => {
+    if (!user || !selectedRoomId) return;
+    const ext = file.name.split(".").pop();
+    const path = `${selectedRoomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
+    if (uploadError) { console.error(uploadError); return; }
+    const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
+
+    const { error } = await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: attachedMessage || `🎬 컨펌 요청: ${file.name}`,
+      message_type: "confirm_video",
+      file_url: urlData.publicUrl,
+      file_name: file.name,
+      file_type: file.type,
+      file_size: file.size,
+    });
+    if (error) { console.error(error); return; }
+    await supabase.from("chat_rooms").update({
+      last_message: `🎬 컨펌 요청: ${file.name}`,
       last_message_at: new Date().toISOString(),
     }).eq("id", selectedRoomId);
   }, [user, selectedRoomId]);
