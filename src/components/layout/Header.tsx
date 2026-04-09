@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories } from "@/data/categories";
+import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,16 +16,12 @@ const Header = () => {
       <div className="max-w-[1200px] mx-auto px-5">
         <div className="flex items-center justify-between h-[60px] gap-8">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xs"
-              style={{ background: "var(--gradient-primary)" }}
-            >
-              AI
-            </div>
-            <span className="text-[22px] font-bold tracking-tight text-foreground">
-              AI팩토리
-            </span>
+          <Link to="/" className="flex items-center shrink-0">
+            <img
+              src={aiFactoryLogo}
+              alt="AI Factory 로고"
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Search bar - desktop */}
