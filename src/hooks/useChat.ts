@@ -437,6 +437,7 @@ export function useChat() {
     selectRoom,
     sendMessage,
     sendFile,
+    sendConfirmVideo,
     createRoom,
     fetchRooms,
     user,
