@@ -1,14 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Search, Menu, X, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Menu, X, ChevronDown, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories } from "@/data/categories";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background">
@@ -17,11 +25,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-[60px] gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <img
-              src={aiFactoryLogo}
-              alt="AI Factory 로고"
-              className="h-10 w-auto"
-            />
+            <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-10 w-auto" />
           </Link>
 
           {/* Search bar - desktop */}
@@ -41,25 +45,37 @@ const Header = () => {
           </div>
 
           {/* Right side */}
-          <div className="hidden md:flex items-center gap-5">
-            <Link
-              to="/login"
-              className="text-[15px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              로그인
-            </Link>
-            <Link to="/signup">
-              <Button className="rounded-full h-9 px-5 text-[14px] font-medium">
-                회원가입
-              </Button>
-            </Link>
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm" className="rounded-full gap-1.5">
+                      <Settings className="h-3.5 w-3.5" />
+                      관리자
+                    </Button>
+                  </Link>
+                )}
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-1.5">
+                  <LogOut className="h-3.5 w-3.5" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">
+                  로그인
+                </Link>
+                <Link to="/signup">
+                  <Button className="rounded-full h-9 px-5 text-[14px] font-medium">회원가입</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
+          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
@@ -69,7 +85,6 @@ const Header = () => {
       <div className="hidden md:block border-t border-b border-border bg-background">
         <div className="max-w-[1200px] mx-auto px-5">
           <nav className="flex items-center gap-0 h-[46px]">
-            {/* All categories dropdown */}
             <div className="relative">
               <button
                 className="flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-foreground hover:text-primary transition-colors"
@@ -80,7 +95,6 @@ const Header = () => {
                 전체 카테고리
                 <ChevronDown className="h-3 w-3" />
               </button>
-
               {categoryMenuOpen && (
                 <div
                   className="absolute top-full left-0 w-56 bg-background border rounded-lg shadow-lg py-1.5 z-50"
@@ -100,9 +114,7 @@ const Header = () => {
                 </div>
               )}
             </div>
-
             <div className="w-px h-5 bg-border mx-1" />
-
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -144,16 +156,27 @@ const Header = () => {
               ))}
             </div>
             <div className="flex gap-2 mt-5 pt-4 border-t">
-              <Link to="/login" className="flex-1">
-                <Button variant="outline" className="w-full rounded-full" size="sm">
-                  로그인
-                </Button>
-              </Link>
-              <Link to="/signup" className="flex-1">
-                <Button className="w-full rounded-full" size="sm">
-                  회원가입
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Link to="/admin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full rounded-full" size="sm">관리자</Button>
+                    </Link>
+                  )}
+                  <Button variant="outline" className="flex-1 rounded-full" size="sm" onClick={handleSignOut}>
+                    로그아웃
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-full" size="sm">로그인</Button>
+                  </Link>
+                  <Link to="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full rounded-full" size="sm">회원가입</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
