@@ -15,6 +15,7 @@ export interface ChatRoom {
   unread_admin: number;
   status: string;
   created_at: string;
+  metadata: Record<string, any> | null;
 }
 
 export interface ChatMessage {
@@ -132,7 +133,7 @@ export function useChat() {
   }, [selectedRoomId, rooms, fetchProject]);
 
   // Create a new chat room
-  const createRoom = useCallback(async (title: string, serviceId?: string) => {
+  const createRoom = useCallback(async (title: string, serviceId?: string, metadata?: Record<string, any>) => {
     if (!user) return null;
     const { data, error } = await supabase
       .from("chat_rooms")
@@ -140,7 +141,8 @@ export function useChat() {
         customer_id: user.id,
         title,
         service_id: serviceId || null,
-      })
+        metadata: metadata || {},
+      } as any)
       .select()
       .single();
     if (error) { console.error(error); return null; }
