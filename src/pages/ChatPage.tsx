@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+const MAX_FILE_SIZE_MB = 100;
+
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -81,6 +83,7 @@ const ChatPage = () => {
   const [showNewRoom, setShowNewRoom] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [autoCreated, setAutoCreated] = useState(false);
@@ -89,7 +92,6 @@ const ChatPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
-  // Auto-create chat room from service inquiry or order
   const handleAutoCreate = useCallback(async () => {
     if (autoCreated || loadingRooms || !user) return;
     const state = location.state as any;
@@ -101,7 +103,6 @@ const ChatPage = () => {
       const room = await createRoom(title, state.inquiry.serviceId);
       if (room) {
         selectRoom(room.id);
-        // Clear location state to prevent re-creation
         navigate("/chat", { replace: true });
       }
     } else if (state.orderInfo) {
@@ -110,7 +111,6 @@ const ChatPage = () => {
       const room = await createRoom(title, state.orderInfo.serviceId);
       if (room) {
         selectRoom(room.id);
-        // Send order details as first message
         const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
         setTimeout(async () => {
           await sendMessage(orderMsg);
@@ -120,9 +120,7 @@ const ChatPage = () => {
     }
   }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage]);
 
-  useEffect(() => {
-    handleAutoCreate();
-  }, [handleAutoCreate]);
+  useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,8 +142,27 @@ const ChatPage = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await sendFile(file);
+    await sendFile(file, MAX_FILE_SIZE_MB);
     e.target.value = "";
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await sendFile(file, MAX_FILE_SIZE_MB);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
   };
 
   const handleCreateRoom = async () => {
@@ -164,7 +181,6 @@ const ChatPage = () => {
 
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
 
-  // Group messages by date
   const groupedMessages: { date: string; msgs: ChatMessage[] }[] = [];
   messages.forEach((msg) => {
     const date = formatDate(msg.created_at);
@@ -241,7 +257,21 @@ const ChatPage = () => {
           </div>
 
           {/* Messages area */}
-          <div className="flex-1 flex flex-col">
+          <div
+            className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 pointer-events-none">
+                <div className="bg-card rounded-xl px-8 py-6 shadow-lg border text-center">
+                  <Paperclip className="h-10 w-10 mx-auto mb-2 text-primary" />
+                  <p className="text-sm font-medium">파일을 여기에 놓으세요</p>
+                  <p className="text-xs text-muted-foreground mt-1">최대 {MAX_FILE_SIZE_MB}MB</p>
+                </div>
+              </div>
+            )}
             {selectedRoom ? (
               <>
                 <div className="p-4 border-b flex items-center justify-between">
@@ -308,7 +338,6 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* New room dialog */}
       <Dialog open={showNewRoom} onOpenChange={setShowNewRoom}>
         <DialogContent>
           <DialogHeader>

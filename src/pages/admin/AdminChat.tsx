@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, FileText, Download } from "lucide-react";
+import { Send, Paperclip, FileText, Download, Search } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -8,6 +8,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 }
 
 function formatFileSize(bytes: number) {
@@ -60,6 +65,8 @@ const AdminChat = () => {
   } = useChat();
 
   const [input, setInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,11 +90,46 @@ const AdminChat = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await sendFile(file);
+    await sendFile(file, 0); // no size limit for admin
     e.target.value = "";
   };
 
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await sendFile(file, 0); // no size limit for admin
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const filteredRooms = rooms.filter((r) =>
+    r.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+
+  // Group messages by date
+  const groupedMessages: { date: string; msgs: ChatMessage[] }[] = [];
+  messages.forEach((msg) => {
+    const date = formatDate(msg.created_at);
+    const last = groupedMessages[groupedMessages.length - 1];
+    if (last && last.date === date) {
+      last.msgs.push(msg);
+    } else {
+      groupedMessages.push({ date, msgs: [msg] });
+    }
+  });
 
   return (
     <AdminLayout>
@@ -95,13 +137,24 @@ const AdminChat = () => {
       <div className="flex border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 200px)" }}>
         {/* Room list */}
         <div className="w-72 border-r flex flex-col shrink-0">
+          <div className="p-3 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                placeholder="검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-3 rounded-lg border bg-secondary/50 text-sm focus:outline-none"
+              />
+            </div>
+          </div>
           <ScrollArea className="flex-1">
             {loadingRooms ? (
               <div className="p-4 text-center text-sm text-muted-foreground">로딩 중...</div>
-            ) : rooms.length === 0 ? (
+            ) : filteredRooms.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">채팅이 없습니다</div>
             ) : (
-              rooms.map((room) => (
+              filteredRooms.map((room) => (
                 <button
                   key={room.id}
                   onClick={() => selectRoom(room.id)}
@@ -130,18 +183,48 @@ const AdminChat = () => {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 flex flex-col">
+        <div
+          className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          {isDragging && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 pointer-events-none">
+              <div className="bg-card rounded-xl px-8 py-6 shadow-lg border text-center">
+                <Paperclip className="h-10 w-10 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium">파일을 여기에 놓으세요</p>
+                <p className="text-xs text-muted-foreground mt-1">용량 제한 없음</p>
+              </div>
+            </div>
+          )}
           {selectedRoom ? (
             <>
-              <div className="p-4 border-b font-medium text-sm">{selectedRoom.title}</div>
+              <div className="p-4 border-b flex items-center justify-between">
+                <span className="font-medium text-sm">{selectedRoom.title}</span>
+                {selectedRoom.status === "active" && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>
+                )}
+              </div>
               <ScrollArea className="flex-1 p-4">
-                <div className="space-y-3">
-                  {messages.map((msg) => (
-                    <AdminMessageBubble
-                      key={msg.id}
-                      msg={msg}
-                      isAdmin={msg.sender_id === user?.id}
-                    />
+                <div className="space-y-4">
+                  {groupedMessages.map((group) => (
+                    <div key={group.date}>
+                      <div className="flex justify-center mb-3">
+                        <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">
+                          {group.date}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {group.msgs.map((msg) => (
+                          <AdminMessageBubble
+                            key={msg.id}
+                            msg={msg}
+                            isAdmin={msg.sender_id === user?.id}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
