@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories } from "@/data/categories";
+import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
