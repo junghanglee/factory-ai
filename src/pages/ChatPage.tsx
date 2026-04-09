@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import ProjectPanel from "@/components/chat/ProjectPanel";
 const MAX_FILE_SIZE_MB = 100;
 
 function formatTime(dateStr: string) {
@@ -77,6 +77,7 @@ const ChatPage = () => {
   const {
     rooms, selectedRoomId, messages, loadingRooms,
     selectRoom, sendMessage, sendFile, createRoom,
+    project, projectFiles, confirmProject, requestRevision,
   } = useChat();
 
   const [messageInput, setMessageInput] = useState("");
@@ -335,6 +336,17 @@ const ChatPage = () => {
               </div>
             )}
           </div>
+
+          {/* Project Panel */}
+          {selectedRoom && project && (
+            <ProjectPanel
+              project={project}
+              projectFiles={projectFiles}
+              isAdmin={false}
+              onConfirmProject={confirmProject}
+              onRequestRevision={requestRevision}
+            />
+          )}
         </div>
       </div>
 
