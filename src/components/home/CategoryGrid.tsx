@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { LayoutGrid } from "lucide-react";
 import { categories } from "@/data/categories";
 
 const CategoryGrid = () => {
@@ -10,9 +11,9 @@ const CategoryGrid = () => {
             <Link
               key={cat.id}
               to={`/category/${cat.id}`}
-              className="group flex flex-col items-center gap-2.5 min-w-[100px] py-2"
+              className="group flex flex-col items-center gap-2 min-w-[110px] py-2"
             >
-              <div className="w-[64px] h-[64px] flex items-center justify-center transition-transform group-hover:scale-110">
+              <div className="w-[80px] h-[80px] flex items-center justify-center transition-transform group-hover:scale-110">
                 <img
                   src={cat.image}
                   alt={cat.name}
@@ -24,6 +25,19 @@ const CategoryGrid = () => {
               </span>
             </Link>
           ))}
+
+          {/* 전체보기 */}
+          <Link
+            to="/category/all"
+            className="group flex flex-col items-center gap-2 min-w-[110px] py-2"
+          >
+            <div className="w-[80px] h-[80px] rounded-2xl flex items-center justify-center bg-secondary transition-transform group-hover:scale-110">
+              <LayoutGrid className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <span className="text-[13px] text-muted-foreground group-hover:text-foreground whitespace-nowrap transition-colors font-medium">
+              전체보기
+            </span>
+          </Link>
         </div>
       </div>
     </section>
