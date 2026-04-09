@@ -31,7 +31,7 @@ const AdminCategories = () => {
     if (editIdx !== null) {
       setCats((prev) => prev.map((c, i) => (i === editIdx ? { ...c, ...form } : c)));
     } else {
-      setCats((prev) => [...prev, { ...form, id: form.id || `cat-${Date.now()}`, icon: prev[0]?.icon }]);
+      setCats((prev) => [...prev, { ...form, id: form.id || `cat-${Date.now()}`, image: prev[0]?.image }]);
     }
     setEditOpen(false);
   };

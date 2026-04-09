@@ -93,7 +93,7 @@ const Header = () => {
                       to={`/category/${cat.id}`}
                       className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
                     >
-                      <cat.icon className="h-4 w-4 text-muted-foreground" />
+                      <img src={cat.image} alt={cat.name} className="h-5 w-5 object-contain" />
                       <span>{cat.name}</span>
                     </Link>
                   ))}
@@ -138,7 +138,7 @@ const Header = () => {
                   className="flex items-center gap-3 px-3 py-3 text-[14px] rounded-lg hover:bg-secondary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <cat.icon className="h-4 w-4 text-muted-foreground" />
+                  <img src={cat.image} alt={cat.name} className="h-5 w-5 object-contain" />
                   {cat.name}
                 </Link>
               ))}
