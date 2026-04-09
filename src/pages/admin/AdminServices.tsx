@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Edit, Trash2, Save } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -30,6 +31,7 @@ const emptyPackage = (name: string, order: number): PackageForm => ({
 });
 
 const AdminServices = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: servicesData = [], isLoading } = useAllServicesWithPackages();
   const { data: categories = [] } = useCategories();
   const queryClient = useQueryClient();
@@ -48,6 +50,15 @@ const AdminServices = () => {
     setPkgForms([emptyPackage("Basic", 1), emptyPackage("Standard", 2), emptyPackage("Premium", 3)]);
     setEditOpen(true);
   };
+
+  // Auto-open new service dialog when navigating with ?action=new
+  useEffect(() => {
+    if (searchParams.get("action") === "new" && categories.length > 0 && !editOpen) {
+      openNew();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, categories]);
+
 
   const openEdit = (svc: typeof servicesData[0]) => {
     setEditId(svc.id);
