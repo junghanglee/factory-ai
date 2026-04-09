@@ -1,19 +1,12 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
-import { services } from "@/data/services";
-import { categories } from "@/data/categories";
+import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
-
-const packages = [
-  { name: "Basic", multiplier: 1, deliveryDays: 3, revisions: 1, features: ["기본 콘텐츠 1종", "1회 수정", "소스파일 미제공"] },
-  { name: "Standard", multiplier: 1.8, deliveryDays: 5, revisions: 3, features: ["콘텐츠 3종", "3회 수정", "소스파일 제공", "빠른 납기 옵션"] },
-  { name: "Premium", multiplier: 3, deliveryDays: 7, revisions: 5, features: ["콘텐츠 5종", "무제한 수정", "소스파일 제공", "빠른 납기", "전담 매니저"] },
-];
 
 const reviews = [
   { user: "김**", rating: 5, date: "2026.03.15", content: "퀄리티가 정말 좋습니다. 에이전시보다 훨씬 저렴하고 빠르게 받았어요!" },
@@ -23,8 +16,55 @@ const reviews = [
 
 const ServiceDetailPage = () => {
   const { id } = useParams();
-  const service = services.find((s) => s.id === id) || services[0];
-  const category = categories.find((c) => c.id === service.categoryId);
+  const navigate = useNavigate();
+  const { data: service, isLoading } = useService(id);
+  const { data: packages = [] } = useServicePackages(id);
+  const { data: categories = [] } = useCategories();
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">로딩 중...</div>
+      </MainLayout>
+    );
+  }
+
+  if (!service) {
+    return (
+      <MainLayout>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">서비스를 찾을 수 없습니다.</div>
+      </MainLayout>
+    );
+  }
+
+  const category = categories.find((c) => c.id === service.category_id);
+  const defaultTab = packages.length > 1 ? packages[1].name : packages[0]?.name || "Basic";
+
+  const handleOrder = (pkg: typeof packages[0]) => {
+    // 주문서를 채팅으로 전송 (향후 구현)
+    navigate("/chat", {
+      state: {
+        orderInfo: {
+          serviceId: service.id,
+          serviceTitle: service.title,
+          packageName: pkg.name,
+          price: pkg.price,
+          deliveryDays: pkg.delivery_days,
+        },
+      },
+    });
+  };
+
+  const handleInquiry = () => {
+    navigate("/chat", {
+      state: {
+        inquiry: {
+          serviceId: service.id,
+          serviceTitle: service.title,
+        },
+      },
+    });
+  };
 
   return (
     <MainLayout>
@@ -41,12 +81,10 @@ const ServiceDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left - Service info */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Image */}
             <div className="aspect-video rounded-xl overflow-hidden border">
-              <img src={service.thumbnail} alt={service.title} className="w-full h-full object-cover" />
+              <img src={service.thumbnail || "/placeholder.svg"} alt={service.title} className="w-full h-full object-cover" />
             </div>
 
-            {/* Title & meta */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
@@ -56,40 +94,53 @@ const ServiceDetailPage = () => {
                 <span className="font-medium text-foreground">{service.seller}</span>
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  {service.rating} ({service.reviewCount}개 리뷰)
+                  {service.rating} ({service.review_count}개 리뷰)
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {service.deliveryDays}일 이내 납품
+                  {service.delivery_days}일 이내 납품
                 </span>
               </div>
             </div>
 
-            {/* Description */}
             <div>
               <h2 className="text-lg font-semibold mb-3">서비스 설명</h2>
               <p className="text-muted-foreground leading-relaxed">{service.description}</p>
-              <div className="mt-4 p-4 rounded-lg bg-accent/50">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  AI팩토리의 전문 크리에이터가 최신 AI 기술을 활용하여 제작합니다. 
-                  기존 에이전시 대비 50% 이상 저렴하면서도 높은 퀄리티를 보장합니다.
-                  대량 주문 시 추가 할인이 적용됩니다.
-                </p>
-              </div>
+              {service.detailed_description && (
+                <div className="mt-4 p-4 rounded-lg bg-accent/50">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{service.detailed_description}</p>
+                </div>
+              )}
             </div>
 
+            {/* Portfolio images */}
+            {service.portfolio_images && service.portfolio_images.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3">포트폴리오</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {service.portfolio_images.map((img, idx) => (
+                    <div key={idx} className="aspect-video rounded-lg overflow-hidden border">
+                      <img src={img} alt={`포트폴리오 ${idx + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {service.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 text-sm rounded-full border text-muted-foreground">
-                  #{tag}
-                </span>
-              ))}
-            </div>
+            {service.tags && service.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {service.tags.map((tag) => (
+                  <span key={tag} className="px-3 py-1 text-sm rounded-full border text-muted-foreground">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Reviews */}
             <div>
-              <h2 className="text-lg font-semibold mb-4">리뷰 ({service.reviewCount})</h2>
+              <h2 className="text-lg font-semibold mb-4">리뷰 ({service.review_count})</h2>
               <div className="space-y-4">
                 {reviews.map((review, idx) => (
                   <div key={idx} className="p-4 border rounded-lg">
@@ -116,50 +167,69 @@ const ServiceDetailPage = () => {
             <div className="sticky top-24">
               <Card>
                 <CardContent className="p-0">
-                  <Tabs defaultValue="Standard">
-                    <TabsList className="w-full rounded-none border-b">
+                  {packages.length > 0 ? (
+                    <Tabs defaultValue={defaultTab}>
+                      <TabsList className="w-full rounded-none border-b">
+                        {packages.map((pkg) => (
+                          <TabsTrigger key={pkg.id} value={pkg.name} className="flex-1 text-sm">
+                            {pkg.name}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
                       {packages.map((pkg) => (
-                        <TabsTrigger key={pkg.name} value={pkg.name} className="flex-1 text-sm">
-                          {pkg.name}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                    {packages.map((pkg) => (
-                      <TabsContent key={pkg.name} value={pkg.name} className="p-5 space-y-4">
-                        <div>
-                          <span className="text-3xl font-bold text-foreground">
-                            {formatPrice(Math.round(service.price * pkg.multiplier))}원
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p>납기: {pkg.deliveryDays}일</p>
-                          <p>수정: {pkg.revisions === 5 ? "무제한" : `${pkg.revisions}회`}</p>
-                        </div>
-                        <ul className="space-y-2">
-                          {pkg.features.map((f) => (
-                            <li key={f} className="text-sm flex items-start gap-2">
-                              <span className="text-primary mt-0.5">✓</span>
-                              {f}
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="space-y-2 pt-2">
-                          <Link to="/order" className="block">
-                            <Button className="w-full gap-2">
+                        <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
+                          <div>
+                            <span className="text-3xl font-bold text-foreground">
+                              {formatPrice(pkg.price)}원
+                            </span>
+                            {service.original_price > pkg.price && (
+                              <span className="ml-2 text-sm line-through text-muted-foreground">
+                                {formatPrice(service.original_price)}원
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <p>납기: {pkg.delivery_days}일</p>
+                            <p>수정: {pkg.revisions}회</p>
+                          </div>
+                          {pkg.features && pkg.features.length > 0 && (
+                            <ul className="space-y-2">
+                              {pkg.features.map((f) => (
+                                <li key={f} className="text-sm flex items-start gap-2">
+                                  <span className="text-primary mt-0.5">✓</span>
+                                  {f}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          <div className="space-y-2 pt-2">
+                            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}>
                               <ShoppingCart className="h-4 w-4" />
-                              주문하기
+                              의뢰하기
                             </Button>
-                          </Link>
-                          <Link to="/chat" className="block">
-                            <Button variant="outline" className="w-full gap-2">
+                            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}>
                               <MessageCircle className="h-4 w-4" />
                               문의하기
                             </Button>
-                          </Link>
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </Tabs>
+                          </div>
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  ) : (
+                    <div className="p-5 space-y-4">
+                      <div>
+                        <span className="text-3xl font-bold text-foreground">
+                          {formatPrice(service.price)}원
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <Button className="w-full gap-2" onClick={handleInquiry}>
+                          <MessageCircle className="h-4 w-4" />
+                          문의하기
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
