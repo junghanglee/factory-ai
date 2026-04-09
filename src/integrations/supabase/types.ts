@@ -14,7 +14,350 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      banners: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          image_url: string | null
+          link_url: string | null
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          icon_name: string
+          id: string
+          name: string
+          service_count: number
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          name: string
+          service_count?: number
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          name?: string
+          service_count?: number
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      members: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          order_count: number
+          phone: string | null
+          status: string
+          total_spent: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          order_count?: number
+          phone?: string | null
+          status?: string
+          total_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          order_count?: number
+          phone?: string | null
+          status?: string
+          total_spent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      portfolio_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_files: {
+        Row: {
+          id: string
+          name: string
+          project_id: string
+          uploaded_at: string
+          url: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          project_id: string
+          uploaded_at?: string
+          url: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          project_id?: string
+          uploaded_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          completed_date: string | null
+          confirm_status: string
+          created_at: string
+          customer: string
+          customer_id: string | null
+          due_date: string
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          package_name: string | null
+          price: number
+          service_title: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_date?: string | null
+          confirm_status?: string
+          created_at?: string
+          customer: string
+          customer_id?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          package_name?: string | null
+          price?: number
+          service_title: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_date?: string | null
+          confirm_status?: string
+          created_at?: string
+          customer?: string
+          customer_id?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          package_name?: string | null
+          price?: number
+          service_title?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_packages: {
+        Row: {
+          created_at: string
+          delivery_days: number
+          features: string[] | null
+          id: string
+          name: string
+          price: number
+          revisions: number
+          service_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          delivery_days?: number
+          features?: string[] | null
+          id?: string
+          name: string
+          price?: number
+          revisions?: number
+          service_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          delivery_days?: number
+          features?: string[] | null
+          id?: string
+          name?: string
+          price?: number
+          revisions?: number
+          service_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_packages_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          delivery_days: number
+          description: string | null
+          detailed_description: string | null
+          id: string
+          original_price: number
+          portfolio_images: string[] | null
+          price: number
+          rating: number
+          review_count: number
+          seller: string | null
+          tags: string[] | null
+          thumbnail: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          delivery_days?: number
+          description?: string | null
+          detailed_description?: string | null
+          id?: string
+          original_price?: number
+          portfolio_images?: string[] | null
+          price?: number
+          rating?: number
+          review_count?: number
+          seller?: string | null
+          tags?: string[] | null
+          thumbnail?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          delivery_days?: number
+          description?: string | null
+          detailed_description?: string | null
+          id?: string
+          original_price?: number
+          portfolio_images?: string[] | null
+          price?: number
+          rating?: number
+          review_count?: number
+          seller?: string | null
+          tags?: string[] | null
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
