@@ -3,30 +3,32 @@ import { categories } from "@/data/categories";
 
 const Footer = () => {
   return (
-    <footer className="bg-foreground text-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="bg-secondary border-t border-border">
+      <div className="max-w-[1200px] mx-auto px-5 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "var(--gradient-primary)" }}>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div
+                className="w-7 h-7 rounded-md flex items-center justify-center text-primary-foreground font-bold text-[10px]"
+                style={{ background: "var(--gradient-primary)" }}
+              >
                 AI
               </div>
-              <span className="text-xl font-bold">AI팩토리</span>
+              <span className="text-[18px] font-bold text-foreground">AI팩토리</span>
             </div>
-            <p className="text-sm opacity-70 leading-relaxed">
-              AI로 만드는 콘텐츠,<br />
-              에이전시 반값에 빠르고 높은 퀄리티로.
+            <p className="text-[13px] text-muted-foreground leading-relaxed">
+              AI로 만드는 콘텐츠,<br />에이전시 반값에.
             </p>
           </div>
 
           {/* Categories */}
           <div>
-            <h3 className="font-semibold mb-4 text-sm">서비스 카테고리</h3>
+            <h3 className="text-[13px] font-semibold text-foreground mb-3">카테고리</h3>
             <ul className="space-y-2">
               {categories.map((cat) => (
                 <li key={cat.id}>
-                  <Link to={`/category/${cat.id}`} className="text-sm opacity-70 hover:opacity-100 transition-opacity">
+                  <Link to={`/category/${cat.id}`} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
                     {cat.name}
                   </Link>
                 </li>
@@ -36,28 +38,28 @@ const Footer = () => {
 
           {/* Support */}
           <div>
-            <h3 className="font-semibold mb-4 text-sm">고객 지원</h3>
-            <ul className="space-y-2 text-sm opacity-70">
-              <li><Link to="/chat" className="hover:opacity-100">1:1 문의</Link></li>
-              <li><a href="#" className="hover:opacity-100">자주 묻는 질문</a></li>
-              <li><a href="#" className="hover:opacity-100">이용 가이드</a></li>
-              <li><a href="#" className="hover:opacity-100">환불 정책</a></li>
+            <h3 className="text-[13px] font-semibold text-foreground mb-3">고객 지원</h3>
+            <ul className="space-y-2 text-[13px] text-muted-foreground">
+              <li><Link to="/chat" className="hover:text-foreground transition-colors">1:1 문의</Link></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">자주 묻는 질문</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">이용 가이드</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">환불 정책</a></li>
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold mb-4 text-sm">회사 정보</h3>
-            <ul className="space-y-2 text-sm opacity-70">
-              <li><a href="#" className="hover:opacity-100">회사 소개</a></li>
-              <li><a href="#" className="hover:opacity-100">이용약관</a></li>
-              <li><a href="#" className="hover:opacity-100">개인정보처리방침</a></li>
-              <li><a href="#" className="hover:opacity-100">파트너 등록</a></li>
+            <h3 className="text-[13px] font-semibold text-foreground mb-3">회사</h3>
+            <ul className="space-y-2 text-[13px] text-muted-foreground">
+              <li><a href="#" className="hover:text-foreground transition-colors">회사 소개</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">이용약관</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">개인정보처리방침</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">파트너 등록</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-background/20 mt-8 pt-8 text-center text-sm opacity-50">
+        <div className="border-t border-border mt-8 pt-6 text-center text-[12px] text-muted-foreground">
           © 2026 AI팩토리. All rights reserved.
         </div>
       </div>
