@@ -15,6 +15,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminProjects from "./pages/admin/AdminProjects";
 import AdminChat from "./pages/admin/AdminChat";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminMembers from "./pages/admin/AdminMembers";
+import AdminBanners from "./pages/admin/AdminBanners";
+import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +39,11 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
           <Route path="/admin/services" element={<AdminServices />} />
+          <Route path="/admin/banners" element={<AdminBanners />} />
+          <Route path="/admin/portfolio" element={<AdminPortfolio />} />
+          <Route path="/admin/members" element={<AdminMembers />} />
           <Route path="/admin/projects" element={<AdminProjects />} />
           <Route path="/admin/chat" element={<AdminChat />} />
           <Route path="*" element={<NotFound />} />

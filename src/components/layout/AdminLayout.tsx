@@ -1,49 +1,163 @@
-import { Link, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, Package, FolderKanban, MessageCircle, ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard, Globe, Layers, Package, Image, Briefcase,
+  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { to: "/admin", icon: LayoutDashboard, label: "대시보드" },
-  { to: "/admin/services", icon: Package, label: "서비스 관리" },
-  { to: "/admin/projects", icon: FolderKanban, label: "프로젝트 관리" },
-  { to: "/admin/chat", icon: MessageCircle, label: "채팅 관리" },
+interface NavItem {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+}
+
+interface NavGroup {
+  label: string;
+  icon: React.ElementType;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: "사이트관리",
+    icon: Globe,
+    items: [
+      { to: "/admin/categories", icon: Layers, label: "카테고리 관리" },
+      { to: "/admin/services", icon: Package, label: "서비스 관리" },
+      { to: "/admin/banners", icon: Image, label: "배너 관리" },
+      { to: "/admin/portfolio", icon: Briefcase, label: "포트폴리오 관리" },
+    ],
+  },
+  {
+    label: "회원관리",
+    icon: Users,
+    items: [
+      { to: "/admin/members", icon: Users, label: "회원 목록" },
+    ],
+  },
+  {
+    label: "채팅관리",
+    icon: MessageCircle,
+    items: [
+      { to: "/admin/chat", icon: MessageCircle, label: "채팅 관리" },
+    ],
+  },
+  {
+    label: "제작/납품관리",
+    icon: FolderKanban,
+    items: [
+      { to: "/admin/projects", icon: FolderKanban, label: "프로젝트 관리" },
+    ],
+  },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    navGroups.forEach((g) => {
+      init[g.label] = g.items.some((i) => location.pathname === i.to);
+    });
+    // default open first group
+    if (!Object.values(init).some(Boolean)) init[navGroups[0].label] = true;
+    return init;
+  });
+
+  const toggleGroup = (label: string) =>
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
 
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-foreground text-background shrink-0 flex flex-col">
-        <div className="p-5 border-b border-background/10">
+      <aside className="w-64 shrink-0 flex flex-col" style={{ background: "#1a1a2e" }}>
+        {/* Logo */}
+        <div className="p-5 border-b border-white/10">
           <Link to="/admin" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: "var(--gradient-primary)" }}>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
+              style={{ background: "linear-gradient(135deg, hsl(246,65%,56%), hsl(210,100%,56%))" }}
+            >
               AI
             </div>
-            <span className="font-bold">AI팩토리 관리자</span>
+            <span className="font-bold text-white">AI팩토리 관리자</span>
           </Link>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
-            const active = location.pathname === item.to;
+
+        {/* Dashboard link */}
+        <div className="px-3 pt-3">
+          <Link
+            to="/admin"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+              location.pathname === "/admin"
+                ? "bg-white/15 text-white font-medium"
+                : "text-white/60 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            대시보드
+          </Link>
+        </div>
+
+        {/* Nav groups */}
+        <nav className="flex-1 px-3 pt-2 pb-3 space-y-1 overflow-y-auto">
+          {navGroups.map((group) => {
+            const isOpen = openGroups[group.label];
+            const hasActive = group.items.some((i) => location.pathname === i.to);
+
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                  active ? "bg-background/15 text-background font-medium" : "text-background/60 hover:text-background hover:bg-background/10"
+              <div key={group.label}>
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    hasActive ? "text-white" : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <group.icon className="h-4 w-4" />
+                    <span className="font-medium">{group.label}</span>
+                  </div>
+                  {isOpen ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="ml-4 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
+                    {group.items.map((item) => {
+                      const active = location.pathname === item.to;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                            active
+                              ? "bg-white/15 text-white font-medium"
+                              : "text-white/50 hover:text-white hover:bg-white/8"
+                          )}
+                        >
+                          <item.icon className="h-3.5 w-3.5" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              </div>
             );
           })}
         </nav>
-        <div className="p-3 border-t border-background/10">
-          <Link to="/" className="flex items-center gap-2 px-3 py-2 text-sm text-background/60 hover:text-background">
+
+        {/* Back to site */}
+        <div className="p-3 border-t border-white/10">
+          <Link
+            to="/"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white transition-colors"
+          >
             <ChevronLeft className="h-4 w-4" />
             사이트로 돌아가기
           </Link>
@@ -51,7 +165,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 bg-secondary/30 p-8 overflow-auto">
+      <main className="flex-1 bg-gray-50 p-8 overflow-auto">
         {children}
       </main>
     </div>
