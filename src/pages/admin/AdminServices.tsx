@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Edit, Trash2, Save } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -30,6 +31,7 @@ const emptyPackage = (name: string, order: number): PackageForm => ({
 });
 
 const AdminServices = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: servicesData = [], isLoading } = useAllServicesWithPackages();
   const { data: categories = [] } = useCategories();
   const queryClient = useQueryClient();
