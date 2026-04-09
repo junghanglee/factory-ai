@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Search, Plus, Image, Film, FileText, X, Download } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Send, Paperclip, Search, Plus, FileText, Download } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
