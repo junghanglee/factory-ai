@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Globe, Layers, Package, Image, Briefcase,
+  LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ const navGroups: NavGroup[] = [
     items: [
       { to: "/admin/categories", icon: Layers, label: "카테고리 관리" },
       { to: "/admin/services", icon: Package, label: "서비스 관리" },
+      { to: "/admin/services?action=new", icon: Plus, label: "서비스 등록" },
       { to: "/admin/banners", icon: Image, label: "배너 관리" },
       { to: "/admin/portfolio", icon: Briefcase, label: "포트폴리오 관리" },
     ],
