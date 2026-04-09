@@ -1,65 +1,136 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
-import { services } from "@/data/services";
-import { Card, CardContent } from "@/components/ui/card";
+import { Star, Plus } from "lucide-react";
+import { services, type Service } from "@/data/services";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
-const PopularServices = () => {
+// Grouped service sections like kmong's "~가 많이 찾아요" pattern
+const sections = [
+  {
+    title: "AI 콘텐츠",
+    highlight: "가 필요할 때",
+    tabs: [
+      { label: "로고 디자인", categoryId: "ai-image" },
+      { label: "상세페이지", categoryId: "ai-image" },
+      { label: "숏폼 영상", categoryId: "ai-video" },
+      { label: "광고 소재", categoryId: "ai-ads" },
+    ],
+  },
+  {
+    title: "마케팅/글쓰기",
+    highlight: "가 필요할 때",
+    tabs: [
+      { label: "블로그 글", categoryId: "ai-writing" },
+      { label: "광고카피", categoryId: "ai-writing" },
+      { label: "배경음악", categoryId: "ai-music" },
+      { label: "AI 챗봇", categoryId: "ai-assistant" },
+    ],
+  },
+];
+
+const ServiceCard = ({ service }: { service: Service }) => (
+  <Link to={`/service/${service.id}`} className="group block">
+    <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary">
+      <img
+        src={service.thumbnail}
+        alt={service.title}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+    </div>
+    <h3 className="text-[14px] text-foreground leading-snug line-clamp-2 mb-2 min-h-[2.5rem] font-normal">
+      {service.title}
+    </h3>
+    <div className="flex items-center gap-1 mb-1.5">
+      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+      <span className="text-[13px] font-medium text-foreground">{service.rating}</span>
+      <span className="text-[13px] text-muted-foreground">({service.reviewCount})</span>
+    </div>
+    <p className="text-[15px] font-medium text-foreground">{formatPrice(service.price)}원~</p>
+    <div className="flex items-center gap-1.5 mt-2">
+      <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+        {service.seller[0]}
+      </div>
+      <span className="text-[12px] text-muted-foreground">{service.seller}</span>
+    </div>
+  </Link>
+);
+
+const TabbedSection = ({
+  title,
+  highlight,
+  tabs,
+}: {
+  title: string;
+  highlight: string;
+  tabs: { label: string; categoryId: string }[];
+}) => {
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Get services for the active tab (cycling through available services for demo)
+  const tabServices = services.filter((s) => s.categoryId === tabs[activeTab].categoryId);
+  const displayServices = tabServices.length >= 4 ? tabServices.slice(0, 4) : [...services].slice(0, 4);
+
   return (
-    <section className="py-16 bg-secondary/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-foreground">인기 서비스</h2>
-          <Link to="/category/ai-image" className="text-sm text-primary hover:underline">
-            전체보기 →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.slice(0, 8).map((service) => (
-            <Link key={service.id} to={`/service/${service.id}`}>
-              <Card className="overflow-hidden group hover:shadow-lg transition-all duration-200 border-transparent hover:border-primary/20">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={service.thumbnail}
-                    alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground mb-1">{service.seller}</p>
-                  <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-2 leading-snug min-h-[2.5rem]">
-                    {service.title}
-                  </h3>
-                  <div className="flex items-center gap-1 mb-2">
-                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{service.rating}</span>
-                    <span className="text-xs text-muted-foreground">({service.reviewCount})</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-foreground">
-                      {formatPrice(service.price)}원
-                    </span>
-                    <span className="text-sm text-muted-foreground line-through">
-                      {formatPrice(service.originalPrice)}원
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive/10 text-destructive">
-                      {Math.round((1 - service.price / service.originalPrice) * 100)}% 할인
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {service.deliveryDays}일 이내
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+    <section className="py-12">
+      <div className="max-w-[1200px] mx-auto px-5">
+        <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-12">
+          {/* Left title */}
+          <div className="shrink-0 md:w-[200px] md:pt-1">
+            <h2 className="text-[24px] md:text-[28px] font-bold text-foreground leading-tight">
+              <span className="text-foreground">{title}</span>
+              {highlight}
+            </h2>
+          </div>
+
+          {/* Right content */}
+          <div className="flex-1 min-w-0">
+            {/* Tabs */}
+            <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
+              {tabs.map((tab, idx) => (
+                <button
+                  key={tab.label}
+                  onClick={() => setActiveTab(idx)}
+                  className={`flex items-center justify-between gap-4 px-5 py-2.5 rounded-lg border text-[14px] whitespace-nowrap transition-colors min-w-[140px] ${
+                    activeTab === idx
+                      ? "border-foreground text-foreground font-medium"
+                      : "border-border text-muted-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+
+            {/* Service cards grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {displayServices.map((service) => (
+                <ServiceCard key={service.id} service={service} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
+  );
+};
+
+const PopularServices = () => {
+  return (
+    <>
+      {sections.map((section, idx) => (
+        <div key={section.title}>
+          {idx > 0 && <div className="border-t border-border" />}
+          <TabbedSection
+            title={section.title}
+            highlight={section.highlight}
+            tabs={section.tabs}
+          />
+        </div>
+      ))}
+    </>
   );
 };
 
