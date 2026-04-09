@@ -1,0 +1,60 @@
+import { Image, Video, PenTool, Music, Bot, Gamepad2, Megaphone } from "lucide-react";
+
+export const categories = [
+  {
+    id: "ai-image",
+    name: "AI 이미지/디자인",
+    icon: Image,
+    description: "로고, 배너, 상세페이지, 썸네일, 일러스트",
+    color: "hsl(246, 65%, 56%)",
+    serviceCount: 128,
+  },
+  {
+    id: "ai-video",
+    name: "AI 영상/모션",
+    icon: Video,
+    description: "숏폼, 제품영상, 모션그래픽, AI 아바타 영상",
+    color: "hsl(210, 100%, 56%)",
+    serviceCount: 85,
+  },
+  {
+    id: "ai-writing",
+    name: "AI 글/카피라이팅",
+    icon: PenTool,
+    description: "블로그, SNS, 광고카피, 번역",
+    color: "hsl(160, 70%, 42%)",
+    serviceCount: 96,
+  },
+  {
+    id: "ai-music",
+    name: "AI 음악/보이스",
+    icon: Music,
+    description: "배경음악, TTS, 나레이션, 효과음",
+    color: "hsl(340, 75%, 55%)",
+    serviceCount: 54,
+  },
+  {
+    id: "ai-assistant",
+    name: "AI 비서 구축 & 크레딧",
+    icon: Bot,
+    description: "챗봇, 자동화, API 연동",
+    color: "hsl(30, 90%, 55%)",
+    serviceCount: 42,
+  },
+  {
+    id: "ai-webtoon",
+    name: "AI 웹툰/미니게임",
+    icon: Gamepad2,
+    description: "AI 웹툰 제작, 미니게임 개발",
+    color: "hsl(280, 65%, 55%)",
+    serviceCount: 37,
+  },
+  {
+    id: "ai-ads",
+    name: "AI 광고 제작",
+    icon: Megaphone,
+    description: "퍼포먼스 광고, SNS 광고 소재",
+    color: "hsl(0, 75%, 55%)",
+    serviceCount: 63,
+  },
+];
