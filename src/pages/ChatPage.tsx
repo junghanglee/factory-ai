@@ -61,7 +61,6 @@ const ChatPage = () => {
       return;
     }
     if (state.inquiry) {
-    if (state.inquiry) {
       setAutoCreated(true);
       const title = `[문의] ${state.inquiry.serviceTitle}`;
       const room = await createRoom(title, state.inquiry.serviceId);
