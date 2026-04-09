@@ -51,6 +51,15 @@ const AdminServices = () => {
     setEditOpen(true);
   };
 
+  // Auto-open new service dialog when navigating with ?action=new
+  useEffect(() => {
+    if (searchParams.get("action") === "new" && categories.length > 0 && !editOpen) {
+      openNew();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, categories]);
+
+
   const openEdit = (svc: typeof servicesData[0]) => {
     setEditId(svc.id);
     setForm({
