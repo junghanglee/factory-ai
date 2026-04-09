@@ -89,6 +89,119 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_read: boolean
+          message: string | null
+          message_type: string
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          message_type?: string
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          message_type?: string
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          last_message: string | null
+          last_message_at: string | null
+          project_id: string | null
+          service_id: string | null
+          status: string
+          title: string
+          unread_admin: number
+          unread_customer: number
+          updated_at: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          project_id?: string | null
+          service_id?: string | null
+          status?: string
+          title?: string
+          unread_admin?: number
+          unread_customer?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          project_id?: string | null
+          service_id?: string | null
+          status?: string
+          title?: string
+          unread_admin?: number
+          unread_customer?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_rooms_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_rooms_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           created_at: string
