@@ -109,7 +109,14 @@ const ChatPage = () => {
     } else if (state.orderInfo) {
       setAutoCreated(true);
       const title = `[의뢰] ${state.orderInfo.serviceTitle}`;
-      const room = await createRoom(title, state.orderInfo.serviceId);
+      const orderMeta = {
+        serviceTitle: state.orderInfo.serviceTitle,
+        packageName: state.orderInfo.packageName,
+        price: state.orderInfo.price,
+        deliveryDays: state.orderInfo.deliveryDays,
+        serviceId: state.orderInfo.serviceId,
+      };
+      const room = await createRoom(title, state.orderInfo.serviceId, orderMeta);
       if (room) {
         selectRoom(room.id);
         const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;

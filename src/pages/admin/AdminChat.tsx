@@ -202,7 +202,20 @@ const AdminChat = () => {
                 <span className="font-medium text-sm">{selectedRoom.title}</span>
                 <div className="flex items-center gap-2">
                   {!project && (
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowCreateProject(true)}>
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
+                      const meta = selectedRoom?.metadata as any;
+                      if (meta?.serviceTitle) {
+                        setNewProject({
+                          serviceTitle: meta.serviceTitle || "",
+                          packageName: meta.packageName || "",
+                          price: meta.price || 0,
+                          deliveryDays: meta.deliveryDays || 7,
+                        });
+                      } else {
+                        setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7 });
+                      }
+                      setShowCreateProject(true);
+                    }}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> 프로젝트 생성
                     </Button>
                   )}

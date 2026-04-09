@@ -147,6 +147,7 @@ export type Database = {
           id: string
           last_message: string | null
           last_message_at: string | null
+          metadata: Json | null
           project_id: string | null
           service_id: string | null
           status: string
@@ -162,6 +163,7 @@ export type Database = {
           id?: string
           last_message?: string | null
           last_message_at?: string | null
+          metadata?: Json | null
           project_id?: string | null
           service_id?: string | null
           status?: string
@@ -177,6 +179,7 @@ export type Database = {
           id?: string
           last_message?: string | null
           last_message_at?: string | null
+          metadata?: Json | null
           project_id?: string | null
           service_id?: string | null
           status?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.chat_rooms ADD COLUMN metadata jsonb DEFAULT '{}'::jsonb;
