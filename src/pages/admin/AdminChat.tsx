@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, FileText, Download, Search } from "lucide-react";
+import { Send, Paperclip, FileText, Download, Search, Plus } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import ProjectPanel from "@/components/chat/ProjectPanel";
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -62,11 +65,17 @@ const AdminChat = () => {
   const {
     rooms, selectedRoomId, messages, loadingRooms,
     selectRoom, sendMessage, sendFile, user,
+    project, projectFiles,
+    createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
 
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [newProject, setNewProject] = useState({
+    serviceTitle: "", packageName: "", price: 0, deliveryDays: 7,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,7 +99,7 @@ const AdminChat = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await sendFile(file, 0); // no size limit for admin
+    await sendFile(file, 0);
     e.target.value = "";
   };
 
@@ -99,37 +108,37 @@ const AdminChat = () => {
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
     for (const file of files) {
-      await sendFile(file, 0); // no size limit for admin
+      await sendFile(file, 0);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const filteredRooms = rooms.filter((r) =>
-    r.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
 
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+  const filteredRooms = rooms.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // Group messages by date
   const groupedMessages: { date: string; msgs: ChatMessage[] }[] = [];
   messages.forEach((msg) => {
     const date = formatDate(msg.created_at);
     const last = groupedMessages[groupedMessages.length - 1];
-    if (last && last.date === date) {
-      last.msgs.push(msg);
-    } else {
-      groupedMessages.push({ date, msgs: [msg] });
-    }
+    if (last && last.date === date) last.msgs.push(msg);
+    else groupedMessages.push({ date, msgs: [msg] });
   });
+
+  const handleCreateProject = async () => {
+    if (!selectedRoom || !newProject.serviceTitle.trim()) return;
+    await createProjectFromChat({
+      serviceTitle: newProject.serviceTitle,
+      packageName: newProject.packageName || undefined,
+      price: newProject.price,
+      deliveryDays: newProject.deliveryDays,
+      customerName: selectedRoom.title,
+      customerId: selectedRoom.customer_id,
+    });
+    setShowCreateProject(false);
+    setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7 });
+  };
 
   return (
     <AdminLayout>
@@ -140,12 +149,8 @@ const AdminChat = () => {
           <div className="p-3 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                placeholder="검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-lg border bg-secondary/50 text-sm focus:outline-none"
-              />
+              <input placeholder="검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-3 rounded-lg border bg-secondary/50 text-sm focus:outline-none" />
             </div>
           </div>
           <ScrollArea className="flex-1">
@@ -155,17 +160,12 @@ const AdminChat = () => {
               <div className="p-4 text-center text-sm text-muted-foreground">채팅이 없습니다</div>
             ) : (
               filteredRooms.map((room) => (
-                <button
-                  key={room.id}
-                  onClick={() => selectRoom(room.id)}
-                  className={`w-full p-4 text-left border-b hover:bg-accent/50 transition-colors ${selectedRoomId === room.id ? "bg-accent" : ""}`}
-                >
+                <button key={room.id} onClick={() => selectRoom(room.id)}
+                  className={`w-full p-4 text-left border-b hover:bg-accent/50 transition-colors ${selectedRoomId === room.id ? "bg-accent" : ""}`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-sm truncate">{room.title}</span>
                     {room.last_message_at && (
-                      <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                        {formatTime(room.last_message_at)}
-                      </span>
+                      <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatTime(room.last_message_at)}</span>
                     )}
                   </div>
                   <div className="flex items-center justify-between">
@@ -185,9 +185,7 @@ const AdminChat = () => {
         {/* Messages */}
         <div
           className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}
         >
           {isDragging && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 pointer-events-none">
@@ -202,26 +200,27 @@ const AdminChat = () => {
             <>
               <div className="p-4 border-b flex items-center justify-between">
                 <span className="font-medium text-sm">{selectedRoom.title}</span>
-                {selectedRoom.status === "active" && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {!project && (
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowCreateProject(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" /> 프로젝트 생성
+                    </Button>
+                  )}
+                  {selectedRoom.status === "active" && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>
+                  )}
+                </div>
               </div>
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {groupedMessages.map((group) => (
                     <div key={group.date}>
                       <div className="flex justify-center mb-3">
-                        <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">
-                          {group.date}
-                        </span>
+                        <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">{group.date}</span>
                       </div>
                       <div className="space-y-3">
                         {group.msgs.map((msg) => (
-                          <AdminMessageBubble
-                            key={msg.id}
-                            msg={msg}
-                            isAdmin={msg.sender_id === user?.id}
-                          />
+                          <AdminMessageBubble key={msg.id} msg={msg} isAdmin={msg.sender_id === user?.id} />
                         ))}
                       </div>
                     </div>
@@ -234,25 +233,63 @@ const AdminChat = () => {
                 <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
                   <Paperclip className="h-5 w-5" />
                 </button>
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                   placeholder="답변을 입력하세요..."
-                  className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+                  className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim()}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-              채팅방을 선택하세요
-            </div>
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">채팅방을 선택하세요</div>
           )}
         </div>
+
+        {/* Project Panel */}
+        {selectedRoom && project && (
+          <ProjectPanel
+            project={project}
+            projectFiles={projectFiles}
+            isAdmin={true}
+            onUpdateStatus={updateProjectStatus}
+            onUploadDeliverable={uploadDeliverable}
+          />
+        )}
       </div>
+
+      {/* Create project dialog */}
+      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>프로젝트 생성</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">서비스명 *</label>
+              <Input value={newProject.serviceTitle} onChange={(e) => setNewProject(p => ({ ...p, serviceTitle: e.target.value }))}
+                placeholder="예: AI 이미지 제작" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">패키지명</label>
+              <Input value={newProject.packageName} onChange={(e) => setNewProject(p => ({ ...p, packageName: e.target.value }))}
+                placeholder="예: 프리미엄" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">금액 (원)</label>
+                <Input type="number" value={newProject.price} onChange={(e) => setNewProject(p => ({ ...p, price: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">납기 (일)</label>
+                <Input type="number" value={newProject.deliveryDays} onChange={(e) => setNewProject(p => ({ ...p, deliveryDays: Number(e.target.value) }))} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateProject(false)}>취소</Button>
+            <Button onClick={handleCreateProject} disabled={!newProject.serviceTitle.trim()}>생성하기</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
