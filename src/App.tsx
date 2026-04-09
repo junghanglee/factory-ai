@@ -15,6 +15,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminProjects from "./pages/admin/AdminProjects";
 import AdminChat from "./pages/admin/AdminChat";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminMembers from "./pages/admin/AdminMembers";
+import AdminBanners from "./pages/admin/AdminBanners";
+import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
