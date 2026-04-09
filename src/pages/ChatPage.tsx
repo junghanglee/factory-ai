@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Search, Plus, Image, Film, FileText, X, Download } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Send, Paperclip, Search, Plus, FileText, Download } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -71,6 +71,7 @@ function MessageBubble({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
 const ChatPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     rooms, selectedRoomId, messages, loadingRooms,
     selectRoom, sendMessage, sendFile, createRoom,
@@ -82,10 +83,46 @@ const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [autoCreated, setAutoCreated] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
+
+  // Auto-create chat room from service inquiry or order
+  const handleAutoCreate = useCallback(async () => {
+    if (autoCreated || loadingRooms || !user) return;
+    const state = location.state as any;
+    if (!state) return;
+
+    if (state.inquiry) {
+      setAutoCreated(true);
+      const title = `[문의] ${state.inquiry.serviceTitle}`;
+      const room = await createRoom(title, state.inquiry.serviceId);
+      if (room) {
+        selectRoom(room.id);
+        // Clear location state to prevent re-creation
+        navigate("/chat", { replace: true });
+      }
+    } else if (state.orderInfo) {
+      setAutoCreated(true);
+      const title = `[의뢰] ${state.orderInfo.serviceTitle}`;
+      const room = await createRoom(title, state.orderInfo.serviceId);
+      if (room) {
+        selectRoom(room.id);
+        // Send order details as first message
+        const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
+        setTimeout(async () => {
+          await sendMessage(orderMsg);
+        }, 500);
+        navigate("/chat", { replace: true });
+      }
+    }
+  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage]);
+
+  useEffect(() => {
+    handleAutoCreate();
+  }, [handleAutoCreate]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
