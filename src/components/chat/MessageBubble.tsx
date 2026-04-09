@@ -1,0 +1,132 @@
+import { useState } from "react";
+import { FileText, Download, Play, MessageCircle, Reply } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { ChatMessage } from "@/hooks/useChat";
+import VideoReviewDialog from "./VideoReviewDialog";
+
+function formatTime(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return bytes + "B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + "KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + "MB";
+}
+
+interface MessageBubbleProps {
+  msg: ChatMessage;
+  isMine: boolean;
+  onReply?: (msg: ChatMessage) => void;
+  roomId?: string;
+}
+
+export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageBubbleProps) {
+  const [showReview, setShowReview] = useState(false);
+  const bubbleClass = isMine ? "bg-primary text-primary-foreground" : "bg-secondary";
+  const timeClass = isMine ? "text-primary-foreground/70" : "text-muted-foreground";
+
+  const isConfirmVideo = msg.message_type === "confirm_video";
+  const isImage = msg.message_type === "image";
+  const isVideo = msg.message_type === "video" || isConfirmVideo;
+  const isFile = msg.message_type === "file";
+
+  // Extract text message from file messages (after the file info)
+  const textMessage = msg.message_type === "text" || msg.message_type === "order"
+    ? msg.message
+    : null;
+
+  // For file messages, show attached text if it exists and differs from filename
+  const attachedText = (isImage || isVideo || isFile) && msg.message && msg.file_name && msg.message !== msg.file_name && !msg.message.startsWith("📎") && !msg.message.startsWith("📦")
+    ? msg.message
+    : null;
+
+  return (
+    <div className={`flex ${isMine ? "justify-end" : "justify-start"} group`}>
+      <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${bubbleClass} relative`}>
+        {/* Image - 40% smaller */}
+        {isImage && msg.file_url && (
+          <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
+            <img src={msg.file_url} alt={msg.file_name || "image"} className="rounded-lg max-w-full max-h-36 mb-1" />
+          </a>
+        )}
+
+        {/* Video - 40% smaller */}
+        {isVideo && msg.file_url && (
+          <div className="relative">
+            <video src={msg.file_url} controls className="rounded-lg max-w-full max-h-36 mb-1" />
+            {isConfirmVideo && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute bottom-3 right-2 text-xs h-7 gap-1"
+                onClick={() => setShowReview(true)}
+              >
+                <MessageCircle className="h-3 w-3" /> 피드백
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* File - compact */}
+        {isFile && msg.file_url && (
+          <a href={msg.file_url} target="_blank" rel="noopener noreferrer"
+            className={`flex items-center gap-2 p-1.5 rounded-lg mb-1 ${isMine ? "bg-primary-foreground/10" : "bg-background/50"}`}>
+            <FileText className="h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs truncate">{msg.file_name}</p>
+              {msg.file_size && <p className={`text-[10px] ${timeClass}`}>{formatFileSize(msg.file_size)}</p>}
+            </div>
+            <Download className="h-3.5 w-3.5 shrink-0 ml-auto" />
+          </a>
+        )}
+
+        {/* Attached text message for file messages */}
+        {attachedText && (
+          <p className="text-sm whitespace-pre-wrap mt-1">{attachedText}</p>
+        )}
+
+        {/* Text / Order messages */}
+        {msg.message_type === "text" && msg.message && (
+          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+        )}
+        {msg.message_type === "order" && msg.message && (
+          <div className="text-sm">
+            <p className="font-semibold mb-1">📋 주문서</p>
+            <p className="whitespace-pre-wrap">{msg.message}</p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 mt-1">
+          <p className={`text-xs ${timeClass}`}>{formatTime(msg.created_at)}</p>
+        </div>
+
+        {/* Hover actions */}
+        <div className={`absolute top-1 ${isMine ? "left-0 -translate-x-full pl-0 pr-1" : "right-0 translate-x-full pl-1 pr-0"} hidden group-hover:flex items-center gap-0.5`}>
+          {msg.file_url && (
+            <a href={msg.file_url} download={msg.file_name} target="_blank" rel="noopener noreferrer"
+              className="p-1 rounded hover:bg-accent" title="다운로드">
+              <Download className="h-3.5 w-3.5 text-muted-foreground" />
+            </a>
+          )}
+          {onReply && (
+            <button onClick={() => onReply(msg)} className="p-1 rounded hover:bg-accent" title="답장">
+              <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {isConfirmVideo && showReview && roomId && (
+        <VideoReviewDialog
+          open={showReview}
+          onClose={() => setShowReview(false)}
+          messageId={msg.id}
+          roomId={roomId}
+          videoUrl={msg.file_url || ""}
+        />
+      )}
+    </div>
+  );
+}
