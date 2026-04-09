@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Download, CheckCircle2, Clock, MessageCircle, Edit3, Package } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { CheckCircle2, MessageCircle, Package } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,8 +30,10 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 
 const MyProjectsPage = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [navigating, setNavigating] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -46,6 +48,42 @@ const MyProjectsPage = () => {
       setLoadingProjects(false);
     })();
   }, [user]);
+
+  const goToChat = useCallback(async (projectId: string) => {
+    if (!user || navigating) return;
+    setNavigating(projectId);
+
+    // Find chat room linked to this project
+    const { data: rooms } = await supabase
+      .from("chat_rooms")
+      .select("id")
+      .eq("project_id", projectId)
+      .limit(1);
+
+    if (rooms && rooms.length > 0) {
+      navigate("/chat", { state: { openRoomId: rooms[0].id } });
+    } else {
+      // No room linked — find by customer_id or create one
+      const project = projects.find((p) => p.id === projectId);
+      if (!project) { setNavigating(null); return; }
+
+      const { data: newRoom } = await supabase
+        .from("chat_rooms")
+        .insert({
+          customer_id: user.id,
+          title: `[프로젝트] ${project.service_title}`,
+          project_id: projectId,
+          metadata: { serviceTitle: project.service_title, orderNumber: project.order_number },
+        } as any)
+        .select()
+        .single();
+
+      if (newRoom) {
+        navigate("/chat", { state: { openRoomId: newRoom.id } });
+      }
+    }
+    setNavigating(null);
+  }, [user, navigating, projects, navigate]);
 
   if (loading) return null;
 
@@ -71,7 +109,11 @@ const MyProjectsPage = () => {
             {projects.map((project) => {
               const sc = statusConfig[project.status] || statusConfig["대기"];
               return (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={project.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => goToChat(project.id)}
+                >
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="flex-1 min-w-0">
@@ -90,20 +132,21 @@ const MyProjectsPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         {(project.status === "검수중" || project.status === "완료") && project.confirm_status !== "확인완료" && (
-                          <>
-                            <span className="text-xs text-amber-600 font-medium">확인 필요</span>
-                          </>
+                          <span className="text-xs text-amber-600 font-medium">확인 필요</span>
                         )}
                         {project.confirm_status === "확인완료" && (
                           <span className="text-xs text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle2 className="h-3.5 w-3.5" /> 완료
                           </span>
                         )}
-                        <Link to="/chat">
-                          <Button size="sm" variant="ghost">
-                            <MessageCircle className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={navigating === project.id}
+                          onClick={(e) => { e.stopPropagation(); goToChat(project.id); }}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 

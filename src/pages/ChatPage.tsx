@@ -54,6 +54,12 @@ const ChatPage = () => {
     if (autoCreated || loadingRooms || !user) return;
     const state = location.state as any;
     if (!state) return;
+    if (state.openRoomId) {
+      setAutoCreated(true);
+      selectRoom(state.openRoomId);
+      navigate("/chat", { replace: true });
+      return;
+    }
     if (state.inquiry) {
       setAutoCreated(true);
       const title = `[문의] ${state.inquiry.serviceTitle}`;
