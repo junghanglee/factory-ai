@@ -522,6 +522,71 @@ export type Database = {
         }
         Relationships: []
       }
+      video_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          review_id: string
+          timestamp_seconds: number
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          review_id: string
+          timestamp_seconds?: number
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          review_id?: string
+          timestamp_seconds?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "video_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          project_id: string | null
+          room_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          project_id?: string | null
+          room_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          project_id?: string | null
+          room_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

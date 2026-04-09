@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, FileText, Download, Search, Plus } from "lucide-react";
+import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ProjectPanel from "@/components/chat/ProjectPanel";
+import MessageBubble from "@/components/chat/MessageBubble";
+import FileDrawer from "@/components/chat/FileDrawer";
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -18,53 +21,10 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + "B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + "KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + "MB";
-}
-
-function AdminMessageBubble({ msg, isAdmin }: { msg: ChatMessage; isAdmin: boolean }) {
-  const bubbleClass = isAdmin
-    ? "bg-primary text-primary-foreground"
-    : "bg-secondary";
-  const timeClass = isAdmin ? "text-primary-foreground/70" : "text-muted-foreground";
-
-  return (
-    <div className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${bubbleClass}`}>
-        {msg.message_type === "image" && msg.file_url && (
-          <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
-            <img src={msg.file_url} alt={msg.file_name || ""} className="rounded-lg max-w-full max-h-60 mb-1" />
-          </a>
-        )}
-        {msg.message_type === "video" && msg.file_url && (
-          <video src={msg.file_url} controls className="rounded-lg max-w-full max-h-60 mb-1" />
-        )}
-        {msg.message_type === "file" && msg.file_url && (
-          <a href={msg.file_url} target="_blank" rel="noopener noreferrer"
-            className={`flex items-center gap-2 p-2 rounded-lg mb-1 ${isAdmin ? "bg-primary-foreground/10" : "bg-background/50"}`}>
-            <FileText className="h-5 w-5 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm truncate">{msg.file_name}</p>
-              {msg.file_size && <p className={`text-xs ${timeClass}`}>{formatFileSize(msg.file_size)}</p>}
-            </div>
-            <Download className="h-4 w-4 shrink-0 ml-auto" />
-          </a>
-        )}
-        {(msg.message_type === "text" || msg.message_type === "order") && msg.message && (
-          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-        )}
-        <p className={`text-xs mt-1 ${timeClass}`}>{formatTime(msg.created_at)}</p>
-      </div>
-    </div>
-  );
-}
-
 const AdminChat = () => {
   const {
     rooms, selectedRoomId, messages, loadingRooms,
-    selectRoom, sendMessage, sendFile, user,
+    selectRoom, sendMessage, sendFile, sendConfirmVideo, user,
     project, projectFiles,
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
@@ -72,6 +32,12 @@ const AdminChat = () => {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
+  const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
+  const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [newProject, setNewProject] = useState({
     serviceTitle: "", packageName: "", price: 0, deliveryDays: 7,
@@ -79,36 +45,65 @@ const AdminChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async () => {
+    if (pendingFile) {
+      await sendFile(pendingFile, 0, input.trim() || undefined);
+      setPendingFile(null);
+      setInput("");
+      return;
+    }
     if (!input.trim()) return;
-    await sendMessage(input);
+    const prefix = replyTo ? `↩️ ${replyTo.message?.slice(0, 30) || "파일"}...\n\n` : "";
+    await sendMessage(prefix + input);
     setInput("");
+    setReplyTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await sendFile(file, 0);
     e.target.value = "";
+    // If video, ask type
+    if (file.type.startsWith("video/")) {
+      setPendingVideoFile(file);
+      setShowVideoTypeDialog(true);
+      return;
+    }
+    setPendingFile(file);
+  };
+
+  const handleVideoTypeConfirm = async () => {
+    if (!pendingVideoFile) return;
+    setShowVideoTypeDialog(false);
+    if (videoUploadType === "confirm") {
+      await sendConfirmVideo(pendingVideoFile, input.trim() || undefined);
+      setInput("");
+    } else {
+      setPendingFile(pendingVideoFile);
+    }
+    setPendingVideoFile(null);
+    setVideoUploadType("general");
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    for (const file of files) {
-      await sendFile(file, 0);
+    if (files.length === 1 && files[0].type.startsWith("video/")) {
+      setPendingVideoFile(files[0]);
+      setShowVideoTypeDialog(true);
+      return;
+    }
+    if (files.length === 1) {
+      setPendingFile(files[0]);
+    } else {
+      for (const file of files) { await sendFile(file, 0); }
     }
   };
 
@@ -164,16 +159,12 @@ const AdminChat = () => {
                   className={`w-full p-4 text-left border-b hover:bg-accent/50 transition-colors ${selectedRoomId === room.id ? "bg-accent" : ""}`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-sm truncate">{room.title}</span>
-                    {room.last_message_at && (
-                      <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatTime(room.last_message_at)}</span>
-                    )}
+                    {room.last_message_at && <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatTime(room.last_message_at)}</span>}
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
                     {room.unread_admin > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                        {room.unread_admin}
-                      </span>
+                      <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">{room.unread_admin}</span>
                     )}
                   </div>
                 </button>
@@ -183,10 +174,8 @@ const AdminChat = () => {
         </div>
 
         {/* Messages */}
-        <div
-          className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
-          onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}
-        >
+        <div className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+          onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
           {isDragging && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 pointer-events-none">
               <div className="bg-card rounded-xl px-8 py-6 shadow-lg border text-center">
@@ -201,16 +190,14 @@ const AdminChat = () => {
               <div className="p-4 border-b flex items-center justify-between">
                 <span className="font-medium text-sm">{selectedRoom.title}</span>
                 <div className="flex items-center gap-2">
+                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setShowFileDrawer(!showFileDrawer)}>
+                    <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
+                  </Button>
                   {!project && (
                     <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
                       const meta = selectedRoom?.metadata as any;
                       if (meta?.serviceTitle) {
-                        setNewProject({
-                          serviceTitle: meta.serviceTitle || "",
-                          packageName: meta.packageName || "",
-                          price: meta.price || 0,
-                          deliveryDays: meta.deliveryDays || 7,
-                        });
+                        setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7 });
                       } else {
                         setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7 });
                       }
@@ -218,9 +205,6 @@ const AdminChat = () => {
                     }}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> 프로젝트 생성
                     </Button>
-                  )}
-                  {selectedRoom.status === "active" && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>
                   )}
                 </div>
               </div>
@@ -233,7 +217,8 @@ const AdminChat = () => {
                       </div>
                       <div className="space-y-3">
                         {group.msgs.map((msg) => (
-                          <AdminMessageBubble key={msg.id} msg={msg} isAdmin={msg.sender_id === user?.id} />
+                          <MessageBubble key={msg.id} msg={msg} isMine={msg.sender_id === user?.id}
+                            onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
                         ))}
                       </div>
                     </div>
@@ -241,17 +226,34 @@ const AdminChat = () => {
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
-              <div className="p-4 border-t flex items-center gap-2">
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-                <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
-                  <Paperclip className="h-5 w-5" />
-                </button>
-                <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder="답변을 입력하세요..."
-                  className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
+              {/* Input area */}
+              <div className="p-4 border-t space-y-2">
+                {pendingFile && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
+                    <Paperclip className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{pendingFile.name}</span>
+                    <button onClick={() => setPendingFile(null)}><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                )}
+                {replyTo && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
+                    <span className="text-muted-foreground">↩️ 답장:</span>
+                    <span className="truncate flex-1">{replyTo.message?.slice(0, 50) || "파일"}</span>
+                    <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+                  <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
+                    <Paperclip className="h-5 w-5" />
+                  </button>
+                  <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                    placeholder={pendingFile ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+                    className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && !pendingFile}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : (
@@ -259,17 +261,47 @@ const AdminChat = () => {
           )}
         </div>
 
+        {/* File Drawer */}
+        {selectedRoom && showFileDrawer && (
+          <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+        )}
+
         {/* Project Panel */}
-        {selectedRoom && project && (
-          <ProjectPanel
-            project={project}
-            projectFiles={projectFiles}
-            isAdmin={true}
-            onUpdateStatus={updateProjectStatus}
-            onUploadDeliverable={uploadDeliverable}
-          />
+        {selectedRoom && project && !showFileDrawer && (
+          <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
+            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
         )}
       </div>
+
+      {/* Video type selection dialog */}
+      <Dialog open={showVideoTypeDialog} onOpenChange={setShowVideoTypeDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>영상 업로드 유형</DialogTitle></DialogHeader>
+          <div className="py-4 space-y-3">
+            <p className="text-sm text-muted-foreground">업로드할 영상의 유형을 선택해주세요.</p>
+            <Select value={videoUploadType} onValueChange={(v) => setVideoUploadType(v as "general" | "confirm")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">
+                  <div className="flex items-center gap-2"><Film className="h-4 w-4" /> 일반 영상</div>
+                </SelectItem>
+                <SelectItem value="confirm">
+                  <div className="flex items-center gap-2"><VideoIcon className="h-4 w-4" /> 컨펌 요청 영상</div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {videoUploadType === "confirm" && (
+              <p className="text-xs text-muted-foreground bg-amber-50 text-amber-700 p-2 rounded">
+                컨펌 요청 영상은 사용자가 타임스탬프별로 수정 코멘트를 달 수 있습니다.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowVideoTypeDialog(false); setPendingVideoFile(null); }}>취소</Button>
+            <Button onClick={handleVideoTypeConfirm}>확인</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create project dialog */}
       <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
@@ -278,13 +310,11 @@ const AdminChat = () => {
           <div className="space-y-4 py-4">
             <div>
               <label className="text-sm font-medium mb-1 block">서비스명 *</label>
-              <Input value={newProject.serviceTitle} onChange={(e) => setNewProject(p => ({ ...p, serviceTitle: e.target.value }))}
-                placeholder="예: AI 이미지 제작" />
+              <Input value={newProject.serviceTitle} onChange={(e) => setNewProject(p => ({ ...p, serviceTitle: e.target.value }))} placeholder="예: AI 이미지 제작" />
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">패키지명</label>
-              <Input value={newProject.packageName} onChange={(e) => setNewProject(p => ({ ...p, packageName: e.target.value }))}
-                placeholder="예: 프리미엄" />
+              <Input value={newProject.packageName} onChange={(e) => setNewProject(p => ({ ...p, packageName: e.target.value }))} placeholder="예: 프리미엄" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
