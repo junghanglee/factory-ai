@@ -31,6 +31,31 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface Project {
+  id: string;
+  order_number: string;
+  service_title: string;
+  package_name: string | null;
+  customer: string;
+  customer_id: string | null;
+  price: number;
+  status: string;
+  confirm_status: string;
+  order_date: string;
+  due_date: string;
+  completed_date: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ProjectFile {
+  id: string;
+  project_id: string;
+  name: string;
+  url: string;
+  uploaded_at: string;
+}
+
 export function useChat() {
   const { user, isAdmin } = useAuth();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
@@ -38,6 +63,8 @@ export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
 
   // Fetch rooms
   const fetchRooms = useCallback(async () => {
@@ -63,11 +90,46 @@ export function useChat() {
     setLoadingMessages(false);
   }, []);
 
+  // Fetch project for selected room
+  const fetchProject = useCallback(async (roomId: string) => {
+    const room = rooms.find((r) => r.id === roomId);
+    if (!room?.project_id) {
+      setProject(null);
+      setProjectFiles([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("projects")
+      .select("*")
+      .eq("id", room.project_id)
+      .single();
+    if (data) {
+      setProject(data as Project);
+      // Fetch project files
+      const { data: files } = await supabase
+        .from("project_files")
+        .select("*")
+        .eq("project_id", data.id)
+        .order("uploaded_at", { ascending: false });
+      if (files) setProjectFiles(files as ProjectFile[]);
+    } else {
+      setProject(null);
+      setProjectFiles([]);
+    }
+  }, [rooms]);
+
   // Select room
   const selectRoom = useCallback((roomId: string) => {
     setSelectedRoomId(roomId);
     fetchMessages(roomId);
   }, [fetchMessages]);
+
+  // Fetch project when room or rooms change
+  useEffect(() => {
+    if (selectedRoomId) {
+      fetchProject(selectedRoomId);
+    }
+  }, [selectedRoomId, rooms, fetchProject]);
 
   // Create a new chat room
   const createRoom = useCallback(async (title: string, serviceId?: string) => {
@@ -96,7 +158,6 @@ export function useChat() {
       message_type: "text",
     });
     if (error) { console.error(error); return; }
-    // Update room's last message
     await supabase.from("chat_rooms").update({
       last_message: text.trim(),
       last_message_at: new Date().toISOString(),
@@ -139,6 +200,154 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [user, selectedRoomId]);
 
+  // Admin: Create project from chat order and link to room
+  const createProjectFromChat = useCallback(async (params: {
+    serviceTitle: string;
+    packageName?: string;
+    price: number;
+    deliveryDays: number;
+    customerName: string;
+    customerId: string;
+  }) => {
+    if (!user || !selectedRoomId) return null;
+    const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + params.deliveryDays);
+
+    const { data, error } = await supabase.from("projects").insert({
+      order_number: orderNumber,
+      service_title: params.serviceTitle,
+      package_name: params.packageName || null,
+      customer: params.customerName,
+      customer_id: params.customerId,
+      price: params.price,
+      status: "작업중",
+      due_date: dueDate.toISOString().split("T")[0],
+    }).select().single();
+
+    if (error) { console.error(error); return null; }
+
+    // Link project to chat room
+    await supabase.from("chat_rooms").update({
+      project_id: data.id,
+    }).eq("id", selectedRoomId);
+
+    // Send system message
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: `✅ 프로젝트가 생성되었습니다.\n\n주문번호: ${orderNumber}\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원\n납기일: ${dueDate.toLocaleDateString("ko-KR")}`,
+      message_type: "text",
+    });
+
+    await fetchRooms();
+    return data as Project;
+  }, [user, selectedRoomId, fetchRooms]);
+
+  // Admin: Update project status
+  const updateProjectStatus = useCallback(async (newStatus: string) => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("projects").update({ status: newStatus }).eq("id", project.id);
+
+    const statusEmojis: Record<string, string> = {
+      "대기": "⏳", "작업중": "🔨", "검수중": "🔍", "수정중": "✏️", "완료": "✅",
+    };
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: `${statusEmojis[newStatus] || "📌"} 프로젝트 상태가 "${newStatus}"(으)로 변경되었습니다.`,
+      message_type: "text",
+    });
+
+    // Refresh
+    await fetchProject(selectedRoomId);
+    await supabase.from("chat_rooms").update({
+      last_message: `상태 변경: ${newStatus}`,
+      last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+  }, [project, selectedRoomId, user, fetchProject]);
+
+  // Admin: Upload deliverable file to project
+  const uploadDeliverable = useCallback(async (file: File) => {
+    if (!project || !user) return;
+    const ext = file.name.split(".").pop();
+    const path = `deliverables/${project.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
+    if (uploadError) { console.error(uploadError); return; }
+    const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
+
+    await supabase.from("project_files").insert({
+      project_id: project.id,
+      name: file.name,
+      url: urlData.publicUrl,
+    });
+
+    // Also send as chat message
+    if (selectedRoomId) {
+      await supabase.from("chat_messages").insert({
+        room_id: selectedRoomId,
+        sender_id: user.id,
+        message: `📦 결과물 납품: ${file.name}`,
+        message_type: "file",
+        file_url: urlData.publicUrl,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+      });
+      await supabase.from("chat_rooms").update({
+        last_message: `📦 결과물 납품: ${file.name}`,
+        last_message_at: new Date().toISOString(),
+      }).eq("id", selectedRoomId);
+    }
+
+    await fetchProject(selectedRoomId!);
+  }, [project, user, selectedRoomId, fetchProject]);
+
+  // Customer: Confirm project completion
+  const confirmProject = useCallback(async () => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("projects").update({
+      confirm_status: "확인완료",
+      status: "완료",
+      completed_date: new Date().toISOString().split("T")[0],
+    }).eq("id", project.id);
+
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: "✅ 고객이 결과물을 확인하고 프로젝트를 완료 처리했습니다.",
+      message_type: "text",
+    });
+
+    await fetchProject(selectedRoomId);
+    await supabase.from("chat_rooms").update({
+      last_message: "프로젝트 완료 확인",
+      last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+  }, [project, selectedRoomId, user, fetchProject]);
+
+  // Customer: Request revision
+  const requestRevision = useCallback(async (reason: string) => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("projects").update({
+      confirm_status: "수정요청",
+      status: "수정중",
+    }).eq("id", project.id);
+
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: `🔄 수정 요청\n\n사유: ${reason}`,
+      message_type: "text",
+    });
+
+    await fetchProject(selectedRoomId);
+    await supabase.from("chat_rooms").update({
+      last_message: "수정 요청",
+      last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+  }, [project, selectedRoomId, user, fetchProject]);
+
   // Realtime subscriptions
   useEffect(() => {
     if (!user) return;
@@ -172,6 +381,25 @@ export function useChat() {
     return () => { supabase.removeChannel(msgChannel); };
   }, [selectedRoomId]);
 
+  // Realtime project updates
+  useEffect(() => {
+    if (!project) return;
+
+    const projChannel = supabase
+      .channel(`project_${project.id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "projects",
+        filter: `id=eq.${project.id}`,
+      }, () => {
+        if (selectedRoomId) fetchProject(selectedRoomId);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(projChannel); };
+  }, [project?.id, selectedRoomId, fetchProject]);
+
   return {
     rooms,
     selectedRoomId,
@@ -185,5 +413,12 @@ export function useChat() {
     fetchRooms,
     user,
     isAdmin,
+    project,
+    projectFiles,
+    createProjectFromChat,
+    updateProjectStatus,
+    uploadDeliverable,
+    confirmProject,
+    requestRevision,
   };
 }
