@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
+import QuickPhrases from "@/components/chat/QuickPhrases";
 import { useChatNotification } from "@/hooks/useChatNotification";
+
+const MAX_FILES = 10;
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -34,7 +37,7 @@ const AdminChat = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
@@ -55,9 +58,14 @@ const AdminChat = () => {
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
-    if (pendingFile) {
-      await sendFile(pendingFile, 0, input.trim() || undefined);
-      setPendingFile(null);
+    if (pendingFiles.length > 0) {
+      for (const file of pendingFiles) {
+        await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
+      }
+      if (pendingFiles.length > 1 && input.trim()) {
+        await sendMessage(input.trim());
+      }
+      setPendingFiles([]);
       setInput("");
       return;
     }
@@ -72,17 +80,21 @@ const AdminChat = () => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     e.target.value = "";
-    // If video, ask type
-    if (file.type.startsWith("video/")) {
-      setPendingVideoFile(file);
+    // If single video, ask type
+    if (files.length === 1 && files[0].type.startsWith("video/")) {
+      setPendingVideoFile(files[0]);
       setShowVideoTypeDialog(true);
       return;
     }
-    setPendingFile(file);
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleVideoTypeConfirm = async () => {
@@ -92,13 +104,13 @@ const AdminChat = () => {
       await sendConfirmVideo(pendingVideoFile, input.trim() || undefined);
       setInput("");
     } else {
-      setPendingFile(pendingVideoFile);
+      setPendingFiles((prev) => [...prev, pendingVideoFile].slice(0, MAX_FILES));
     }
     setPendingVideoFile(null);
     setVideoUploadType("general");
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
@@ -107,11 +119,7 @@ const AdminChat = () => {
       setShowVideoTypeDialog(true);
       return;
     }
-    if (files.length === 1) {
-      setPendingFile(files[0]);
-    } else {
-      for (const file of files) { await sendFile(file, 0); }
-    }
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
   };
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
@@ -235,11 +243,36 @@ const AdminChat = () => {
               </ScrollArea>
               {/* Input area */}
               <div className="p-4 border-t space-y-2">
-                {pendingFile && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
-                    <Paperclip className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="truncate flex-1">{pendingFile.name}</span>
-                    <button onClick={() => setPendingFile(null)}><X className="h-3.5 w-3.5" /></button>
+                {/* Pending files preview */}
+                {pendingFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 px-1">
+                    {pendingFiles.map((file, idx) => (
+                      <div key={idx} className="relative group/file">
+                        {file.type.startsWith("image/") ? (
+                          <img src={URL.createObjectURL(file)} alt={file.name}
+                            className="h-16 w-16 object-cover rounded-lg border" />
+                        ) : file.type.startsWith("video/") ? (
+                          <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
+                            <Film className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        ) : (
+                          <div className="h-16 w-16 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
+                            <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
+                            <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
+                          </div>
+                        )}
+                        <button onClick={() => removePendingFile(idx)}
+                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {pendingFiles.length < MAX_FILES && (
+                      <button onClick={() => fileInputRef.current?.click()}
+                        className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
+                        <Plus className="h-5 w-5 text-muted-foreground" />
+                      </button>
+                    )}
                   </div>
                 )}
                 {replyTo && (
@@ -249,18 +282,22 @@ const AdminChat = () => {
                     <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+                <div className="flex items-center gap-1">
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" multiple />
                   <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
                     <Paperclip className="h-5 w-5" />
                   </button>
+                  {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
                   <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                    placeholder={pendingFile ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+                    placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
                     className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && !pendingFile}>
+                  <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
+                {pendingFiles.length > 0 && (
+                  <p className="text-xs text-muted-foreground px-2">{pendingFiles.length}/{MAX_FILES}개 파일 선택됨</p>
+                )}
               </div>
             </>
           ) : (
