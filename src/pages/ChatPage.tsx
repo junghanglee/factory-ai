@@ -111,9 +111,14 @@ const ChatPage = () => {
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async () => {
-    if (pendingFile) {
-      await sendFile(pendingFile, MAX_FILE_SIZE_MB, messageInput.trim() || undefined);
-      setPendingFile(null);
+    if (pendingFiles.length > 0) {
+      for (const file of pendingFiles) {
+        await sendFile(file, MAX_FILE_SIZE_MB, pendingFiles.length === 1 ? (messageInput.trim() || undefined) : undefined);
+      }
+      if (pendingFiles.length > 1 && messageInput.trim()) {
+        await sendMessage(messageInput.trim());
+      }
+      setPendingFiles([]);
       setMessageInput("");
       return;
     }
@@ -128,22 +133,22 @@ const ChatPage = () => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPendingFile(file);
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
     e.target.value = "";
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    if (files.length === 1) {
-      setPendingFile(files[0]);
-    } else {
-      for (const file of files) { await sendFile(file, MAX_FILE_SIZE_MB); }
-    }
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
   };
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
