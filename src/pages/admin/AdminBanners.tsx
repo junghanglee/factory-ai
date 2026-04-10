@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, Save, GripVertical, Upload, Image } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -238,8 +239,8 @@ const AdminBanners = () => {
             <DialogTitle>{editId ? "배너 수정" : "새 배너 추가"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div><Label>제목</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-            <div><Label>부제목</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
+            <div><Label>제목</Label><Textarea rows={2} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="줄바꿈: Enter키" /></div>
+            <div><Label>부제목</Label><Textarea rows={3} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} placeholder="줄바꿈: Enter키" /></div>
             <div>
               <Label>배너 이미지</Label>
               {form.image_url && !form.image_url.endsWith(".mp4") && formPreviewImageUrl && (
