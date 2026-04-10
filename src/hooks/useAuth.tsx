@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const initializedRef = useRef(false);
 
   const checkAdmin = async (userId: string) => {
     try {
@@ -38,8 +39,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // Set up listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Skip if this is the initial event — handled by getSession below
+        if (!initializedRef.current) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -52,6 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
+    // Initial session check
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -59,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await checkAdmin(session.user.id);
       }
       setLoading(false);
+      initializedRef.current = true;
     });
 
     return () => subscription.unsubscribe();
