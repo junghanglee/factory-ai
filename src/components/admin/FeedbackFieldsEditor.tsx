@@ -80,14 +80,14 @@ export default function FeedbackFieldsEditor({ serviceId, categoryId, isCategory
 
       if (fields.length > 0) {
         const inserts = fields.map((f, i) => ({
-          [ownerColumn]: ownerId,
+          ...(serviceId ? { service_id: ownerId } : { category_id: ownerId }),
           field_key: f.field_key || f.field_label.replace(/\s/g, "_").toLowerCase(),
           field_label: f.field_label,
           field_type: f.field_type,
           field_options: f.field_type === "select" ? f.field_options.filter(Boolean) : [],
           sort_order: i + 1,
         }));
-        const { error } = await supabase.from("feedback_fields").insert(inserts);
+        const { error } = await supabase.from("feedback_fields").insert(inserts as any);
         if (error) throw error;
       }
       toast.success("피드백 항목이 저장되었습니다.");
