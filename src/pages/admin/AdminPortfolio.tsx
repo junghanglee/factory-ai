@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useCategories } from "@/hooks/useSupabaseData";
+import { compressFiles } from "@/utils/imageCompression";
 
 interface PortfolioItem {
   id: string;
@@ -203,8 +204,10 @@ const AdminPortfolio = () => {
   const handleToggle = (id: string, active: boolean) => { saveMutation.mutate({ id, data: { active } }); };
 
   const uploadToStorage = useCallback(async (fileList: FileList | File[]): Promise<string[]> => {
-    const files = Array.from(fileList);
-    if (files.length === 0) return [];
+    const rawFiles = Array.from(fileList);
+    if (rawFiles.length === 0) return [];
+    // Compress images for web (videos pass through)
+    const files = await compressFiles(rawFiles);
     const urls: string[] = [];
     for (const file of files) {
       const ext = file.name.split(".").pop();
