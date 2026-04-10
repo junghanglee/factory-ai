@@ -47,6 +47,8 @@ const MyPage = () => {
   const [profile, setProfile] = useState<{ name: string | null; phone: string | null; avatar_url: string | null } | null>(null);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [loadingChatRooms, setLoadingChatRooms] = useState(true);
 
   // Inquiry form
   const [inquiryForm, setInquiryForm] = useState({
