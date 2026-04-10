@@ -309,6 +309,7 @@ export type Database = {
       contact_inquiries: {
         Row: {
           admin_memo: string | null
+          admin_reply: string | null
           company: string | null
           created_at: string
           email: string
@@ -317,11 +318,13 @@ export type Database = {
           message: string
           name: string
           phone: string | null
+          replied_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
           admin_memo?: string | null
+          admin_reply?: string | null
           company?: string | null
           created_at?: string
           email: string
@@ -330,11 +333,13 @@ export type Database = {
           message: string
           name: string
           phone?: string | null
+          replied_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           admin_memo?: string | null
+          admin_reply?: string | null
           company?: string | null
           created_at?: string
           email?: string
@@ -343,6 +348,7 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+          replied_at?: string | null
           status?: string
           updated_at?: string
         }
