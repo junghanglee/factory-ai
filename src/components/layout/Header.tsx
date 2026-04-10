@@ -127,8 +127,13 @@ const Header = () => {
               <Link
                 key={cat.id}
                 to={`/category/${cat.id}`}
-                className="px-3 py-2 text-[14px] text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
+                className="relative px-3 py-2 text-[14px] text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
               >
+                {(cat.id === "ai-video" || cat.id === "ai-assistant") && (
+                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 px-1.5 py-px text-[9px] font-bold rounded-full bg-destructive text-destructive-foreground leading-tight">
+                    인기
+                  </span>
+                )}
                 {cat.name}
               </Link>
             ))}
