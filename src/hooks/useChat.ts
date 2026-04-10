@@ -151,10 +151,11 @@ export function useChat() {
   }, [user, fetchRooms]);
 
   // Send text message
-  const sendMessage = useCallback(async (text: string) => {
-    if (!user || !selectedRoomId || !text.trim()) return;
+  const sendMessage = useCallback(async (text: string, overrideRoomId?: string) => {
+    const roomId = overrideRoomId || selectedRoomId;
+    if (!user || !roomId || !text.trim()) return;
     const { error } = await supabase.from("chat_messages").insert({
-      room_id: selectedRoomId,
+      room_id: roomId,
       sender_id: user.id,
       message: text.trim(),
       message_type: "text",
@@ -163,18 +164,19 @@ export function useChat() {
     await supabase.from("chat_rooms").update({
       last_message: text.trim(),
       last_message_at: new Date().toISOString(),
-    }).eq("id", selectedRoomId);
+    }).eq("id", roomId);
   }, [user, selectedRoomId]);
 
   // Send file with optional size limit (0 = no limit) and optional attached message
-  const sendFile = useCallback(async (file: File, maxSizeMB: number = 0, attachedMessage?: string) => {
-    if (!user || !selectedRoomId) return;
+  const sendFile = useCallback(async (file: File, maxSizeMB: number = 0, attachedMessage?: string, overrideRoomId?: string) => {
+    const roomId = overrideRoomId || selectedRoomId;
+    if (!user || !roomId) return;
     if (maxSizeMB > 0 && file.size > maxSizeMB * 1024 * 1024) {
       alert(`파일 크기가 ${maxSizeMB}MB를 초과합니다.`);
       return;
     }
     const ext = file.name.split(".").pop();
-    const path = `${selectedRoomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = `${roomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
     if (uploadError) { console.error(uploadError); return; }
     const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
@@ -186,7 +188,7 @@ export function useChat() {
     const displayName = file.name.length > 50 ? file.name.slice(0, 47) + "..." : file.name;
 
     const { error } = await supabase.from("chat_messages").insert({
-      room_id: selectedRoomId,
+      room_id: roomId,
       sender_id: user.id,
       message: attachedMessage || displayName,
       message_type: msgType,
@@ -199,7 +201,7 @@ export function useChat() {
     await supabase.from("chat_rooms").update({
       last_message: `📎 ${displayName}`,
       last_message_at: new Date().toISOString(),
-    }).eq("id", selectedRoomId);
+    }).eq("id", roomId);
   }, [user, selectedRoomId]);
 
   // Send confirm video (admin only)

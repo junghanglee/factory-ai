@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -18,6 +18,7 @@ import QuickPhrases from "@/components/chat/QuickPhrases";
 import ChatRoomList from "@/components/chat/ChatRoomList";
 import ServicePickerDialog from "@/components/chat/ServicePickerDialog";
 import { groupMessages } from "@/utils/messageGrouping";
+import OrderRequestTab from "@/components/chat/OrderRequestTab";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 100;
@@ -42,6 +43,7 @@ const ChatPage = () => {
   const [newRoomTitle, setNewRoomTitle] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [showOrderInfo, setShowOrderInfo] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -112,14 +114,12 @@ const ChatPage = () => {
           if (req.description) orderMsg += `\n\n상세설명:\n${req.description}`;
         }
         orderMsg += "\n\n위 내용으로 의뢰합니다.";
-        setTimeout(async () => {
-          await sendMessage(orderMsg);
-          // Upload attached files
-          const orderFiles: File[] = state.orderInfo.files || [];
-          for (const file of orderFiles) {
-            await sendFile(file, 100);
-          }
-        }, 500);
+        // Send message and files using room.id directly to avoid stale closure
+        await sendMessage(orderMsg, room.id);
+        const orderFiles: File[] = state.orderInfo.files || [];
+        for (const file of orderFiles) {
+          await sendFile(file, 100, undefined, room.id);
+        }
         await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
@@ -255,9 +255,14 @@ const ChatPage = () => {
                 <div className="p-4 border-b flex items-center justify-between">
                   <span className="font-medium text-sm">{selectedRoom.title}</span>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setShowFileDrawer(!showFileDrawer)}>
+                    <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowOrderInfo(false); }}>
                       <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
                     </Button>
+                    {(selectedRoom.metadata as any)?.orderRequest && (
+                      <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
+                        <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
+                      </Button>
+                    )}
                     {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>}
                   </div>
                 </div>
@@ -370,10 +375,21 @@ const ChatPage = () => {
             )}
           </div>
 
-          {selectedRoom && showFileDrawer && (
+          {selectedRoom && showFileDrawer && !showOrderInfo && (
             <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
           )}
-          {selectedRoom && project && !showFileDrawer && (
+          {selectedRoom && showOrderInfo && !showFileDrawer && (
+            <div className="w-80 border-l flex flex-col shrink-0 bg-card">
+              <div className="p-3 border-b flex items-center justify-between">
+                <span className="text-sm font-semibold">요청사항</span>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setShowOrderInfo(false)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <OrderRequestTab metadata={selectedRoom.metadata as Record<string, any> | null} />
+            </div>
+          )}
+          {selectedRoom && project && !showFileDrawer && !showOrderInfo && (
             <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={false}
               onConfirmProject={confirmProject} onRequestRevision={requestRevision} />
           )}
