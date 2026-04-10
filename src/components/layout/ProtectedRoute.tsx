@@ -18,9 +18,9 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireSuperAdmin = fa
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
-  if (requireSuperAdmin && !isSuperAdmin) return <Navigate to="/" replace />;
-  if (requireAdmin && !isAdmin) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to={requireAdmin || requireSuperAdmin ? "/admin" : "/login"} replace />;
+  if (requireSuperAdmin && !isSuperAdmin) return <Navigate to="/admin" replace />;
+  if (requireAdmin && !isAdmin) return <Navigate to="/admin" replace />;
 
   return <>{children}</>;
 };

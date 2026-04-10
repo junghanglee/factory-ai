@@ -43,6 +43,7 @@ const AdminStaff = () => {
 
   // Form state
   const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [formName, setFormName] = useState("");
   const [formDepartment, setFormDepartment] = useState("");
   const [formPermissions, setFormPermissions] = useState<string[]>([]);
@@ -63,6 +64,7 @@ const AdminStaff = () => {
   const openNew = () => {
     setEditing(null);
     setFormEmail("");
+    setFormPassword("");
     setFormName("");
     setFormDepartment("");
     setFormPermissions([]);
@@ -107,54 +109,31 @@ const AdminStaff = () => {
         toast({ title: "관리자 정보가 수정되었습니다" });
       }
     } else {
-      // Create new: first find user by email
+      // Create new admin via edge function
       if (!formEmail.trim()) {
         toast({ title: "이메일을 입력해주세요", variant: "destructive" });
         setSaving(false);
         return;
       }
+      if (!formPassword.trim() || formPassword.length < 6) {
+        toast({ title: "비밀번호를 6자 이상 입력해주세요", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
 
-      // Look up user from profiles table by matching name/email
-      // We need to find the user_id. Check profiles for the email match
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .limit(100);
-
-      // Since profiles don't store email, we use supabase auth admin... 
-      // Actually we'll store the admin profile with a placeholder user_id and 
-      // the super admin can link later. But better approach: create a user_id field.
-      // For now, generate a UUID placeholder and assign admin role when user signs up with that email.
-      
-      // Better approach: just create the admin profile entry, then add admin role
-      // We'll use the email to look up in members table
-      const { data: memberData } = await supabase
-        .from("members")
-        .select("id")
-        .eq("email", formEmail.trim())
-        .maybeSingle();
-
-      // Use member id as a reference, but admin_profiles.user_id should be auth user id
-      // Since we can't look up auth users from client, we'll create a placeholder
-      const userId = memberData?.id || crypto.randomUUID();
-
-      const { error } = await supabase
-        .from("admin_profiles")
-        .insert({
-          user_id: userId,
+      const { data, error } = await supabase.functions.invoke("create-admin-user", {
+        body: {
+          email: formEmail.trim(),
+          password: formPassword,
           name: formName.trim(),
           department: formDepartment.trim() || null,
           menu_permissions: formPermissions,
-        });
+        },
+      });
 
-      if (error) {
-        toast({ title: "등록 실패", description: error.message, variant: "destructive" });
+      if (error || data?.error) {
+        toast({ title: "등록 실패", description: error?.message || data?.error, variant: "destructive" });
       } else {
-        // Also add admin role to user_roles
-        await supabase.from("user_roles").upsert(
-          { user_id: userId, role: "admin" as any },
-          { onConflict: "user_id,role" }
-        );
         toast({ title: "관리자가 등록되었습니다" });
       }
     }
@@ -278,6 +257,17 @@ const AdminStaff = () => {
                   placeholder="관리자 이메일"
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
+                />
+              </div>
+            )}
+            {!editing && (
+              <div>
+                <Label>비밀번호</Label>
+                <Input
+                  type="password"
+                  placeholder="6자 이상 비밀번호"
+                  value={formPassword}
+                  onChange={(e) => setFormPassword(e.target.value)}
                 />
               </div>
             )}
