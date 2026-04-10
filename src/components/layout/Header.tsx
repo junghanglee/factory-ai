@@ -171,6 +171,9 @@ const Header = () => {
             <div className="flex gap-2 mt-5 pt-4 border-t">
               {user ? (
                 <>
+                  <Link to="/mypage" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-full" size="sm">마이페이지</Button>
+                  </Link>
                   {isAdmin && (
                     <Link to="/admin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full rounded-full" size="sm">관리자</Button>
