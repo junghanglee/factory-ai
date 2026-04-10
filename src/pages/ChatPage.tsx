@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,26 @@ const ChatPage = () => {
   const [showServicePicker, setShowServicePicker] = useState(false);
   const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
   const { sendAutoMessage } = useAutoMessages();
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
+
+  // Track pending feedback requests for the selected room
+  useEffect(() => {
+    if (!selectedRoomId) { setPendingFeedbackCount(0); return; }
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from("feedback_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("room_id", selectedRoomId)
+        .eq("status", "pending");
+      setPendingFeedbackCount(count || 0);
+    };
+    fetchPending();
+    const channel = supabase
+      .channel(`feedback_badge_${selectedRoomId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "feedback_requests", filter: `room_id=eq.${selectedRoomId}` }, () => fetchPending())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedRoomId]);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
@@ -259,8 +280,13 @@ const ChatPage = () => {
                     <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowOrderInfo(false); }}>
                       <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
                     </Button>
-                    <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
+                    <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7 relative" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
                       <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
+                      {pendingFeedbackCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse">
+                          {pendingFeedbackCount}
+                        </span>
+                      )}
                     </Button>
                     {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>}
                   </div>
