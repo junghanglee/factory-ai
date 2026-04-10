@@ -154,7 +154,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
-      className="shrink-0 w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-secondary transition-colors mr-1"
+      className="flex h-7 w-7 items-center justify-center rounded-md bg-secondary/70 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
       title="채팅 새창 열기"
       aria-label="채팅 새창 열기"
     >
@@ -165,27 +165,35 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
     return (
-      <div key={room.id} className="flex items-center border-b overflow-hidden">
+      <div key={room.id} className="relative border-b overflow-hidden">
         <button
           onClick={() => onSelectRoom(room.id)}
-          className={`flex-1 min-w-0 text-left transition-colors ${
+          className={`block w-full min-w-0 text-left transition-colors ${
             selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-          } ${indented ? "pl-10 pr-1 py-2" : "p-2.5"}`}
+          } ${indented ? "pl-8 pr-10 py-2" : "px-2.5 pr-10 py-2.5"}`}
         >
-          <div className="flex items-center gap-1 mb-0.5">
-            <span className="text-xs font-medium truncate min-w-0 flex-1">{room.title}</span>
-            {room.last_message_at && (
-              <span className="text-[10px] text-muted-foreground shrink-0">{formatDateShort(room.last_message_at)}</span>
-            )}
-            {unread > 0 && (
-              <span className="shrink-0 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                {unread}
-              </span>
-            )}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
+            <span className="truncate text-xs font-medium">{room.title}</span>
+            <div className="flex shrink-0 items-center gap-1">
+              {room.last_message_at && (
+                <span className="max-w-[62px] truncate text-[10px] text-muted-foreground">
+                  {formatDateShort(room.last_message_at)}
+                </span>
+              )}
+              {unread > 0 && (
+                <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                  {unread}
+                </span>
+              )}
+            </div>
           </div>
-          <p className="text-[11px] text-muted-foreground truncate">{room.last_message || "새 대화"}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
         </button>
-        {isAdmin && <PopupButton roomId={room.id} />}
+        {isAdmin && (
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+            <PopupButton roomId={room.id} />
+          </div>
+        )}
       </div>
     );
   };
@@ -245,35 +253,41 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
                 const room = group.rooms[0];
                 const unread = getUnreadCount(room);
                 return (
-                  <div key={group.customerId} className="flex items-center border-b overflow-hidden">
+                  <div key={group.customerId} className="relative border-b overflow-hidden">
                     <button
                       onClick={() => onSelectRoom(room.id)}
-                      className={`flex-1 min-w-0 p-2.5 text-left transition-colors ${
+                      className={`block w-full min-w-0 p-2.5 pr-10 text-left transition-colors ${
                         selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
                       }`}
                     >
                       <div className="flex min-w-0 items-start gap-2">
-                        <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                           <User className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 mb-0.5">
-                            <span className="font-medium text-sm truncate min-w-0 flex-1">{group.name}</span>
-                            {room.last_message_at && (
-                              <span className="text-[10px] text-muted-foreground shrink-0">{formatDateShort(room.last_message_at)}</span>
-                            )}
-                            {unread > 0 && (
-                              <span className="shrink-0 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                                {unread}
-                              </span>
-                            )}
+                        <div className="min-w-0 flex-1">
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
+                            <span className="truncate text-sm font-medium">{group.name}</span>
+                            <div className="flex shrink-0 items-center gap-1">
+                              {room.last_message_at && (
+                                <span className="max-w-[62px] truncate text-[10px] text-muted-foreground">
+                                  {formatDateShort(room.last_message_at)}
+                                </span>
+                              )}
+                              {unread > 0 && (
+                                <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                                  {unread}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-[11px] text-muted-foreground truncate mb-0.5">{room.title}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{room.last_message || "새 대화"}</p>
+                          <p className="truncate text-[11px] text-muted-foreground mb-0.5">{room.title}</p>
+                          <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
                         </div>
                       </div>
                     </button>
-                    <PopupButton roomId={room.id} />
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                      <PopupButton roomId={room.id} />
+                    </div>
                   </div>
                 );
               }
