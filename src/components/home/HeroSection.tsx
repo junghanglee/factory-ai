@@ -50,8 +50,8 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
         <div className="flex flex-col md:flex-row items-start gap-10 md:gap-16">
           {/* Left side - text + search */}
-          <div className="flex-1 pt-2">
-            <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight">
+          <div className="flex-1 pt-2" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)" }}>
+            <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight drop-shadow-lg">
               최고의 AI콘텐츠 전문가와,
               <br />
               대량생산 자동화공정을 통해
