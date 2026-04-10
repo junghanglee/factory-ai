@@ -45,6 +45,7 @@ const navGroups: NavGroup[] = [
     icon: Users,
     items: [
       { to: "/admin/members", icon: Users, label: "회원 목록" },
+      { to: "/admin/staff", icon: ShieldCheck, label: "직원 관리" },
     ],
   },
   {
