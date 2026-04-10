@@ -66,7 +66,7 @@ const HeroSection = () => {
                 placeholder="어떤 서비스가 필요하세요?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-white/60 transition-colors shadow-sm"
+                className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-white/10 text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-white/60 transition-colors shadow-sm"
               />
               <button className="absolute right-2 top-2 h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors">
                 <Search className="h-5 w-5" />
@@ -79,7 +79,7 @@ const HeroSection = () => {
                 <Link
                   key={keyword}
                   to={`/category/ai-image`}
-                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors bg-white/10 backdrop-blur-sm"
+                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors bg-white/10"
                 >
                   {keyword}
                 </Link>
@@ -99,7 +99,7 @@ const HeroSection = () => {
                 />
               )}
               <div
-                className={`absolute inset-0 ${hasBannerImage ? "bg-black/40" : "bg-white/10 backdrop-blur-md"} p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20`}
+                className={`absolute inset-0 ${hasBannerImage ? "bg-black/40" : "bg-white/10"} p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20`}
               >
                 <div>
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/80 text-white text-[12px] font-medium mb-3">
