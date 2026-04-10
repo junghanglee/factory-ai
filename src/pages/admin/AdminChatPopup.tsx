@@ -23,7 +23,7 @@ function formatDate(dateStr: string) {
 const AdminChatPopup = () => {
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("roomId");
-  const { loading } = useAuth();
+  const { loading, isAdmin } = useAuth();
 
   const {
     rooms, selectedRoomId, messages,
