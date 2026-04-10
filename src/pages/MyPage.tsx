@@ -61,6 +61,31 @@ const MyPage = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (uploadError) {
+      toast.error("아바타 업로드에 실패했습니다.");
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const { error } = await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", user.id);
+    if (error) {
+      toast.error("아바타 저장에 실패했습니다.");
+    } else {
+      setProfile((prev) => prev ? { ...prev, avatar_url: urlData.publicUrl } : prev);
+      toast.success("아바타가 변경되었습니다.");
+    }
+    setUploadingAvatar(false);
+    e.target.value = "";
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
