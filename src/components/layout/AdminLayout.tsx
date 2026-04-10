@@ -1,12 +1,19 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor,
+  LogOut, Settings, User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface NavItem {
   to: string;
@@ -75,20 +82,89 @@ const navGroups: NavGroup[] = [
 // superAdminGroup removed - staff management moved into 회원관리 group
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  // useAuth removed - no longer needed here
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileDept, setProfileDept] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     navGroups.forEach((g) => {
       init[g.label] = g.items.some((i) => location.pathname === i.to);
     });
-    // default open first group
     if (!Object.values(init).some(Boolean)) init[navGroups[0].label] = true;
     return init;
   });
 
   const toggleGroup = (label: string) =>
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/admin");
+  };
+
+  const openProfileDialog = async () => {
+    if (user) {
+      const { data } = await supabase
+        .from("admin_profiles")
+        .select("name, department")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setProfileName(data.name || "");
+        setProfileDept(data.department || "");
+      }
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    // Update admin_profiles
+    const { error: profileError } = await supabase
+      .from("admin_profiles")
+      .update({ name: profileName.trim(), department: profileDept.trim() || null })
+      .eq("user_id", user.id);
+    if (profileError) {
+      toast.error("정보 수정 실패: " + profileError.message);
+      setSaving(false);
+      return;
+    }
+
+    // Update password if provided
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        toast.error("비밀번호는 6자 이상이어야 합니다.");
+        setSaving(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error("비밀번호가 일치하지 않습니다.");
+        setSaving(false);
+        return;
+      }
+      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+      if (pwError) {
+        toast.error("비밀번호 변경 실패: " + pwError.message);
+        setSaving(false);
+        return;
+      }
+    }
+
+    toast.success("정보가 수정되었습니다.");
+    setSaving(false);
+    setShowProfile(false);
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -170,8 +246,15 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           })}
         </nav>
 
-        {/* Back to site */}
-        <div className="p-3 border-t border-white/10">
+        {/* Bottom actions */}
+        <div className="p-3 border-t border-white/10 space-y-1">
+          <button
+            onClick={openProfileDialog}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+            내 정보 수정
+          </button>
           <Link
             to="/"
             className="flex items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white transition-colors"
@@ -179,13 +262,54 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <ChevronLeft className="h-4 w-4" />
             사이트로 돌아가기
           </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400/70 hover:text-red-300 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            로그아웃
+          </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 bg-gray-50 p-8 overflow-auto">
-        {children}
-      </main>
+      {/* Profile edit dialog */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>내 정보 수정</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>이메일</Label>
+              <Input value={user?.email || ""} disabled className="bg-muted" />
+            </div>
+            <div>
+              <Label>이름</Label>
+              <Input value={profileName} onChange={(e) => setProfileName(e.target.value)} placeholder="이름" />
+            </div>
+            <div>
+              <Label>소속</Label>
+              <Input value={profileDept} onChange={(e) => setProfileDept(e.target.value)} placeholder="소속 부서" />
+            </div>
+            <div className="pt-2 border-t">
+              <p className="text-xs text-muted-foreground mb-2">비밀번호 변경 (변경하지 않으려면 비워두세요)</p>
+              <div className="space-y-2">
+                <div>
+                  <Label>새 비밀번호</Label>
+                  <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="6자 이상" />
+                </div>
+                <div>
+                  <Label>비밀번호 확인</Label>
+                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="비밀번호 확인" />
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+              {saving ? "저장 중..." : "저장"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
