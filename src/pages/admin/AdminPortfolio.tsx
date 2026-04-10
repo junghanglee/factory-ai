@@ -112,6 +112,7 @@ const AdminPortfolio = () => {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const detailInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const finalOutputInputRef = useRef<HTMLInputElement>(null);
 
   const { data: categories } = useCategories();
 
