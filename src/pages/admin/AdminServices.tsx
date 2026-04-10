@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
+import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -228,6 +229,7 @@ const AdminServices = () => {
             <TabsList className="w-full">
               <TabsTrigger value="basic" className="flex-1">기본 정보</TabsTrigger>
               <TabsTrigger value="packages" className="flex-1">패키지 설정 ({pkgForms.length}개)</TabsTrigger>
+              <TabsTrigger value="feedback" className="flex-1">피드백 설정</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
@@ -362,6 +364,14 @@ const AdminServices = () => {
                   </CardContent>
                 </Card>
               ))}
+            </TabsContent>
+
+            <TabsContent value="feedback" className="mt-4">
+              {editId ? (
+                <FeedbackFieldsEditor serviceId={editId} />
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">서비스를 먼저 저장한 후 피드백 항목을 설정할 수 있습니다.</p>
+              )}
             </TabsContent>
           </Tabs>
 

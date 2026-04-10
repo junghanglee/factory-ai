@@ -447,6 +447,60 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_fields: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          field_key: string
+          field_label: string
+          field_options: string[] | null
+          field_type: string
+          id: string
+          service_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          field_key: string
+          field_label: string
+          field_options?: string[] | null
+          field_type?: string
+          id?: string
+          service_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          field_key?: string
+          field_label?: string
+          field_options?: string[] | null
+          field_type?: string
+          id?: string
+          service_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_fields_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_fields_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_requests: {
         Row: {
           created_at: string
