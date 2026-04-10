@@ -57,6 +57,7 @@ export type Database = {
           id: string
           menu_permissions: string[]
           name: string
+          receive_assignments: boolean
           updated_at: string
           user_id: string
         }
@@ -67,6 +68,7 @@ export type Database = {
           id?: string
           menu_permissions?: string[]
           name: string
+          receive_assignments?: boolean
           updated_at?: string
           user_id: string
         }
@@ -77,6 +79,7 @@ export type Database = {
           id?: string
           menu_permissions?: string[]
           name?: string
+          receive_assignments?: boolean
           updated_at?: string
           user_id?: string
         }
