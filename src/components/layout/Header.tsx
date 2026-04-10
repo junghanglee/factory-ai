@@ -115,6 +115,12 @@ const Header = () => {
               )}
             </div>
             <div className="w-px h-5 bg-border mx-1" />
+            <Link
+              to="/about"
+              className="px-3 py-2 text-[14px] font-semibold text-primary hover:text-primary/80 whitespace-nowrap transition-colors"
+            >
+              AI팩토리 소개
+            </Link>
             {categories.map((cat) => (
               <Link
                 key={cat.id}

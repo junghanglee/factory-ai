@@ -51,7 +51,7 @@ const Footer = () => {
           <div>
             <h3 className="text-[13px] font-semibold text-foreground mb-3">회사</h3>
             <ul className="space-y-2 text-[13px] text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">회사 소개</a></li>
+              <li><Link to="/about" className="text-primary font-semibold hover:text-primary/80 transition-colors">AI팩토리 소개</Link></li>
               <li><a href="#" className="hover:text-foreground transition-colors">이용약관</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">개인정보처리방침</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">파트너 등록</a></li>

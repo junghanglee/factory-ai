@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Sparkles } from "lucide-react";
 import { useCategories } from "@/hooks/useSupabaseData";
 import catAiImage from "@/assets/cat-ai-image.png";
 import catAiVideo from "@/assets/cat-ai-video.png";
@@ -24,6 +24,18 @@ const CategoryGrid = () => {
     <section className="border-t border-b border-border bg-background">
       <div className="max-w-[1200px] mx-auto px-5 py-8">
         <div className="flex items-center justify-between gap-4 overflow-x-auto pb-1">
+          {/* AI팩토리 소개 - first item */}
+          <Link
+            to="/about"
+            className="group flex flex-col items-center gap-2 min-w-[110px] py-2"
+          >
+            <div className="w-[80px] h-[80px] rounded-2xl flex items-center justify-center bg-gradient-to-br from-primary/20 to-purple-500/20 border-2 border-primary/30 transition-transform group-hover:scale-110">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <span className="text-[13px] text-primary font-bold whitespace-nowrap transition-colors">
+              AI팩토리 소개
+            </span>
+          </Link>
           {categories.map((cat) => (
             <Link
               key={cat.id}
