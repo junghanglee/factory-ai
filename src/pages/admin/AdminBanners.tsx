@@ -109,12 +109,14 @@ const AdminBanners = () => {
     if (error) { toast.error("삭제 실패: " + error.message); return; }
     toast.success("배너가 삭제되었습니다.");
     fetchBanners();
+    queryClient.invalidateQueries({ queryKey: ["banners"] });
   };
 
   const toggleActive = async (banner: Banner) => {
     const { error } = await supabase.from("banners").update({ active: !banner.active }).eq("id", banner.id);
     if (error) { toast.error("상태 변경 실패"); return; }
     fetchBanners();
+    queryClient.invalidateQueries({ queryKey: ["banners"] });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
