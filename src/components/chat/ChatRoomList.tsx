@@ -150,6 +150,16 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
     all: "전체", unread: "안읽음", today: "오늘", week: "이번 주",
   };
 
+  const PopupButton = ({ roomId }: { roomId: string }) => (
+    <button
+      onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
+      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+      title="새 창으로 열기"
+    >
+      <ExternalLink className="h-3.5 w-3.5" />
+    </button>
+  );
+
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
     return (
@@ -177,15 +187,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
             )}
           </div>
         </button>
-        {isAdmin && (
-          <button
-            onClick={(e) => { e.stopPropagation(); openChatPopup(room.id); }}
-            className="shrink-0 p-2 mr-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title="새 창으로 열기"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-        )}
+        {isAdmin && <PopupButton roomId={room.id} />}
       </div>
     );
   };
@@ -277,13 +279,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
                         </div>
                       </div>
                     </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openChatPopup(room.id); }}
-                      className="shrink-0 p-2 mr-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                      title="새 창으로 열기"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </button>
+                    <PopupButton roomId={room.id} />
                   </div>
                 );
               }
