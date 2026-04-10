@@ -4,6 +4,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { useCategories, useServices } from "@/hooks/useSupabaseData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getCategoryIcon, getAllCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -39,12 +40,14 @@ const CategoryPage = () => {
             <div className="space-y-6 p-4 border rounded-xl bg-card">
               <div>
                 <h3 className="text-sm font-semibold mb-3">카테고리</h3>
-                <div className="space-y-2 text-sm">
-                  <Link to="/category/all" className={`block hover:text-foreground ${isAll ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                <div className="space-y-1.5 text-sm">
+                  <Link to="/category/all" className={`flex items-center gap-2 py-1 hover:text-foreground ${isAll ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                    <img src={getAllCategoryIcon()} alt="" className="w-5 h-5 object-contain" />
                     전체
                   </Link>
-                  {categories.map((c) => (
-                    <Link key={c.id} to={`/category/${c.id}`} className={`block hover:text-foreground ${c.id === id ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                  {categories.filter((c) => shouldShowInHeroGrid(c.slug)).map((c) => (
+                    <Link key={c.id} to={`/category/${c.id}`} className={`flex items-center gap-2 py-1 hover:text-foreground ${c.id === id ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                      <img src={getCategoryIcon(c.slug)} alt="" className="w-5 h-5 object-contain" />
                       {c.name}
                     </Link>
                   ))}
