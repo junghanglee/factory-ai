@@ -75,7 +75,7 @@ const navGroups: NavGroup[] = [
 // superAdminGroup removed - staff management moved into 회원관리 group
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isSuperAdmin } = useAuth();
+  // useAuth removed - no longer needed here
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
