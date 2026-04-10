@@ -378,6 +378,32 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [project, selectedRoomId, user, fetchProject]);
 
+  // Admin: Send feedback request message
+  const sendFeedbackRequest = useCallback(async (requestText: string) => {
+    if (!user || !selectedRoomId || !requestText.trim()) return;
+    // Insert chat message with feedback_request type
+    const { data: msgData, error: msgError } = await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId,
+      sender_id: user.id,
+      message: requestText.trim(),
+      message_type: "feedback_request",
+    }).select().single();
+    if (msgError || !msgData) { console.error(msgError); return; }
+
+    // Insert feedback_requests record
+    await supabase.from("feedback_requests").insert({
+      room_id: selectedRoomId,
+      message_id: msgData.id,
+      request_text: requestText.trim(),
+      status: "pending",
+    } as any);
+
+    await supabase.from("chat_rooms").update({
+      last_message: `📝 피드백 요청: ${requestText.trim().slice(0, 50)}`,
+      last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+  }, [user, selectedRoomId]);
+
   // Realtime subscriptions
   useEffect(() => {
     if (!user) return;
@@ -440,6 +466,7 @@ export function useChat() {
     sendMessage,
     sendFile,
     sendConfirmVideo,
+    sendFeedbackRequest,
     createRoom,
     fetchRooms,
     user,
