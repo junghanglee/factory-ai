@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCategories, useAllServicesWithPackages, type DbServicePackage } from "@/hooks/useSupabaseData";
+import { useCategories, useAllServicesWithPackages } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ImageUploader from "@/components/admin/ImageUploader";
+import MultiImageUploader from "@/components/admin/MultiImageUploader";
+import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -47,18 +49,16 @@ const AdminServices = () => {
       thumbnail: "", price: 0, original_price: 0, rating: 5.0, review_count: 0, delivery_days: 1,
       seller: "", tags: [], portfolio_images: [],
     });
-    setPkgForms([emptyPackage("Basic", 1), emptyPackage("Standard", 2), emptyPackage("Premium", 3)]);
+    setPkgForms([emptyPackage("Basic", 1)]);
     setEditOpen(true);
   };
 
-  // Auto-open new service dialog when navigating with ?action=new
   useEffect(() => {
     if (searchParams.get("action") === "new" && categories.length > 0 && !editOpen) {
       openNew();
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, categories]);
-
 
   const openEdit = (svc: typeof servicesData[0]) => {
     setEditId(svc.id);
@@ -71,8 +71,8 @@ const AdminServices = () => {
     });
     setPkgForms(
       svc.packages.length > 0
-        ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features || [""], sort_order: p.sort_order }))
-        : [emptyPackage("Basic", 1), emptyPackage("Standard", 2), emptyPackage("Premium", 3)]
+        ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features?.length ? p.features : [""], sort_order: p.sort_order }))
+        : [emptyPackage("Basic", 1)]
     );
     setEditOpen(true);
   };
@@ -96,7 +96,6 @@ const AdminServices = () => {
         serviceId = data.id;
       }
 
-      // Delete existing packages and re-insert
       if (serviceId) {
         await supabase.from("service_packages").delete().eq("service_id", serviceId);
         const pkgInserts = pkgForms.filter((p) => p.name).map((p) => ({
@@ -153,6 +152,16 @@ const AdminServices = () => {
     setPkgForms((prev) => prev.map((p, i) => (i === pkgIdx ? { ...p, features: [...p.features, ""] } : p)));
   };
 
+  const addPackage = () => {
+    if (pkgForms.length >= 5) return;
+    setPkgForms((prev) => [...prev, emptyPackage(`패키지 ${prev.length + 1}`, prev.length + 1)]);
+  };
+
+  const removePackage = (idx: number) => {
+    if (pkgForms.length <= 1) return;
+    setPkgForms((prev) => prev.filter((_, i) => i !== idx).map((p, i) => ({ ...p, sort_order: i + 1 })));
+  };
+
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
@@ -168,7 +177,7 @@ const AdminServices = () => {
                 <tr className="border-b bg-secondary/50">
                   <th className="text-left p-4 font-medium text-muted-foreground">서비스</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">카테고리</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">가격 (Basic)</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">AI팩토리 가격</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">패키지</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">평점</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
@@ -211,17 +220,26 @@ const AdminServices = () => {
 
       {/* Edit/Create Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editId ? "서비스 수정" : "새 서비스 등록"}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="basic">
             <TabsList className="w-full">
               <TabsTrigger value="basic" className="flex-1">기본 정보</TabsTrigger>
-              <TabsTrigger value="packages" className="flex-1">패키지 설정 (3종)</TabsTrigger>
+              <TabsTrigger value="packages" className="flex-1">패키지 설정 ({pkgForms.length}개)</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
+              {/* Thumbnail upload */}
+              <div>
+                <Label className="mb-2 block">대표이미지</Label>
+                <ImageUploader
+                  value={form.thumbnail || ""}
+                  onChange={(url) => setForm({ ...form, thumbnail: url })}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>서비스명</Label>
@@ -245,31 +263,31 @@ const AdminServices = () => {
                 <Input value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
               <div>
-                <Label>상세 설명</Label>
-                <Textarea value={form.detailed_description || ""} onChange={(e) => setForm({ ...form, detailed_description: e.target.value })} rows={3} />
+                <Label className="mb-2 block">상세 설명</Label>
+                <SimpleRichEditor
+                  value={form.detailed_description || ""}
+                  onChange={(html) => setForm({ ...form, detailed_description: html })}
+                  placeholder="서비스 상세 설명을 입력하세요..."
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>대표이미지 URL</Label>
-                  <Input value={form.thumbnail || ""} onChange={(e) => setForm({ ...form, thumbnail: e.target.value })} />
-                </div>
                 <div>
                   <Label>판매자</Label>
                   <Input value={form.seller || ""} onChange={(e) => setForm({ ...form, seller: e.target.value })} />
                 </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>기본 가격</Label>
+                  <Label>납기일(일) - 제작 평균기간</Label>
+                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => setForm({ ...form, delivery_days: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>AI팩토리 평균가격</Label>
                   <Input type="number" value={form.price || 0} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
                 </div>
                 <div>
-                  <Label>원래 가격</Label>
+                  <Label>AGENCY 평균가격</Label>
                   <Input type="number" value={form.original_price || 0} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} />
-                </div>
-                <div>
-                  <Label>납기일(일)</Label>
-                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => setForm({ ...form, delivery_days: Number(e.target.value) })} />
                 </div>
               </div>
               <div>
@@ -277,21 +295,34 @@ const AdminServices = () => {
                 <Input value={(form.tags || []).join(", ")} onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t: string) => t.trim()) })} />
               </div>
               <div>
-                <Label>포트폴리오 이미지 URL (줄바꿈 구분)</Label>
-                <Textarea
-                  value={(form.portfolio_images || []).join("\n")}
-                  onChange={(e) => setForm({ ...form, portfolio_images: e.target.value.split("\n").map((t: string) => t.trim()).filter(Boolean) })}
-                  rows={3}
-                  placeholder="https://... (한 줄에 하나씩)"
+                <Label className="mb-2 block">포트폴리오 이미지</Label>
+                <MultiImageUploader
+                  value={form.portfolio_images || []}
+                  onChange={(urls) => setForm({ ...form, portfolio_images: urls })}
                 />
               </div>
             </TabsContent>
 
-            <TabsContent value="packages" className="space-y-6 mt-4">
+            <TabsContent value="packages" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">최소 1개, 최대 5개까지 등록 가능합니다.</p>
+                {pkgForms.length < 5 && (
+                  <Button variant="outline" size="sm" onClick={addPackage}>
+                    <Plus className="h-4 w-4 mr-1" /> 패키지 추가
+                  </Button>
+                )}
+              </div>
               {pkgForms.map((pkg, pkgIdx) => (
                 <Card key={pkgIdx}>
                   <CardContent className="p-4 space-y-3">
-                    <h3 className="font-semibold text-sm">{pkg.name || `패키지 ${pkgIdx + 1}`}</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-sm">{pkg.name || `패키지 ${pkgIdx + 1}`}</h3>
+                      {pkgForms.length > 1 && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removePackage(pkgIdx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                     <div className="grid grid-cols-4 gap-3">
                       <div>
                         <Label>패키지명</Label>
@@ -311,7 +342,7 @@ const AdminServices = () => {
                       </div>
                     </div>
                     <div>
-                      <Label>주요 특징 (최대 5개)</Label>
+                      <Label>주요 특징</Label>
                       <div className="space-y-2">
                         {pkg.features.map((feat, featIdx) => (
                           <Input
@@ -321,7 +352,7 @@ const AdminServices = () => {
                             placeholder={`특징 ${featIdx + 1}`}
                           />
                         ))}
-                        {pkg.features.length < 5 && (
+                        {pkg.features.length < 8 && (
                           <Button variant="outline" size="sm" onClick={() => addPkgFeature(pkgIdx)}>
                             + 항목 추가
                           </Button>
