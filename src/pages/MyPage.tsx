@@ -67,9 +67,10 @@ const MyPage = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setUploadingAvatar(true);
-    const ext = file.name.split(".").pop();
+    const compressed = await compressImage(file, "avatar");
+    const ext = compressed.name.split(".").pop();
     const path = `${user.id}/${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, compressed, { upsert: true });
     if (uploadError) {
       toast.error("아바타 업로드에 실패했습니다.");
       setUploadingAvatar(false);
