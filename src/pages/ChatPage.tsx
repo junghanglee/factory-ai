@@ -112,14 +112,12 @@ const ChatPage = () => {
           if (req.description) orderMsg += `\n\n상세설명:\n${req.description}`;
         }
         orderMsg += "\n\n위 내용으로 의뢰합니다.";
-        setTimeout(async () => {
-          await sendMessage(orderMsg);
-          // Upload attached files
-          const orderFiles: File[] = state.orderInfo.files || [];
-          for (const file of orderFiles) {
-            await sendFile(file, 100);
-          }
-        }, 500);
+        // Send message and files using room.id directly to avoid stale closure
+        await sendMessage(orderMsg, room.id);
+        const orderFiles: File[] = state.orderInfo.files || [];
+        for (const file of orderFiles) {
+          await sendFile(file, 100, undefined, room.id);
+        }
         await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
