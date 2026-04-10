@@ -7,6 +7,22 @@ export type DbService = Tables<"services">;
 export type DbServicePackage = Tables<"service_packages">;
 export type DbBanner = Tables<"banners">;
 
+export const useBanners = () =>
+  useQuery({
+    queryKey: ["banners"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data as DbBanner[];
+    },
+    retry: 3,
+    staleTime: 1000 * 60,
+  });
+
 export const useCategories = () =>
   useQuery({
     queryKey: ["categories"],
