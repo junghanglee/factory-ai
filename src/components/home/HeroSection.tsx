@@ -52,16 +52,18 @@ const HeroSection = () => {
           {/* Left side - text + search */}
           <div className="flex-1 pt-2">
             <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight">
-              AI 콘텐츠가 필요한 순간,
+              최고의 AI콘텐츠 전문가와,
               <br />
-              <span className="text-primary">딱 맞는 서비스</span>를 찾아보세요
+              대량생산 자동화공정을 통해
+              <br />
+              <span className="text-primary">압도적인 품질과 가격</span>으로 제작
             </h1>
 
             {/* Search */}
             <div className="relative max-w-[520px] mb-5">
               <input
                 type="text"
-                placeholder="어떤 전문가가 필요하세요?"
+                placeholder="어떤 서비스가 필요하세요?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-white/60 transition-colors shadow-sm"
