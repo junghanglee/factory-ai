@@ -72,13 +72,7 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const superAdminGroup: NavGroup = {
-  label: "관리자관리",
-  icon: ShieldCheck,
-  items: [
-    { to: "/admin/staff", icon: ShieldCheck, label: "관리자 목록" },
-  ],
-};
+// superAdminGroup removed - staff management moved into 회원관리 group
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { isSuperAdmin } = useAuth();
