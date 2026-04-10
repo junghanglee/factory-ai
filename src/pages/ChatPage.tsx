@@ -386,7 +386,7 @@ const ChatPage = () => {
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <OrderRequestTab metadata={selectedRoom.metadata as Record<string, any> | null} />
+              <OrderRequestTab metadata={selectedRoom.metadata as Record<string, any> | null} roomId={selectedRoom.id} />
             </div>
           )}
           {selectedRoom && project && !showFileDrawer && !showOrderInfo && (
