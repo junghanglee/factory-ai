@@ -67,9 +67,30 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <Link to="/mypage" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                  마이페이지
-                </Link>
+                <div className="relative"
+                  onMouseEnter={handleMyPageEnter}
+                  onMouseLeave={handleMyPageLeave}
+                >
+                  <Link to="/mypage" className="flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                    마이페이지
+                    <ChevronDown className="h-3 w-3" />
+                  </Link>
+                  {myPageMenuOpen && (
+                    <div className="absolute top-full right-0 w-48 bg-background border rounded-lg shadow-lg py-1.5 z-50">
+                      {myPageMenuItems.map((item) => (
+                        <Link
+                          key={item.id}
+                          to={`/mypage?tab=${item.id}`}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
+                          onClick={() => setMyPageMenuOpen(false)}
+                        >
+                          <item.icon className="h-4 w-4 text-muted-foreground" />
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">
