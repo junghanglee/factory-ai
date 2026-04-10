@@ -7,20 +7,28 @@ export type DbService = Tables<"services">;
 export type DbServicePackage = Tables<"service_packages">;
 export type DbBanner = Tables<"banners">;
 
+interface BannerResponse {
+  banners: DbBanner[];
+  error?: string;
+  fallback?: boolean;
+}
+
 export const useBanners = () =>
   useQuery({
     queryKey: ["banners"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("banners")
-        .select("*")
-        .eq("active", true)
-        .order("sort_order", { ascending: true });
+      const { data, error } = await supabase.functions.invoke<BannerResponse>("hero-content", {
+        method: "GET",
+      });
+
       if (error) throw error;
-      return data as DbBanner[];
+
+      return (data?.banners ?? []) as DbBanner[];
     },
-    retry: 3,
-    staleTime: 1000 * 60,
+    retry: 1,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
   });
 
 export const useCategories = () =>

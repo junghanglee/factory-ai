@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
+import { createBannerUploadPath, getBannerDisplayImageUrl } from "@/lib/heroBanners";
 
 type Banner = Tables<"banners">;
 
@@ -35,17 +36,43 @@ const AdminBanners = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formPreviewImageUrl = getBannerDisplayImageUrl(form.image_url);
 
   const fetchBanners = useCallback(async () => {
     const { data, error } = await supabase
       .from("banners")
       .select("*")
       .order("sort_order", { ascending: true });
-    if (!error && data) setBanners(data);
-    setLoading(false);
+    if (error) throw error;
+    setBanners(data ?? []);
+    return data ?? [];
   }, []);
 
-  useEffect(() => { fetchBanners(); }, [fetchBanners]);
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        await fetchBanners();
+      } catch (err: any) {
+        if (!cancelled) toast.error("배너 목록을 불러오지 못했습니다: " + err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchBanners]);
+
+  const refreshBannerViews = async () => {
+    await fetchBanners();
+    await queryClient.invalidateQueries({ queryKey: ["banners"] });
+  };
 
   const openNew = () => {
     setEditId(null);
@@ -94,8 +121,7 @@ const AdminBanners = () => {
         toast.success("배너가 추가되었습니다.");
       }
       setEditOpen(false);
-      fetchBanners();
-      queryClient.invalidateQueries({ queryKey: ["banners"] });
+      await refreshBannerViews();
     } catch (err: any) {
       toast.error("저장 실패: " + err.message);
     } finally {
@@ -108,15 +134,13 @@ const AdminBanners = () => {
     const { error } = await supabase.from("banners").delete().eq("id", id);
     if (error) { toast.error("삭제 실패: " + error.message); return; }
     toast.success("배너가 삭제되었습니다.");
-    fetchBanners();
-    queryClient.invalidateQueries({ queryKey: ["banners"] });
+    await refreshBannerViews();
   };
 
   const toggleActive = async (banner: Banner) => {
     const { error } = await supabase.from("banners").update({ active: !banner.active }).eq("id", banner.id);
     if (error) { toast.error("상태 변경 실패"); return; }
-    fetchBanners();
-    queryClient.invalidateQueries({ queryKey: ["banners"] });
+    await refreshBannerViews();
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,8 +152,7 @@ const AdminBanners = () => {
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const fileName = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const fileName = createBannerUploadPath(file.name);
       const { error: uploadError } = await supabase.storage.from("chat-files").upload(fileName, file);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(fileName);
@@ -163,7 +186,7 @@ const AdminBanners = () => {
                 <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab shrink-0" />
                 <div className="w-20 h-12 bg-secondary rounded overflow-hidden flex items-center justify-center shrink-0">
                   {banner.image_url && !banner.image_url.endsWith(".mp4") ? (
-                    <img src={banner.image_url} alt="" className="w-full h-full object-cover" />
+                    <img src={getBannerDisplayImageUrl(banner.image_url) || banner.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-xs text-muted-foreground">{banner.sort_order}</span>
                   )}
@@ -206,9 +229,9 @@ const AdminBanners = () => {
             </div>
             <div>
               <Label>배너 이미지</Label>
-              {form.image_url && !form.image_url.endsWith(".mp4") && (
+              {form.image_url && !form.image_url.endsWith(".mp4") && formPreviewImageUrl && (
                 <div className="mb-2 rounded-lg overflow-hidden border">
-                  <img src={form.image_url} alt="배너 미리보기" className="w-full h-32 object-cover" />
+                  <img src={formPreviewImageUrl} alt="배너 미리보기" className="w-full h-32 object-cover" />
                 </div>
               )}
               <div className="flex gap-2">
