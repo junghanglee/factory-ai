@@ -26,6 +26,7 @@ import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import AdminAutoMessages from "./pages/admin/AdminAutoMessages";
 import AdminStaff from "./pages/admin/AdminStaff";
 import AdminInquiries from "./pages/admin/AdminInquiries";
+import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
