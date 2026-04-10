@@ -13,6 +13,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
+import QuickPhrases from "@/components/chat/QuickPhrases";
+
+const MAX_FILES = 10;
 
 const MAX_FILE_SIZE_MB = 100;
 
