@@ -25,6 +25,18 @@ interface ChatRoomListProps {
 
 type FilterMode = "all" | "unread" | "today" | "week";
 
+const openChatPopup = (roomId: string) => {
+  const w = 480;
+  const h = 700;
+  const left = window.screenX + window.outerWidth - w - 40;
+  const top = window.screenY + 80;
+  window.open(
+    `/admin/chat-popup?roomId=${roomId}`,
+    `chat_${roomId}`,
+    `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+};
+
 export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAdmin, loadingRooms }: ChatRoomListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
@@ -139,30 +151,40 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
     return (
-      <button
-        key={room.id}
-        onClick={() => onSelectRoom(room.id)}
-        className={`w-full text-left transition-colors ${
-          selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-        } ${indented ? "pl-12 pr-3 py-2.5 border-b" : "p-3 border-b"}`}
-      >
-        <div className="flex items-center justify-between mb-0.5">
-          <span className="text-xs font-medium truncate">{room.title}</span>
-          {room.last_message_at && (
-            <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-              {formatDateShort(room.last_message_at)}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
-          {unread > 0 && (
-            <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-              {unread}
-            </span>
-          )}
-        </div>
-      </button>
+      <div key={room.id} className="relative group/room">
+        <button
+          onClick={() => onSelectRoom(room.id)}
+          className={`w-full text-left transition-colors ${
+            selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
+          } ${indented ? "pl-12 pr-3 py-2.5 border-b" : "p-3 border-b"}`}
+        >
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-xs font-medium truncate pr-6">{room.title}</span>
+            {room.last_message_at && (
+              <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                {formatDateShort(room.last_message_at)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
+            {unread > 0 && (
+              <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                {unread}
+              </span>
+            )}
+          </div>
+        </button>
+        {isAdmin && (
+          <button
+            onClick={(e) => { e.stopPropagation(); openChatPopup(room.id); }}
+            className="absolute top-2 right-2 p-1 rounded-md opacity-0 group-hover/room:opacity-100 transition-opacity hover:bg-secondary"
+            title="새 창으로 열기"
+          >
+            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        )}
+      </div>
     );
   };
 
