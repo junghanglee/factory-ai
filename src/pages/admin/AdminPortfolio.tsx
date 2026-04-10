@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useCategories } from "@/hooks/useSupabaseData";
+import { compressFiles } from "@/utils/imageCompression";
 
 interface PortfolioItem {
   id: string;
