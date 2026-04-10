@@ -26,6 +26,7 @@ interface BannerForm {
 const emptyForm: BannerForm = { title: "", subtitle: "", image_url: "", link_url: "", active: true, sort_order: 0 };
 
 const AdminBanners = () => {
+  const queryClient = useQueryClient();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
