@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
@@ -5,6 +6,8 @@ import { useService, useServicePackages, useCategories } from "@/hooks/useSupaba
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderRequestDialog";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -17,9 +20,12 @@ const reviews = [
 const ServiceDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: service, isLoading } = useService(id);
   const { data: packages = [] } = useServicePackages(id);
   const { data: categories = [] } = useCategories();
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [selectedPkg, setSelectedPkg] = useState<typeof packages[0] | null>(null);
 
   if (isLoading) {
     return (
@@ -41,15 +47,47 @@ const ServiceDetailPage = () => {
   const defaultTab = packages.length > 1 ? packages[1].name : packages[0]?.name || "Basic";
 
   const handleOrder = (pkg: typeof packages[0]) => {
-    // 주문서를 채팅으로 전송 (향후 구현)
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setSelectedPkg(pkg);
+    setOrderDialogOpen(true);
+  };
+
+  const handleOrderSubmit = async (data: OrderFormData) => {
+    setOrderDialogOpen(false);
+    // Build metadata for chat room (exclude File objects)
+    const orderRequest: Record<string, any> = {
+      requesterName: data.requesterName,
+      requesterEmail: data.requesterEmail,
+      serviceTitle: data.serviceTitle,
+      packageName: data.packageName,
+      price: data.price,
+      deliveryDays: data.deliveryDays,
+      categoryName: data.categoryName,
+    };
+    if (data.refUrl) orderRequest.refUrl = data.refUrl;
+    if (data.description) orderRequest.description = data.description;
+    if (data.productionTime) orderRequest.productionTime = data.productionTime;
+    if (data.quantity) orderRequest.quantity = data.quantity;
+    if (data.subject) orderRequest.subject = data.subject;
+    if (data.videoTime) orderRequest.videoTime = data.videoTime;
+    if (data.llmOwned) orderRequest.llmOwned = data.llmOwned;
+    if (data.pcMemory) orderRequest.pcMemory = data.pcMemory;
+    if (data.aiAgentExp) orderRequest.aiAgentExp = data.aiAgentExp;
+    if (data.files.length > 0) orderRequest.fileNames = data.files.map((f) => f.name);
+
     navigate("/chat", {
       state: {
         orderInfo: {
           serviceId: service.id,
           serviceTitle: service.title,
-          packageName: pkg.name,
-          price: pkg.price,
-          deliveryDays: pkg.delivery_days,
+          packageName: data.packageName,
+          price: data.price,
+          deliveryDays: data.deliveryDays,
+          orderRequest,
+          files: data.files,
         },
       },
     });
@@ -113,7 +151,6 @@ const ServiceDetailPage = () => {
               )}
             </div>
 
-            {/* Portfolio images */}
             {service.portfolio_images && service.portfolio_images.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold mb-3">포트폴리오</h2>
@@ -127,18 +164,14 @@ const ServiceDetailPage = () => {
               </div>
             )}
 
-            {/* Tags */}
             {service.tags && service.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {service.tags.map((tag) => (
-                  <span key={tag} className="px-3 py-1 text-sm rounded-full border text-muted-foreground">
-                    #{tag}
-                  </span>
+                  <span key={tag} className="px-3 py-1 text-sm rounded-full border text-muted-foreground">#{tag}</span>
                 ))}
               </div>
             )}
 
-            {/* Reviews */}
             <div>
               <h2 className="text-lg font-semibold mb-4">리뷰 ({service.review_count})</h2>
               <div className="space-y-4">
@@ -171,21 +204,15 @@ const ServiceDetailPage = () => {
                     <Tabs defaultValue={defaultTab}>
                       <TabsList className="w-full rounded-none border-b">
                         {packages.map((pkg) => (
-                          <TabsTrigger key={pkg.id} value={pkg.name} className="flex-1 text-sm">
-                            {pkg.name}
-                          </TabsTrigger>
+                          <TabsTrigger key={pkg.id} value={pkg.name} className="flex-1 text-sm">{pkg.name}</TabsTrigger>
                         ))}
                       </TabsList>
                       {packages.map((pkg) => (
                         <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
                           <div>
-                            <span className="text-3xl font-bold text-foreground">
-                              {formatPrice(pkg.price)}원
-                            </span>
+                            <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
                             {service.original_price > pkg.price && (
-                              <span className="ml-2 text-sm line-through text-muted-foreground">
-                                {formatPrice(service.original_price)}원
-                              </span>
+                              <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1">
@@ -196,20 +223,17 @@ const ServiceDetailPage = () => {
                             <ul className="space-y-2">
                               {pkg.features.map((f) => (
                                 <li key={f} className="text-sm flex items-start gap-2">
-                                  <span className="text-primary mt-0.5">✓</span>
-                                  {f}
+                                  <span className="text-primary mt-0.5">✓</span>{f}
                                 </li>
                               ))}
                             </ul>
                           )}
                           <div className="space-y-2 pt-2">
                             <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}>
-                              <ShoppingCart className="h-4 w-4" />
-                              의뢰하기
+                              <ShoppingCart className="h-4 w-4" /> 의뢰하기
                             </Button>
                             <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}>
-                              <MessageCircle className="h-4 w-4" />
-                              채팅하기
+                              <MessageCircle className="h-4 w-4" /> 채팅하기
                             </Button>
                           </div>
                         </TabsContent>
@@ -217,15 +241,10 @@ const ServiceDetailPage = () => {
                     </Tabs>
                   ) : (
                     <div className="p-5 space-y-4">
-                      <div>
-                        <span className="text-3xl font-bold text-foreground">
-                          {formatPrice(service.price)}원
-                        </span>
-                      </div>
+                      <span className="text-3xl font-bold text-foreground">{formatPrice(service.price)}원</span>
                       <div className="space-y-2">
                         <Button className="w-full gap-2" onClick={handleInquiry}>
-                          <MessageCircle className="h-4 w-4" />
-                          채팅하기
+                          <MessageCircle className="h-4 w-4" /> 채팅하기
                         </Button>
                       </div>
                     </div>
@@ -236,6 +255,19 @@ const ServiceDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {selectedPkg && (
+        <OrderRequestDialog
+          open={orderDialogOpen}
+          onOpenChange={setOrderDialogOpen}
+          service={{ id: service.id, title: service.title, category_id: service.category_id }}
+          pkg={selectedPkg}
+          categoryName={category?.name || "기타"}
+          userName={user?.user_metadata?.name || user?.email?.split("@")[0] || ""}
+          userEmail={user?.email || ""}
+          onSubmit={handleOrderSubmit}
+        />
+      )}
     </MainLayout>
   );
 };
