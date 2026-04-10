@@ -45,7 +45,7 @@ const HeroSection = () => {
       >
         <source src="/videos/hero-bg.mp4" type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0" />
 
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
         <div className="flex flex-col md:flex-row items-start gap-10 md:gap-16">
