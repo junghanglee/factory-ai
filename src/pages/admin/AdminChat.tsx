@@ -311,12 +311,21 @@ const AdminChat = () => {
         </div>
 
         {/* File Drawer */}
-        {selectedRoom && showFileDrawer && (
+        {selectedRoom && showFileDrawer && !showInfoPanel && (
           <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
         )}
 
+        {/* Admin Info Panel */}
+        {selectedRoom && showInfoPanel && !showFileDrawer && user && (
+          <AdminInfoPanel
+            customerId={selectedRoom.customer_id}
+            roomId={selectedRoom.id}
+            currentUserId={user.id}
+          />
+        )}
+
         {/* Project Panel */}
-        {selectedRoom && project && !showFileDrawer && (
+        {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
           <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
             onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
         )}
