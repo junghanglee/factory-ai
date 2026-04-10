@@ -120,7 +120,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Nav groups */}
         <nav className="flex-1 px-3 pt-2 pb-3 space-y-1 overflow-y-auto">
-          {(isSuperAdmin ? [...navGroups, superAdminGroup] : navGroups).map((group) => {
+          {navGroups.map((group) => {
             const isOpen = openGroups[group.label];
             const hasActive = group.items.some((i) => location.pathname === i.to);
 
