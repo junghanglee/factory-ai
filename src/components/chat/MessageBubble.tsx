@@ -110,14 +110,20 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
     return <FeedbackRequestBubble msg={msg} isMine={isMine} roomId={roomId} />;
   }
 
-  const isSystem = msg.sender_id === SYSTEM_USER_ID;
+  const isSystem = msg.sender_id === SYSTEM_USER_ID || msg.message_type === "system";
 
   if (isSystem) {
+    // System/auto messages always display as admin (left-aligned, not "mine")
     return (
-      <div className="flex justify-center">
-        <div className="max-w-[80%] bg-accent/60 text-accent-foreground rounded-xl px-4 py-2.5 text-center">
-          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-          <p className="text-xs text-muted-foreground mt-1">{formatTime(msg.created_at)}</p>
+      <div className="flex justify-start gap-2 group">
+        <div className="shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center mt-0.5">
+          <MessageCircle className="h-4 w-4 text-primary" />
+        </div>
+        <div className="max-w-[70%]">
+          <div className="bg-secondary rounded-2xl rounded-tl-md px-4 py-2.5">
+            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 ml-1">{formatTime(msg.created_at)}</p>
         </div>
       </div>
     );

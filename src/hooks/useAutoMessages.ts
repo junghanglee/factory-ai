@@ -26,7 +26,7 @@ export function useAutoMessages() {
           room_id: roomId,
           sender_id: user.id,
           message: autoMsg.message,
-          message_type: "text",
+          message_type: "system",
         });
       }
 
