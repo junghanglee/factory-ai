@@ -66,6 +66,13 @@ const MyPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
+  // Auto-redirect to /chat when entering with chat tab and chat rooms exist
+  useEffect(() => {
+    if (!loading && user && activeTab === "chat" && !loadingChatRooms && chatRooms.length > 0) {
+      navigate("/chat", { replace: true });
+    }
+  }, [loading, user, activeTab, loadingChatRooms, chatRooms, navigate]);
+
   // Load projects
   useEffect(() => {
     if (!user) return;
@@ -537,20 +544,7 @@ const MyPage = () => {
                     </Button>
                   )}
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 text-sm text-muted-foreground">
-                  <a href="https://open.kakao.com/o/seanvtn6620" className="hover:text-foreground transition-colors">
-                    💬 카카오톡: seanvtn6620@kakao.com
-                  </a>
-                  <span className="hidden sm:inline">·</span>
-                  <a href="mailto:junghanglee@gmail.com" className="hover:text-foreground transition-colors">
-                    ✉️ junghanglee@gmail.com
-                  </a>
-                  <span className="hidden sm:inline">·</span>
-                  <a href="tel:+840777436620" className="hover:text-foreground transition-colors">
-                    📞 +84 077-743-6620
-                  </a>
-                </div>
-              </CardContent>
+               </CardContent>
             </Card>
           </TabsContent>
 
