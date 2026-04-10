@@ -614,7 +614,6 @@ const MyPage = () => {
                   <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-full">
                     {savingProfile ? "저장 중..." : "프로필 저장"}
                   </Button>
-                  </Button>
                 </CardContent>
               </Card>
 
