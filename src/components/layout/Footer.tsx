@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
-import { categories } from "@/data/categories";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 
 const Footer = () => {
   return (
     <footer className="bg-secondary border-t border-border">
       <div className="max-w-[1200px] mx-auto px-5 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -15,20 +14,6 @@ const Footer = () => {
             <p className="text-[13px] text-muted-foreground leading-relaxed">
               AI로 만드는 콘텐츠,<br />에이전시 반값에.
             </p>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="text-[13px] font-semibold text-foreground mb-3">카테고리</h3>
-            <ul className="space-y-2">
-              {categories.map((cat) => (
-                <li key={cat.id}>
-                  <Link to={`/category/${cat.id}`} className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Support */}
@@ -49,7 +34,6 @@ const Footer = () => {
               <li><Link to="/about" className="text-primary font-semibold hover:text-primary/80 transition-colors">AI팩토리 소개</Link></li>
               <li><a href="#" className="hover:text-foreground transition-colors">이용약관</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">개인정보처리방침</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">파트너 등록</a></li>
             </ul>
           </div>
         </div>
