@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
+import QuickPhrases from "@/components/chat/QuickPhrases";
 import { useChatNotification } from "@/hooks/useChatNotification";
+
+const MAX_FILES = 10;
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
