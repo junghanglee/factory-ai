@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight } from "lucide-react";
+import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { Button } from "@/components/ui/button";
@@ -44,28 +44,25 @@ const ServiceDetailPage = () => {
   }
 
   const category = categories.find((c) => c.id === service.category_id);
-  const defaultTab = packages.length > 1 ? packages[1].name : packages[0]?.name || "Basic";
+  const defaultTab = packages.length > 1 ? packages[Math.min(1, packages.length - 1)].name : packages[0]?.name || "Basic";
+
+  // Price comparison calculations
+  const discountRate = service.original_price > 0 && service.price < service.original_price
+    ? Math.round((1 - service.price / service.original_price) * 100)
+    : 0;
 
   const handleOrder = (pkg: typeof packages[0]) => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    if (!user) { navigate("/login"); return; }
     setSelectedPkg(pkg);
     setOrderDialogOpen(true);
   };
 
   const handleOrderSubmit = async (data: OrderFormData) => {
     setOrderDialogOpen(false);
-    // Build metadata for chat room (exclude File objects)
     const orderRequest: Record<string, any> = {
-      requesterName: data.requesterName,
-      requesterEmail: data.requesterEmail,
-      serviceTitle: data.serviceTitle,
-      packageName: data.packageName,
-      price: data.price,
-      deliveryDays: data.deliveryDays,
-      categoryName: data.categoryName,
+      requesterName: data.requesterName, requesterEmail: data.requesterEmail,
+      serviceTitle: data.serviceTitle, packageName: data.packageName,
+      price: data.price, deliveryDays: data.deliveryDays, categoryName: data.categoryName,
     };
     if (data.refUrl) orderRequest.refUrl = data.refUrl;
     if (data.description) orderRequest.description = data.description;
@@ -81,27 +78,102 @@ const ServiceDetailPage = () => {
     navigate("/chat", {
       state: {
         orderInfo: {
-          serviceId: service.id,
-          serviceTitle: service.title,
-          packageName: data.packageName,
-          price: data.price,
-          deliveryDays: data.deliveryDays,
-          orderRequest,
-          files: data.files,
+          serviceId: service.id, serviceTitle: service.title,
+          packageName: data.packageName, price: data.price,
+          deliveryDays: data.deliveryDays, orderRequest, files: data.files,
         },
       },
     });
   };
 
   const handleInquiry = () => {
-    navigate("/chat", {
-      state: {
-        inquiry: {
-          serviceId: service.id,
-          serviceTitle: service.title,
-        },
-      },
-    });
+    navigate("/chat", { state: { inquiry: { serviceId: service.id, serviceTitle: service.title } } });
+  };
+
+  // Package sidebar rendering based on count
+  const renderPackageSidebar = () => {
+    if (packages.length === 0) {
+      return (
+        <div className="p-5 space-y-4">
+          <span className="text-3xl font-bold text-foreground">{formatPrice(service.price)}원</span>
+          <div className="space-y-2">
+            <Button className="w-full gap-2" onClick={handleInquiry}>
+              <MessageCircle className="h-4 w-4" /> 채팅하기
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (packages.length === 1) {
+      const pkg = packages[0];
+      return (
+        <div className="p-5 space-y-4">
+          <div className="text-center">
+            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{pkg.name}</span>
+          </div>
+          <div>
+            <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
+            {service.original_price > pkg.price && (
+              <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
+            )}
+          </div>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>납기: {pkg.delivery_days}일</p>
+            <p>수정: {pkg.revisions}회</p>
+          </div>
+          {pkg.features && pkg.features.length > 0 && (
+            <ul className="space-y-2">
+              {pkg.features.map((f) => (
+                <li key={f} className="text-sm flex items-start gap-2"><span className="text-primary mt-0.5">✓</span>{f}</li>
+              ))}
+            </ul>
+          )}
+          <div className="space-y-2 pt-2">
+            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> 의뢰하기</Button>
+            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 채팅하기</Button>
+          </div>
+        </div>
+      );
+    }
+
+    // 2-5 packages: use tabs, scroll if many
+    return (
+      <Tabs defaultValue={defaultTab}>
+        <TabsList className={`w-full rounded-none border-b ${packages.length > 3 ? 'flex-wrap h-auto' : ''}`}>
+          {packages.map((pkg) => (
+            <TabsTrigger key={pkg.id} value={pkg.name} className={`text-xs sm:text-sm ${packages.length > 3 ? 'flex-1 min-w-0 px-2' : 'flex-1'}`}>
+              {pkg.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {packages.map((pkg) => (
+          <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
+            <div>
+              <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
+              {service.original_price > pkg.price && (
+                <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>납기: {pkg.delivery_days}일</p>
+              <p>수정: {pkg.revisions}회</p>
+            </div>
+            {pkg.features && pkg.features.length > 0 && (
+              <ul className="space-y-2">
+                {pkg.features.map((f) => (
+                  <li key={f} className="text-sm flex items-start gap-2"><span className="text-primary mt-0.5">✓</span>{f}</li>
+                ))}
+              </ul>
+            )}
+            <div className="space-y-2 pt-2">
+              <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> 의뢰하기</Button>
+              <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 채팅하기</Button>
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
+    );
   };
 
   return (
@@ -126,9 +198,14 @@ const ServiceDetailPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
+                {discountRate > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500/10 text-red-600">
+                    AGENCY 대비 {discountRate}% 절감
+                  </span>
+                )}
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-3">{service.title}</h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                 <span className="font-medium text-foreground">{service.seller}</span>
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -136,7 +213,7 @@ const ServiceDetailPage = () => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {service.delivery_days}일 이내 납품
+                  평균 {service.delivery_days}일 제작
                 </span>
               </div>
             </div>
@@ -146,7 +223,10 @@ const ServiceDetailPage = () => {
               <p className="text-muted-foreground leading-relaxed">{service.description}</p>
               {service.detailed_description && (
                 <div className="mt-4 p-4 rounded-lg bg-accent/50">
-                  <p className="text-sm text-muted-foreground leading-relaxed">{service.detailed_description}</p>
+                  <div
+                    className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none [&_h3]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_strong]:text-foreground"
+                    dangerouslySetInnerHTML={{ __html: service.detailed_description }}
+                  />
                 </div>
               )}
             </div>
@@ -169,6 +249,42 @@ const ServiceDetailPage = () => {
                 {service.tags.map((tag) => (
                   <span key={tag} className="px-3 py-1 text-sm rounded-full border text-muted-foreground">#{tag}</span>
                 ))}
+              </div>
+            )}
+
+            {/* Price comparison section */}
+            {service.original_price > 0 && service.original_price > service.price && (
+              <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingDown className="h-5 w-5 text-primary" />
+                  AI팩토리 vs AGENCY 비교
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-background p-4 text-center border">
+                    <div className="text-xs text-muted-foreground mb-1">AI팩토리 평균가격</div>
+                    <div className="text-xl font-bold text-primary">{formatPrice(service.price)}원</div>
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                      <Zap className="h-3 w-3" /> 평균 {service.delivery_days}일 제작
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-background p-4 text-center border">
+                    <div className="text-xs text-muted-foreground mb-1">AGENCY 평균가격</div>
+                    <div className="text-xl font-bold text-muted-foreground line-through">{formatPrice(service.original_price)}원</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      평균 {Math.ceil(service.delivery_days * 2.5)}일 이상 소요
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+                    <span className="font-medium text-red-600">{discountRate}% 비용 절감</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
+                    <span className="font-medium text-blue-600">{Math.round((1 - 1 / 2.5) * 100)}% 빠른 납기</span>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -200,55 +316,7 @@ const ServiceDetailPage = () => {
             <div className="sticky top-24">
               <Card>
                 <CardContent className="p-0">
-                  {packages.length > 0 ? (
-                    <Tabs defaultValue={defaultTab}>
-                      <TabsList className="w-full rounded-none border-b">
-                        {packages.map((pkg) => (
-                          <TabsTrigger key={pkg.id} value={pkg.name} className="flex-1 text-sm">{pkg.name}</TabsTrigger>
-                        ))}
-                      </TabsList>
-                      {packages.map((pkg) => (
-                        <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
-                          <div>
-                            <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
-                            {service.original_price > pkg.price && (
-                              <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>납기: {pkg.delivery_days}일</p>
-                            <p>수정: {pkg.revisions}회</p>
-                          </div>
-                          {pkg.features && pkg.features.length > 0 && (
-                            <ul className="space-y-2">
-                              {pkg.features.map((f) => (
-                                <li key={f} className="text-sm flex items-start gap-2">
-                                  <span className="text-primary mt-0.5">✓</span>{f}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          <div className="space-y-2 pt-2">
-                            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}>
-                              <ShoppingCart className="h-4 w-4" /> 의뢰하기
-                            </Button>
-                            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}>
-                              <MessageCircle className="h-4 w-4" /> 채팅하기
-                            </Button>
-                          </div>
-                        </TabsContent>
-                      ))}
-                    </Tabs>
-                  ) : (
-                    <div className="p-5 space-y-4">
-                      <span className="text-3xl font-bold text-foreground">{formatPrice(service.price)}원</span>
-                      <div className="space-y-2">
-                        <Button className="w-full gap-2" onClick={handleInquiry}>
-                          <MessageCircle className="h-4 w-4" /> 채팅하기
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  {renderPackageSidebar()}
                 </CardContent>
               </Card>
             </div>
