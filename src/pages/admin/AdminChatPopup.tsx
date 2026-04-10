@@ -23,7 +23,7 @@ function formatDate(dateStr: string) {
 const AdminChatPopup = () => {
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("roomId");
-  const { loading } = useAuth();
+  const { loading, isAdmin } = useAuth();
 
   const {
     rooms, selectedRoomId, messages,
@@ -135,6 +135,10 @@ const AdminChatPopup = () => {
 
   if (loading) {
     return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
+  }
+
+  if (!user || !isAdmin) {
+    return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
   }
 
   return (
