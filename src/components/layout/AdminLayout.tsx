@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus,
-  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X,
+  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +42,7 @@ const navGroups: NavGroup[] = [
     icon: MessageCircle,
     items: [
       { to: "/admin/chat", icon: MessageCircle, label: "채팅 관리" },
+      { to: "/admin/auto-messages", icon: BotMessageSquare, label: "자동 메시지" },
     ],
   },
   {
