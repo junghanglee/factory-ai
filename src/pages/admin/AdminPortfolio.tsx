@@ -32,6 +32,7 @@ interface PortfolioItem {
   sort_order: number;
   files: string[];
   detail_images: string[];
+  final_outputs: string[];
   client_name: string | null;
   duration: string | null;
   cost: string | null;
@@ -46,6 +47,7 @@ interface FormState {
   active: boolean;
   files: string[];
   detail_images: string[];
+  final_outputs: string[];
   client_name: string;
   duration: string;
   cost: string;
@@ -54,7 +56,7 @@ interface FormState {
 
 const emptyForm: FormState = {
   title: "", description: "", image_url: "", category: "",
-  active: true, files: [], detail_images: [], client_name: "", duration: "", cost: "", show_extra_info: false,
+  active: true, files: [], detail_images: [], final_outputs: [], client_name: "", duration: "", cost: "", show_extra_info: false,
 };
 
 function SortableCard({ item, onEdit, onDelete, onToggle }: {
@@ -118,7 +120,7 @@ const AdminPortfolio = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from("portfolio_items").select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []).map((d: any) => ({ ...d, files: d.files || [], detail_images: d.detail_images || [] })) as PortfolioItem[];
+      return (data ?? []).map((d: any) => ({ ...d, files: d.files || [], detail_images: d.detail_images || [], final_outputs: d.final_outputs || [] })) as PortfolioItem[];
     },
   });
 
@@ -176,7 +178,7 @@ const AdminPortfolio = () => {
     setForm({
       title: item.title, description: item.description || "", image_url: item.image_url || "",
       category: item.category || "", active: item.active, files: item.files || [],
-      detail_images: item.detail_images || [],
+      detail_images: item.detail_images || [], final_outputs: item.final_outputs || [],
       client_name: item.client_name || "", duration: item.duration || "", cost: item.cost || "",
       show_extra_info: item.show_extra_info,
     });
@@ -188,7 +190,7 @@ const AdminPortfolio = () => {
     const payload: Partial<PortfolioItem> = {
       title: form.title, description: form.description || null, image_url: form.image_url || null,
       category: form.category || null, active: form.active, files: form.files,
-      detail_images: form.detail_images,
+      detail_images: form.detail_images, final_outputs: form.final_outputs,
       client_name: form.client_name || null, duration: form.duration || null, cost: form.cost || null,
       show_extra_info: form.show_extra_info,
     };
