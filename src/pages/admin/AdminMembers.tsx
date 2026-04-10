@@ -1,11 +1,31 @@
-import { useState } from "react";
-import { Search, Eye, Ban, CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Eye } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { members as initialMembers, type Member } from "@/data/members";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+
+interface MemberRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  status: string;
+  order_count: number;
+  total_spent: number;
+  created_at: string;
+  assigned_admin_id: string | null;
+}
+
+interface AdminOption {
+  id: string;
+  name: string;
+}
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -16,26 +36,61 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminMembers = () => {
-  const [memberList, setMemberList] = useState(initialMembers);
+  const { isSuperAdmin } = useAuth();
+  const { toast } = useToast();
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("전체");
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = memberList.filter((m) => {
+  const fetchData = async () => {
+    setLoading(true);
+    const [membersRes, adminsRes] = await Promise.all([
+      supabase.from("members").select("*").order("created_at", { ascending: false }),
+      supabase.from("admin_profiles").select("id, name").eq("active", true),
+    ]);
+    if (membersRes.data) setMembers(membersRes.data as MemberRow[]);
+    if (adminsRes.data) setAdmins(adminsRes.data as AdminOption[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const filtered = members.filter((m) => {
     const matchSearch = m.name.includes(search) || m.email.includes(search);
     const matchStatus = statusFilter === "전체" || m.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const openDetail = (m: Member) => {
+  const getAdminName = (adminId: string | null) => {
+    if (!adminId) return "-";
+    return admins.find((a) => a.id === adminId)?.name || "-";
+  };
+
+  const openDetail = (m: MemberRow) => {
     setSelectedMember(m);
     setDetailOpen(true);
   };
 
-  const changeStatus = (id: string, status: Member["status"]) => {
-    setMemberList((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+  const changeStatus = async (id: string, status: string) => {
+    await supabase.from("members").update({ status }).eq("id", id);
+    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
     if (selectedMember?.id === id) setSelectedMember({ ...selectedMember, status });
+  };
+
+  const changeAssignedAdmin = async (memberId: string, adminId: string) => {
+    const value = adminId === "none" ? null : adminId;
+    const { error } = await supabase.from("members").update({ assigned_admin_id: value }).eq("id", memberId);
+    if (error) {
+      toast({ title: "변경 실패", variant: "destructive" });
+      return;
+    }
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, assigned_admin_id: value } : m)));
+    if (selectedMember?.id === memberId) setSelectedMember({ ...selectedMember, assigned_admin_id: value });
+    toast({ title: "담당자가 변경되었습니다" });
   };
 
   return (
@@ -67,31 +122,58 @@ const AdminMembers = () => {
                 <th className="text-left p-4 font-medium text-muted-foreground">가입일</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">주문</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">총 결제</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">담당자</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">상태</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((member) => (
-                <tr key={member.id} className="border-b last:border-0 hover:bg-secondary/30">
-                  <td className="p-4 font-medium">{member.name}</td>
-                  <td className="p-4 text-muted-foreground">{member.email}</td>
-                  <td className="p-4">{member.phone}</td>
-                  <td className="p-4">{member.joinDate}</td>
-                  <td className="p-4">{member.orderCount}건</td>
-                  <td className="p-4">₩{formatPrice(member.totalSpent)}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[member.status]}`}>
-                      {member.status}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">로딩 중...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">검색 결과가 없습니다</td></tr>
+              ) : (
+                filtered.map((member) => (
+                  <tr key={member.id} className="border-b last:border-0 hover:bg-secondary/30">
+                    <td className="p-4 font-medium">{member.name}</td>
+                    <td className="p-4 text-muted-foreground">{member.email}</td>
+                    <td className="p-4">{member.phone || "-"}</td>
+                    <td className="p-4">{new Date(member.created_at).toLocaleDateString("ko-KR")}</td>
+                    <td className="p-4">{member.order_count}건</td>
+                    <td className="p-4">₩{formatPrice(member.total_spent)}</td>
+                    <td className="p-4">
+                      {isSuperAdmin ? (
+                        <Select
+                          value={member.assigned_admin_id || "none"}
+                          onValueChange={(v) => changeAssignedAdmin(member.id, v)}
+                        >
+                          <SelectTrigger className="h-8 w-28 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">미배정</SelectItem>
+                            {admins.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <span className="text-xs">{getAdminName(member.assigned_admin_id)}</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[member.status] || ""}`}>
+                        {member.status}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </CardContent>
@@ -107,10 +189,31 @@ const AdminMembers = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><span className="text-muted-foreground">이름:</span> <span className="font-medium">{selectedMember.name}</span></div>
                 <div><span className="text-muted-foreground">이메일:</span> {selectedMember.email}</div>
-                <div><span className="text-muted-foreground">연락처:</span> {selectedMember.phone}</div>
-                <div><span className="text-muted-foreground">가입일:</span> {selectedMember.joinDate}</div>
-                <div><span className="text-muted-foreground">주문 수:</span> {selectedMember.orderCount}건</div>
-                <div><span className="text-muted-foreground">총 결제:</span> ₩{formatPrice(selectedMember.totalSpent)}</div>
+                <div><span className="text-muted-foreground">연락처:</span> {selectedMember.phone || "-"}</div>
+                <div><span className="text-muted-foreground">가입일:</span> {new Date(selectedMember.created_at).toLocaleDateString("ko-KR")}</div>
+                <div><span className="text-muted-foreground">주문 수:</span> {selectedMember.order_count}건</div>
+                <div><span className="text-muted-foreground">총 결제:</span> ₩{formatPrice(selectedMember.total_spent)}</div>
+                <div>
+                  <span className="text-muted-foreground">담당자:</span>{" "}
+                  {isSuperAdmin ? (
+                    <Select
+                      value={selectedMember.assigned_admin_id || "none"}
+                      onValueChange={(v) => changeAssignedAdmin(selectedMember.id, v)}
+                    >
+                      <SelectTrigger className="h-7 w-28 text-xs inline-flex ml-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">미배정</SelectItem>
+                        {admins.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="font-medium">{getAdminName(selectedMember.assigned_admin_id)}</span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground">상태 변경:</span>
