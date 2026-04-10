@@ -152,11 +152,14 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
 
   const PopupButton = ({ roomId }: { roomId: string }) => (
     <button
+      type="button"
       onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
-      className="shrink-0 w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-muted-foreground hover:text-primary transition-colors mr-1"
-      title="새 창으로 열기"
+      className="mr-2 inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary"
+      title="채팅 새창 열기"
+      aria-label="채팅 새창 열기"
     >
-      <ExternalLink className="h-4 w-4" />
+      <ExternalLink className="h-3.5 w-3.5" />
+      <span>새창</span>
     </button>
   );
 
