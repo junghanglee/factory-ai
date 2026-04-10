@@ -22,6 +22,7 @@ const AdminInquiries = () => {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<any>(null);
   const [memo, setMemo] = useState("");
+  const [reply, setReply] = useState("");
 
   const { data: inquiries = [], isLoading } = useQuery({
     queryKey: ["contact_inquiries"],
@@ -38,6 +39,7 @@ const AdminInquiries = () => {
   const openDetail = (item: any) => {
     setSelected(item);
     setMemo(item.admin_memo || "");
+    setReply(item.admin_reply || "");
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -54,6 +56,22 @@ const AdminInquiries = () => {
     if (error) { toast.error("메모 저장 실패"); return; }
     toast.success("메모가 저장되었습니다.");
     queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
+  };
+
+  const saveReply = async () => {
+    if (!selected) return;
+    const { error } = await supabase
+      .from("contact_inquiries")
+      .update({
+        admin_reply: reply,
+        replied_at: reply.trim() ? new Date().toISOString() : null,
+        status: reply.trim() ? "완료" : selected.status,
+      } as any)
+      .eq("id", selected.id);
+    if (error) { toast.error("답변 저장 실패"); return; }
+    toast.success("답변이 저장되었습니다.");
+    queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
+    setSelected({ ...selected, admin_reply: reply, status: reply.trim() ? "완료" : selected.status });
   };
 
   const handleDelete = async (id: string) => {
@@ -175,9 +193,15 @@ const AdminInquiries = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">관리자 메모</label>
-                <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={3} placeholder="내부 메모를 작성하세요..." />
-                <Button size="sm" className="mt-2" onClick={saveMemo}>메모 저장</Button>
+                <label className="text-sm font-medium mb-1 block">💬 답변 작성</label>
+                <Textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} placeholder="사용자에게 보낼 답변을 작성하세요..." />
+                <Button size="sm" className="mt-2" onClick={saveReply}>답변 저장</Button>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1 block">관리자 내부 메모</label>
+                <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} placeholder="내부 메모 (사용자에게 보이지 않음)..." />
+                <Button size="sm" variant="outline" className="mt-2" onClick={saveMemo}>메모 저장</Button>
               </div>
             </div>
           )}

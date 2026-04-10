@@ -545,9 +545,9 @@ const MyPage = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {inquiries.map((inq) => (
-                        <div key={inq.id} className="p-3 border rounded-lg">
-                          <div className="flex items-center justify-between mb-1">
+                      {inquiries.map((inq: any) => (
+                        <div key={inq.id} className="p-3 border rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
                             <Badge variant={inq.status === "신규" ? "default" : inq.status === "확인" ? "secondary" : "outline"}>
                               {inq.status}
                             </Badge>
@@ -555,8 +555,19 @@ const MyPage = () => {
                               {new Date(inq.created_at).toLocaleDateString("ko-KR")}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mb-1">{inq.inquiry_type}</p>
-                          <p className="text-sm line-clamp-2">{inq.message}</p>
+                          <p className="text-xs text-muted-foreground">{inq.inquiry_type}</p>
+                          <p className="text-sm line-clamp-3">{inq.message}</p>
+                          {inq.admin_reply && (
+                            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-2">
+                              <p className="text-xs font-medium text-primary mb-1">💬 답변</p>
+                              <p className="text-sm whitespace-pre-wrap">{inq.admin_reply}</p>
+                              {inq.replied_at && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  {new Date(inq.replied_at).toLocaleDateString("ko-KR")} 답변
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
