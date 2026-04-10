@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -16,6 +16,7 @@ import ImageGroupBubble from "@/components/chat/ImageGroupBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import ChatRoomList from "@/components/chat/ChatRoomList";
+import ServicePickerDialog from "@/components/chat/ServicePickerDialog";
 import { groupMessages } from "@/utils/messageGrouping";
 
 const MAX_FILES = 10;
