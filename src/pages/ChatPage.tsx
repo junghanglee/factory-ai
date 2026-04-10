@@ -47,6 +47,7 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [autoCreated, setAutoCreated] = useState(false);
+  const [showServicePicker, setShowServicePicker] = useState(false);
   const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
   const { sendAutoMessage } = useAutoMessages();
 
