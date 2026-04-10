@@ -95,6 +95,7 @@ const AdminBanners = () => {
       }
       setEditOpen(false);
       fetchBanners();
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
     } catch (err: any) {
       toast.error("저장 실패: " + err.message);
     } finally {
