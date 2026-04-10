@@ -43,6 +43,7 @@ const ChatPage = () => {
   const [newRoomTitle, setNewRoomTitle] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [showOrderInfo, setShowOrderInfo] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
