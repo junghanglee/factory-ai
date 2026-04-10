@@ -94,12 +94,15 @@ const ChatPage = () => {
       const room = await createRoom(title, state.orderInfo.serviceId, orderMeta);
       if (room) {
         selectRoom(room.id);
+        notifyRoomOpen();
         const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
         setTimeout(async () => { await sendMessage(orderMsg); }, 500);
+        // Send auto message for order
+        await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
     }
-  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage]);
+  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, notifyRoomOpen, sendAutoMessage]);
 
   useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
