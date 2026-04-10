@@ -96,7 +96,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <aside className="w-64 shrink-0 flex flex-col" style={{ background: "#1a1a2e" }}>
         {/* Logo */}
         <div className="p-5 border-b border-white/10">
-          <Link to="/admin" className="flex items-center gap-2">
+          <Link to="/admin/dashboard" className="flex items-center gap-2">
             <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-8 w-auto brightness-0 invert" />
             <span className="font-bold text-white">관리자</span>
           </Link>
@@ -105,10 +105,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Dashboard link */}
         <div className="px-3 pt-3">
           <Link
-            to="/admin"
+            to="/admin/dashboard"
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-              location.pathname === "/admin"
+              location.pathname === "/admin/dashboard"
                 ? "bg-white/15 text-white font-medium"
                 : "text-white/60 hover:text-white hover:bg-white/10"
             )}
