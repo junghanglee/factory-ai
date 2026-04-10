@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Search, Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories } from "@/data/categories";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
@@ -9,9 +9,28 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [myPageMenuOpen, setMyPageMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const myPageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const myPageMenuItems = [
+    { id: "projects", label: "신청내역", icon: Package },
+    { id: "payments", label: "결제내역", icon: Receipt },
+    { id: "invoice", label: "계산서 요청", icon: FileText },
+    { id: "inquiries", label: "1:1 문의", icon: HelpCircle },
+    { id: "chat", label: "채팅 상담", icon: MessageCircle },
+    { id: "profile", label: "내 정보", icon: User },
+  ];
+
+  const handleMyPageEnter = () => {
+    if (myPageTimeoutRef.current) clearTimeout(myPageTimeoutRef.current);
+    setMyPageMenuOpen(true);
+  };
+  const handleMyPageLeave = () => {
+    myPageTimeoutRef.current = setTimeout(() => setMyPageMenuOpen(false), 150);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,9 +67,30 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <Link to="/mypage" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                  마이페이지
-                </Link>
+                <div className="relative"
+                  onMouseEnter={handleMyPageEnter}
+                  onMouseLeave={handleMyPageLeave}
+                >
+                  <Link to="/mypage" className="flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                    마이페이지
+                    <ChevronDown className="h-3 w-3" />
+                  </Link>
+                  {myPageMenuOpen && (
+                    <div className="absolute top-full right-0 w-48 bg-background border rounded-lg shadow-lg py-1.5 z-50">
+                      {myPageMenuItems.map((item) => (
+                        <Link
+                          key={item.id}
+                          to={`/mypage?tab=${item.id}`}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
+                          onClick={() => setMyPageMenuOpen(false)}
+                        >
+                          <item.icon className="h-4 w-4 text-muted-foreground" />
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">

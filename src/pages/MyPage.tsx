@@ -253,6 +253,31 @@ const MyPage = () => {
 
   return (
     <MainLayout>
+      {/* Sub-navigation bar */}
+      <div className="border-b border-border bg-card">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex items-center gap-0 h-[46px] overflow-x-auto">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleTabChange(item.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-[14px] whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                  activeTab === item.id
+                    ? "border-primary text-primary font-medium"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+                {item.count !== undefined && item.count > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{item.count}</Badge>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* User summary card */}
         <Card className="mb-8">
@@ -286,19 +311,10 @@ const MyPage = () => {
         </Card>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
+          {/* Hidden TabsList - tabs controlled by sub-nav above */}
+          <TabsList className="hidden">
             {menuItems.map((item) => (
-              <TabsTrigger
-                key={item.id}
-                value={item.id}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-2 text-sm gap-1.5 border data-[state=inactive]:bg-card"
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-                {item.count !== undefined && item.count > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{item.count}</Badge>
-                )}
-              </TabsTrigger>
+              <TabsTrigger key={item.id} value={item.id}>{item.label}</TabsTrigger>
             ))}
           </TabsList>
 
