@@ -64,7 +64,7 @@ const App = () => (
             <Route path="/admin/staff" element={<ProtectedRoute requireAdmin><AdminStaff /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="/admin/display-groups" element={<ProtectedRoute requireAdmin><AdminDisplayGroups /></ProtectedRoute>} />
-            <Route path="/admin/chat-popup" element={<ProtectedRoute requireAdmin><AdminChatPopup /></ProtectedRoute>} />
+            <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
