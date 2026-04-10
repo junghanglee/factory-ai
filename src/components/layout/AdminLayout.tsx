@@ -246,8 +246,15 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           })}
         </nav>
 
-        {/* Back to site */}
-        <div className="p-3 border-t border-white/10">
+        {/* Bottom actions */}
+        <div className="p-3 border-t border-white/10 space-y-1">
+          <button
+            onClick={openProfileDialog}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+            내 정보 수정
+          </button>
           <Link
             to="/"
             className="flex items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white transition-colors"
@@ -255,6 +262,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <ChevronLeft className="h-4 w-4" />
             사이트로 돌아가기
           </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400/70 hover:text-red-300 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            로그아웃
+          </button>
         </div>
       </aside>
 
