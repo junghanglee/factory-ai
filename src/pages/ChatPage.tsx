@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useChatNotification } from "@/hooks/useChatNotification";
 import { useAutoMessages } from "@/hooks/useAutoMessages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
@@ -19,6 +19,7 @@ import ChatRoomList from "@/components/chat/ChatRoomList";
 import ServicePickerDialog from "@/components/chat/ServicePickerDialog";
 import { groupMessages } from "@/utils/messageGrouping";
 import OrderRequestTab from "@/components/chat/OrderRequestTab";
+import { useCategories, useServices } from "@/hooks/useSupabaseData";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 100;
