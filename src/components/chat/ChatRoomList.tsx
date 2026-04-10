@@ -154,7 +154,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
-      className="flex h-7 w-7 items-center justify-center rounded-md bg-secondary/70 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary/70 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
       title="채팅 새창 열기"
       aria-label="채팅 새창 열기"
     >
@@ -164,36 +164,39 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
 
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
+    const isSelected = selectedRoomId === room.id;
+
     return (
-      <div key={room.id} className="relative border-b overflow-hidden">
-        <button
-          onClick={() => onSelectRoom(room.id)}
-          className={`block w-full min-w-0 text-left transition-colors ${
-            selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-          } ${indented ? "pl-8 pr-10 py-2" : "px-2.5 pr-10 py-2.5"}`}
-        >
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
-            <span className="truncate text-xs font-medium">{room.title}</span>
-            <div className="flex shrink-0 items-center gap-1">
-              {room.last_message_at && (
-                <span className="max-w-[62px] truncate text-[10px] text-muted-foreground">
-                  {formatDateShort(room.last_message_at)}
-                </span>
-              )}
-              {unread > 0 && (
-                <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
-                  {unread}
-                </span>
-              )}
+      <div
+        key={room.id}
+        className={`border-b overflow-hidden transition-colors ${
+          isSelected ? "bg-accent" : "hover:bg-accent/50 focus-within:bg-accent/50"
+        }`}
+      >
+        <div className={`flex min-w-0 items-center gap-2 ${indented ? "px-2 py-2" : "px-2.5 py-2.5"}`}>
+          {isAdmin && <PopupButton roomId={room.id} />}
+          <button
+            onClick={() => onSelectRoom(room.id)}
+            className="min-w-0 flex-1 text-left"
+          >
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
+              <span className="truncate text-xs font-medium">{room.title}</span>
+              <div className="flex shrink-0 items-center gap-1">
+                {room.last_message_at && (
+                  <span className="max-w-[52px] truncate text-[10px] text-muted-foreground">
+                    {formatDateShort(room.last_message_at)}
+                  </span>
+                )}
+                {unread > 0 && (
+                  <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                    {unread}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-          <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
-        </button>
-        {isAdmin && (
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-            <PopupButton roomId={room.id} />
-          </div>
-        )}
+            <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
+          </button>
+        </div>
       </div>
     );
   };
@@ -252,41 +255,46 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
               if (hasSingleRoom) {
                 const room = group.rooms[0];
                 const unread = getUnreadCount(room);
+                const isSelected = selectedRoomId === room.id;
+
                 return (
-                  <div key={group.customerId} className="relative border-b overflow-hidden">
-                    <button
-                      onClick={() => onSelectRoom(room.id)}
-                      className={`block w-full min-w-0 p-2.5 pr-10 text-left transition-colors ${
-                        selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-                      }`}
-                    >
-                      <div className="flex min-w-0 items-start gap-2">
-                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <User className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
-                            <span className="truncate text-sm font-medium">{group.name}</span>
-                            <div className="flex shrink-0 items-center gap-1">
-                              {room.last_message_at && (
-                                <span className="max-w-[62px] truncate text-[10px] text-muted-foreground">
-                                  {formatDateShort(room.last_message_at)}
-                                </span>
-                              )}
-                              {unread > 0 && (
-                                <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
-                                  {unread}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <p className="truncate text-[11px] text-muted-foreground mb-0.5">{room.title}</p>
-                          <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
-                        </div>
-                      </div>
-                    </button>
-                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <div
+                    key={group.customerId}
+                    className={`border-b overflow-hidden transition-colors ${
+                      isSelected ? "bg-accent" : "hover:bg-accent/50 focus-within:bg-accent/50"
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-center gap-2 px-2.5 py-2.5">
                       <PopupButton roomId={room.id} />
+                      <button
+                        onClick={() => onSelectRoom(room.id)}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <div className="flex min-w-0 items-start gap-2">
+                          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                            <User className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 mb-0.5">
+                              <span className="truncate text-sm font-medium">{group.name}</span>
+                              <div className="flex shrink-0 items-center gap-1">
+                                {room.last_message_at && (
+                                  <span className="max-w-[52px] truncate text-[10px] text-muted-foreground">
+                                    {formatDateShort(room.last_message_at)}
+                                  </span>
+                                )}
+                                {unread > 0 && (
+                                  <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                                    {unread}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <p className="truncate text-[11px] text-muted-foreground mb-0.5">{room.title}</p>
+                            <p className="truncate text-[11px] text-muted-foreground">{room.last_message || "새 대화"}</p>
+                          </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
                 );
