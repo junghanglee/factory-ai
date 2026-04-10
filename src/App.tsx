@@ -28,6 +28,7 @@ import AdminStaff from "./pages/admin/AdminStaff";
 import AdminInquiries from "./pages/admin/AdminInquiries";
 import AdminDisplayGroups from "./pages/admin/AdminDisplayGroups";
 import AdminChatPopup from "./pages/admin/AdminChatPopup";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import NotFound from "./pages/NotFound";
 
@@ -51,8 +52,10 @@ const App = () => (
             <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            {/* Admin login */}
+            <Route path="/admin" element={<AdminLoginPage />} />
             {/* Admin routes - require admin role */}
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminCategories /></ProtectedRoute>} />
             <Route path="/admin/services" element={<ProtectedRoute requireAdmin><AdminServices /></ProtectedRoute>} />
             <Route path="/admin/banners" element={<ProtectedRoute requireAdmin><AdminBanners /></ProtectedRoute>} />
