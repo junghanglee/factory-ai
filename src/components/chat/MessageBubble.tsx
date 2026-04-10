@@ -104,6 +104,12 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
   const [showReview, setShowReview] = useState(false);
   const avatarUrl = useAvatar(msg.sender_id);
 
+  // Delegate feedback_request messages to FeedbackRequestBubble
+  if (msg.message_type === "feedback_request") {
+    const FeedbackRequestBubble = require("./FeedbackRequestBubble").default;
+    return <FeedbackRequestBubble msg={msg} isMine={isMine} roomId={roomId} />;
+  }
+
   const isSystem = msg.sender_id === SYSTEM_USER_ID;
 
   if (isSystem) {
