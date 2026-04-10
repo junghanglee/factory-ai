@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -12,17 +12,14 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
+import ImageGroupBubble from "@/components/chat/ImageGroupBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
+import ChatRoomList from "@/components/chat/ChatRoomList";
+import { groupMessages } from "@/utils/messageGrouping";
 
 const MAX_FILES = 10;
-
 const MAX_FILE_SIZE_MB = 100;
-
-function formatTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-}
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
@@ -42,7 +39,6 @@ const ChatPage = () => {
   const [messageInput, setMessageInput] = useState("");
   const [showNewRoom, setShowNewRoom] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -57,7 +53,6 @@ const ChatPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
-  // Notification on new messages
   useEffect(() => {
     notifyNewMessage(messages, selectedRoomId, user?.id);
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
@@ -80,7 +75,6 @@ const ChatPage = () => {
       if (room) {
         selectRoom(room.id);
         notifyRoomOpen();
-        // Send auto welcome message
         await sendAutoMessage(room.id, "new_room");
         navigate("/chat", { replace: true });
       }
@@ -100,7 +94,6 @@ const ChatPage = () => {
         notifyRoomOpen();
         const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
         setTimeout(async () => { await sendMessage(orderMsg); }, 500);
-        // Send auto message for order
         await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
@@ -145,12 +138,9 @@ const ChatPage = () => {
   };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
+    e.preventDefault(); setIsDragging(false);
+    setPendingFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)].slice(0, MAX_FILES));
   };
-
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
 
@@ -166,15 +156,19 @@ const ChatPage = () => {
     }
   };
 
-  const filteredRooms = rooms.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
 
-  const groupedMessages: { date: string; msgs: ChatMessage[] }[] = [];
+  // Group messages by date, then group consecutive images
+  const groupedMessages: { date: string; items: ReturnType<typeof groupMessages> }[] = [];
+  const dateGroups: { date: string; msgs: ChatMessage[] }[] = [];
   messages.forEach((msg) => {
     const date = formatDate(msg.created_at);
-    const last = groupedMessages[groupedMessages.length - 1];
+    const last = dateGroups[dateGroups.length - 1];
     if (last && last.date === date) last.msgs.push(msg);
-    else groupedMessages.push({ date, msgs: [msg] });
+    else dateGroups.push({ date, msgs: [msg] });
+  });
+  dateGroups.forEach((g) => {
+    groupedMessages.push({ date: g.date, items: groupMessages(g.msgs) });
   });
 
   if (loading) return null;
@@ -189,38 +183,13 @@ const ChatPage = () => {
 
         <div className="flex border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 280px)" }}>
           {/* Room list */}
-          <div className="w-80 border-r flex flex-col shrink-0">
-            <div className="p-3 border-b">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input placeholder="검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border bg-secondary/50 text-sm focus:outline-none" />
-              </div>
-            </div>
-            <ScrollArea className="flex-1">
-              {loadingRooms ? (
-                <div className="p-4 text-center text-sm text-muted-foreground">로딩 중...</div>
-              ) : filteredRooms.length === 0 ? (
-                <div className="p-4 text-center text-sm text-muted-foreground">채팅방이 없습니다.<br />새 문의를 시작해보세요.</div>
-              ) : (
-                filteredRooms.map((room) => (
-                  <button key={room.id} onClick={() => selectRoom(room.id)}
-                    className={`w-full p-4 text-left border-b hover:bg-accent/50 transition-colors ${selectedRoomId === room.id ? "bg-accent" : ""}`}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm truncate">{room.title}</span>
-                      {room.last_message_at && <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatTime(room.last_message_at)}</span>}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
-                      {room.unread_customer > 0 && (
-                        <span className="shrink-0 min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow-md shadow-red-500/30 animate-pulse">{room.unread_customer}</span>
-                      )}
-                    </div>
-                  </button>
-                ))
-              )}
-            </ScrollArea>
-          </div>
+          <ChatRoomList
+            rooms={rooms}
+            selectedRoomId={selectedRoomId}
+            onSelectRoom={selectRoom}
+            isAdmin={false}
+            loadingRooms={loadingRooms}
+          />
 
           {/* Messages area */}
           <div className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
@@ -253,10 +222,24 @@ const ChatPage = () => {
                           <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">{group.date}</span>
                         </div>
                         <div className="space-y-3">
-                          {group.msgs.map((msg) => (
-                            <MessageBubble key={msg.id} msg={msg} isMine={msg.sender_id === user?.id}
-                              onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
-                          ))}
+                          {group.items.map((item, idx) =>
+                            item.type === "image_group" ? (
+                              <ImageGroupBubble
+                                key={item.messages[0].id}
+                                messages={item.messages}
+                                isMine={item.messages[0].sender_id === user?.id}
+                                onReply={(m) => setReplyTo(m)}
+                              />
+                            ) : (
+                              <MessageBubble
+                                key={item.msg.id}
+                                msg={item.msg}
+                                isMine={item.msg.sender_id === user?.id}
+                                onReply={(m) => setReplyTo(m)}
+                                roomId={selectedRoomId || undefined}
+                              />
+                            )
+                          )}
                         </div>
                       </div>
                     ))}
@@ -265,14 +248,12 @@ const ChatPage = () => {
                 </ScrollArea>
                 {/* Input area */}
                 <div className="p-4 border-t space-y-2">
-                  {/* Pending files preview */}
                   {pendingFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 px-1">
                       {pendingFiles.map((file, idx) => (
                         <div key={idx} className="relative group/file">
                           {file.type.startsWith("image/") ? (
-                            <img src={URL.createObjectURL(file)} alt={file.name}
-                              className="h-16 w-16 object-cover rounded-lg border" />
+                            <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
                           ) : file.type.startsWith("video/") ? (
                             <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
                               <Film className="h-5 w-5 text-muted-foreground" />
@@ -329,12 +310,9 @@ const ChatPage = () => {
             )}
           </div>
 
-          {/* File Drawer */}
           {selectedRoom && showFileDrawer && (
             <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
           )}
-
-          {/* Project Panel */}
           {selectedRoom && project && !showFileDrawer && (
             <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={false}
               onConfirmProject={confirmProject} onRequestRevision={requestRevision} />
