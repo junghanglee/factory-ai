@@ -2,17 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { popularKeywords } from "@/data/services";
-import { supabase } from "@/integrations/supabase/client";
-
-interface BannerData {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  image_url: string | null;
-  link_url: string | null;
-  active: boolean;
-  sort_order: number;
-}
+import { useBanners } from "@/hooks/useSupabaseData";
 
 const fallbackBanners = [
   { title: "에이전시 반값!", subtitle: "AI 콘텐츠 제작\n지금 바로 시작하세요", link_url: "/category/ai-image", image_url: null },
@@ -23,30 +13,9 @@ const fallbackBanners = [
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [banners, setBanners] = useState<BannerData[]>([]);
+  const { data: banners } = useBanners();
 
-  useEffect(() => {
-    let cancelled = false;
-    const fetchBanners = async (retries = 3) => {
-      for (let i = 0; i < retries; i++) {
-        const { data, error } = await supabase
-          .from("banners")
-          .select("*")
-          .eq("active", true)
-          .order("sort_order", { ascending: true });
-
-        if (!cancelled && !error && data && data.length > 0) {
-          setBanners(data);
-          return;
-        }
-        if (i < retries - 1) await new Promise(r => setTimeout(r, 1000 * (i + 1)));
-      }
-    };
-    fetchBanners();
-    return () => { cancelled = true; };
-  }, []);
-
-  const displayBanners = banners.length > 0 ? banners : fallbackBanners;
+  const displayBanners = banners && banners.length > 0 ? banners : fallbackBanners;
   const safeIndex = currentBanner % displayBanners.length;
   const current = displayBanners[safeIndex];
 
@@ -150,7 +119,7 @@ const HeroSection = () => {
                   </Link>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] text-white/70">
-                      {(currentBanner % displayBanners.length) + 1} / {displayBanners.length}
+                      {safeIndex + 1} / {displayBanners.length}
                     </span>
                     <div className="flex gap-1">
                       <button

@@ -5,6 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 export type DbCategory = Tables<"categories">;
 export type DbService = Tables<"services">;
 export type DbServicePackage = Tables<"service_packages">;
+export type DbBanner = Tables<"banners">;
 
 export const useCategories = () =>
   useQuery({
