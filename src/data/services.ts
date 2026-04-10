@@ -199,6 +199,5 @@ export const services: Service[] = [
 ];
 
 export const popularKeywords = [
-  "로고 디자인", "숏폼 영상", "상세페이지", "블로그 글", "광고 소재",
-  "AI 챗봇", "배경음악", "웹툰", "SNS 콘텐츠", "모션그래픽",
+  "숏폼영상", "AI광고", "AI웹툰", "웹/앱개발", "미니게임", "AI에이전트",
 ];
