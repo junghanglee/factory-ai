@@ -582,6 +582,23 @@ const MyPage = () => {
                   <CardTitle className="text-base">프로필 정보</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Avatar */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative group">
+                      <div className="h-20 w-20 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-border">
+                        {profile?.avatar_url ? (
+                          <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="h-10 w-10 text-muted-foreground" />
+                        )}
+                      </div>
+                      <label className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
+                        <Camera className="h-3.5 w-3.5" />
+                        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                      </label>
+                    </div>
+                    {uploadingAvatar && <p className="text-xs text-muted-foreground">업로드 중...</p>}
+                  </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">이메일</label>
                     <Input value={user?.email || ""} disabled />
@@ -596,6 +613,7 @@ const MyPage = () => {
                   </div>
                   <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-full">
                     {savingProfile ? "저장 중..." : "프로필 저장"}
+                  </Button>
                   </Button>
                 </CardContent>
               </Card>
