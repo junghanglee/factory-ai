@@ -280,8 +280,13 @@ const ChatPage = () => {
                     <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowOrderInfo(false); }}>
                       <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
                     </Button>
-                    <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
+                    <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7 relative" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
                       <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
+                      {pendingFeedbackCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse">
+                          {pendingFeedbackCount}
+                        </span>
+                      )}
                     </Button>
                     {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>}
                   </div>
