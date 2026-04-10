@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { MessageSquareText, CheckCircle2, Send, Clock, Download, FileText, Image as ImageIcon } from "lucide-react";
+import { MessageSquareText, CheckCircle2, Send, Clock, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -32,80 +32,11 @@ interface AttachedFile {
   size: number;
 }
 
-type CategoryType = "ai-image" | "ai-video" | "ai-webtoon" | "ai-ads" | "ai-assistant" | "mini-game" | "other";
-
-function getCategoryType(categoryName: string): CategoryType {
-  if (categoryName.includes("이미지")) return "ai-image";
-  if (categoryName.includes("영상제작") || categoryName.includes("모션")) return "ai-video";
-  if (categoryName.includes("웹툰")) return "ai-webtoon";
-  if (categoryName.includes("바이럴") || categoryName.includes("광고")) return "ai-ads";
-  if (categoryName.includes("비서") || categoryName.includes("크레딧")) return "ai-assistant";
-  if (categoryName.includes("미니게임")) return "mini-game";
-  return "other";
-}
-
-function getFeedbackFields(catType: CategoryType): { key: string; label: string; type: "text" | "textarea" | "select"; options?: string[] }[] {
-  const common = [
-    { key: "overall", label: "전반적인 의견", type: "textarea" as const },
-  ];
-
-  switch (catType) {
-    case "ai-image":
-      return [
-        { key: "composition", label: "구도/레이아웃", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "color", label: "색감/톤", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "detail", label: "디테일/요소", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    case "ai-video":
-      return [
-        { key: "flow", label: "영상 흐름/구성", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "visual", label: "비주얼/효과", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "audio", label: "음향/BGM", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "timing", label: "타이밍/속도", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    case "ai-webtoon":
-      return [
-        { key: "drawing", label: "그림체/스타일", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "story", label: "스토리/연출", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "layout", label: "컷 구성/레이아웃", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    case "ai-ads":
-      return [
-        { key: "message", label: "메시지/카피", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "visual", label: "비주얼/효과", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "cta", label: "CTA/전환요소", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    case "ai-assistant":
-      return [
-        { key: "accuracy", label: "응답 정확도", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "speed", label: "처리 속도", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "usability", label: "사용 편의성", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    case "mini-game":
-      return [
-        { key: "gameplay", label: "게임플레이", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "design", label: "디자인/UI", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "function", label: "기능/동작", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-    default:
-      return [
-        { key: "quality", label: "결과물 품질", type: "select", options: ["만족", "수정필요", "전면수정"] },
-        { key: "modification", label: "수정 요청사항", type: "textarea" },
-        ...common,
-      ];
-  }
+interface FeedbackFieldDef {
+  field_key: string;
+  field_label: string;
+  field_type: "select" | "textarea" | "text";
+  field_options: string[];
 }
 
 export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackRequestBubbleProps) {
@@ -113,31 +44,59 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [fields, setFields] = useState<FeedbackFieldDef[]>([]);
 
-  // Parse metadata from file_name field
   const meta = useMemo(() => {
     try {
-      if (msg.file_name) return JSON.parse(msg.file_name) as { categoryName?: string; files?: AttachedFile[] };
+      if (msg.file_name) return JSON.parse(msg.file_name) as { categoryName?: string; files?: AttachedFile[]; serviceId?: string; categoryId?: string };
     } catch {}
     return null;
   }, [msg.file_name]);
 
   const categoryName = meta?.categoryName || "";
   const attachedFiles = meta?.files || [];
-  const catType = getCategoryType(categoryName);
-  const fields = getFeedbackFields(catType);
 
+  // Fetch feedback record + fields from DB
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      // Fetch feedback record
+      const { data: fbData } = await supabase
         .from("feedback_requests")
         .select("id, status, response_text, responded_at")
         .eq("message_id", msg.id)
         .maybeSingle();
-      if (data) setFeedback(data as FeedbackData);
+      if (fbData) setFeedback(fbData as FeedbackData);
+
+      // Fetch fields: service-level first, then category-level fallback
+      let fieldRows: any[] = [];
+      if (meta?.serviceId) {
+        const { data } = await supabase
+          .from("feedback_fields")
+          .select("field_key, field_label, field_type, field_options")
+          .eq("service_id", meta.serviceId)
+          .order("sort_order");
+        if (data && data.length > 0) fieldRows = data;
+      }
+      if (fieldRows.length === 0 && meta?.categoryId) {
+        const { data } = await supabase
+          .from("feedback_fields")
+          .select("field_key, field_label, field_type, field_options")
+          .eq("category_id", meta.categoryId)
+          .order("sort_order");
+        if (data && data.length > 0) fieldRows = data;
+      }
+      // Fallback: generic fields
+      if (fieldRows.length === 0) {
+        fieldRows = [
+          { field_key: "quality", field_label: "결과물 품질", field_type: "select", field_options: ["만족", "수정필요", "전면수정"] },
+          { field_key: "modification", field_label: "수정 요청사항", field_type: "textarea", field_options: [] },
+          { field_key: "overall", field_label: "전반적인 의견", field_type: "textarea", field_options: [] },
+        ];
+      }
+      setFields(fieldRows as FeedbackFieldDef[]);
       setLoading(false);
     })();
-  }, [msg.id]);
+  }, [msg.id, meta?.serviceId, meta?.categoryId]);
 
   const handleFieldChange = (key: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
@@ -146,12 +105,10 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
   const handleSubmitResponse = async () => {
     if (!feedback) return;
     setSubmitting(true);
-
-    // Build structured response
     const responseLines: string[] = [];
     fields.forEach((f) => {
-      const val = formValues[f.key];
-      if (val && val.trim()) responseLines.push(`[${f.label}] ${val.trim()}`);
+      const val = formValues[f.field_key];
+      if (val && val.trim()) responseLines.push(`[${f.field_label}] ${val.trim()}`);
     });
     const responseText = responseLines.join("\n") || "컨펌완료";
 
@@ -168,7 +125,7 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
 
   const isPending = feedback?.status === "pending";
   const isResponded = feedback?.status === "responded";
-  const hasAnyValue = fields.some((f) => formValues[f.key]?.trim());
+  const hasAnyValue = fields.some((f) => formValues[f.field_key]?.trim());
 
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2`}>
@@ -225,7 +182,7 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
           <p className="text-xs text-muted-foreground">{formatTime(msg.created_at)}</p>
         </div>
 
-        {/* Response section - completed */}
+        {/* Response - completed */}
         {isResponded && feedback?.response_text && (
           <div className="px-4 py-3 border-t border-amber-200 dark:border-amber-800 bg-white/50 dark:bg-background/30">
             <p className="text-xs font-medium text-muted-foreground mb-1">💬 피드백 응답</p>
@@ -241,30 +198,30 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
           <div className="px-4 py-3 border-t border-amber-200 dark:border-amber-800 space-y-3">
             <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">피드백을 입력해주세요</p>
             {fields.map((field) => (
-              <div key={field.key}>
-                <Label className="text-xs">{field.label}</Label>
-                {field.type === "select" && field.options ? (
-                  <Select value={formValues[field.key] || ""} onValueChange={(v) => handleFieldChange(field.key, v)}>
+              <div key={field.field_key}>
+                <Label className="text-xs">{field.field_label}</Label>
+                {field.field_type === "select" && field.field_options?.length > 0 ? (
+                  <Select value={formValues[field.field_key] || ""} onValueChange={(v) => handleFieldChange(field.field_key, v)}>
                     <SelectTrigger className="mt-1 h-8 text-xs bg-white dark:bg-background">
                       <SelectValue placeholder="선택해주세요" />
                     </SelectTrigger>
                     <SelectContent>
-                      {field.options.map((opt) => (
+                      {field.field_options.map((opt) => (
                         <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                ) : field.type === "textarea" ? (
+                ) : field.field_type === "textarea" ? (
                   <Textarea
-                    value={formValues[field.key] || ""}
-                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                    placeholder={field.key === "modification" ? "구체적인 수정 요청사항을 입력해주세요..." : "의견을 입력해주세요..."}
+                    value={formValues[field.field_key] || ""}
+                    onChange={(e) => handleFieldChange(field.field_key, e.target.value)}
+                    placeholder="의견을 입력해주세요..."
                     className="mt-1 text-xs min-h-[60px] resize-none bg-white dark:bg-background"
                   />
                 ) : (
                   <Input
-                    value={formValues[field.key] || ""}
-                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    value={formValues[field.field_key] || ""}
+                    onChange={(e) => handleFieldChange(field.field_key, e.target.value)}
                     className="mt-1 h-8 text-xs bg-white dark:bg-background"
                   />
                 )}
