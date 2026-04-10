@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_messages: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          message: string
+          sort_order: number
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message: string
+          sort_order?: number
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string
+          sort_order?: number
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           active: boolean
