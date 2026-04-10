@@ -289,46 +289,41 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
               // Multiple rooms: expandable group
               return (
                 <div key={group.customerId} className="border-b overflow-hidden">
-                  <div className="flex items-stretch overflow-hidden">
-                    <button
-                      onClick={() => toggleCustomer(group.customerId)}
-                      className={`flex-1 min-w-0 p-3 text-left transition-colors hover:bg-accent/50 ${
-                        isExpanded ? "bg-accent/30" : ""
-                      }`}
-                    >
-                      <div className="flex min-w-0 items-start gap-2.5">
-                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                          <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <div className="flex min-w-0 items-center gap-1.5">
-                              <span className="min-w-0 truncate font-medium text-sm">{group.name}</span>
-                              <span className="shrink-0 flex items-center gap-0.5 text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">
-                                <MessageCircle className="h-2.5 w-2.5" /> {group.rooms.length}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                              {group.totalUnread > 0 && (
-                                <span className="min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
-                                  {group.totalUnread}
-                                </span>
-                              )}
-                              {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-                            </div>
-                          </div>
-                          {group.latestMessageAt && (
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              최근: {formatDateShort(group.latestMessageAt)}
-                            </p>
-                          )}
-                        </div>
+                  <button
+                    onClick={() => toggleCustomer(group.customerId)}
+                    className={`w-full p-3 text-left transition-colors hover:bg-accent/50 ${
+                      isExpanded ? "bg-accent/30" : ""
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                        <User className="h-4 w-4 text-primary" />
                       </div>
-                    </button>
-                    <div className="flex shrink-0 items-center pr-1">
-                      <PopupButton roomId={group.rooms[0].id} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <span className="min-w-0 truncate font-medium text-sm">{group.name}</span>
+                            <span className="shrink-0 flex items-center gap-0.5 text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">
+                              <MessageCircle className="h-2.5 w-2.5" /> {group.rooms.length}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {group.totalUnread > 0 && (
+                              <span className="min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                                {group.totalUnread}
+                              </span>
+                            )}
+                            {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </div>
+                        </div>
+                        {group.latestMessageAt && (
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            최근: {formatDateShort(group.latestMessageAt)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </button>
                   {isExpanded && group.rooms.map((room) => renderRoomItem(room, true))}
                 </div>
               );
