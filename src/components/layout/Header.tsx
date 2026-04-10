@@ -48,7 +48,9 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <Link to="/mypage" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                  마이페이지
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">
