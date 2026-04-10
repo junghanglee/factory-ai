@@ -154,19 +154,18 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
-      className="mr-2 inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary"
+      className="shrink-0 w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-secondary transition-colors mr-1"
       title="채팅 새창 열기"
       aria-label="채팅 새창 열기"
     >
       <ExternalLink className="h-3.5 w-3.5" />
-      <span>새창</span>
     </button>
   );
 
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
     return (
-      <div key={room.id} className="flex items-center border-b">
+      <div key={room.id} className="flex items-center border-b overflow-hidden">
         <button
           onClick={() => onSelectRoom(room.id)}
           className={`flex-1 min-w-0 text-left transition-colors ${
@@ -196,7 +195,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   };
 
   return (
-    <div className="w-80 border-r flex flex-col shrink-0">
+    <div className="w-80 border-r flex flex-col shrink-0 overflow-hidden">
       <div className="p-3 border-b space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -250,7 +249,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
                 const room = group.rooms[0];
                 const unread = getUnreadCount(room);
                 return (
-                  <div key={group.customerId} className="flex items-center border-b">
+                  <div key={group.customerId} className="flex items-center border-b overflow-hidden">
                     <button
                       onClick={() => onSelectRoom(room.id)}
                       className={`flex-1 min-w-0 p-3 text-left transition-colors ${
