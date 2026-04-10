@@ -454,6 +454,7 @@ export type Database = {
           detail_images: string[] | null
           duration: string | null
           files: string[] | null
+          final_outputs: string[] | null
           id: string
           image_url: string | null
           show_extra_info: boolean
@@ -471,6 +472,7 @@ export type Database = {
           detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
+          final_outputs?: string[] | null
           id?: string
           image_url?: string | null
           show_extra_info?: boolean
@@ -488,6 +490,7 @@ export type Database = {
           detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
+          final_outputs?: string[] | null
           id?: string
           image_url?: string | null
           show_extra_info?: boolean
