@@ -45,8 +45,14 @@ const AdminChat = () => {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  // Notification on new messages
+  useEffect(() => {
+    notifyNewMessage(messages, selectedRoomId, user?.id);
+  }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
     if (pendingFile) {
