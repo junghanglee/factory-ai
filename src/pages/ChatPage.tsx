@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
