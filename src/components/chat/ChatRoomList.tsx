@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Filter, User, X, MessageCircle } from "lucide-react";
+import { Search, X, User, ChevronDown, ChevronRight, MessageCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatRoom } from "@/hooks/useChat";
 
@@ -32,8 +29,8 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [profileMap, setProfileMap] = useState<Record<string, { name: string }>>({});
+  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
 
-  // Fetch profiles for opponent names
   const customerIds = useMemo(() => {
     const ids = new Set<string>();
     rooms.forEach((r) => ids.add(r.customer_id));
@@ -42,7 +39,6 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
 
   const fetchProfiles = useCallback(async () => {
     if (customerIds.length === 0) return;
-    // Use profiles table for admin, or members table as fallback
     const { data } = await supabase
       .from("profiles")
       .select("user_id, name")
@@ -57,9 +53,7 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   useEffect(() => { fetchProfiles(); }, [fetchProfiles]);
 
   const getOpponentName = (room: ChatRoom) => {
-    if (isAdmin) {
-      return profileMap[room.customer_id]?.name || "사용자";
-    }
+    if (isAdmin) return profileMap[room.customer_id]?.name || "사용자";
     return "AI팩토리";
   };
 
@@ -67,8 +61,6 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
 
   const filteredRooms = useMemo(() => {
     let filtered = rooms;
-
-    // Filter mode
     if (filterMode === "unread") {
       filtered = filtered.filter((r) => getUnreadCount(r) > 0);
     } else if (filterMode === "today") {
@@ -79,33 +71,108 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
       weekAgo.setDate(weekAgo.getDate() - 7);
       filtered = filtered.filter((r) => r.last_message_at && new Date(r.last_message_at) >= weekAgo);
     }
-
-    // Search by title, opponent name, or customer_id
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
         const opName = getOpponentName(r).toLowerCase();
-        return r.title.toLowerCase().includes(q) ||
-          opName.includes(q) ||
-          r.customer_id.toLowerCase().includes(q);
+        return r.title.toLowerCase().includes(q) || opName.includes(q);
       });
     }
-
     return filtered;
   }, [rooms, filterMode, searchQuery, profileMap, isAdmin]);
+
+  // Auto-expand the customer whose room is selected
+  useEffect(() => {
+    if (!selectedRoomId || !isAdmin) return;
+    const room = rooms.find((r) => r.id === selectedRoomId);
+    if (room) {
+      setExpandedCustomers((prev) => {
+        const next = new Set(prev);
+        next.add(room.customer_id);
+        return next;
+      });
+    }
+  }, [selectedRoomId, rooms, isAdmin]);
+
+  // Group rooms by customer for admin
+  const groupedByCustomer = useMemo(() => {
+    if (!isAdmin) return null;
+    const groups: { customerId: string; name: string; rooms: ChatRoom[]; totalUnread: number; latestMessageAt: string | null }[] = [];
+    const map = new Map<string, ChatRoom[]>();
+    filteredRooms.forEach((r) => {
+      const existing = map.get(r.customer_id) || [];
+      existing.push(r);
+      map.set(r.customer_id, existing);
+    });
+    map.forEach((customerRooms, customerId) => {
+      const name = profileMap[customerId]?.name || "사용자";
+      const totalUnread = customerRooms.reduce((sum, r) => sum + (r.unread_admin || 0), 0);
+      const sorted = customerRooms.sort((a, b) => {
+        const ta = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const tb = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return tb - ta;
+      });
+      const latestMessageAt = sorted[0]?.last_message_at || null;
+      groups.push({ customerId, name, rooms: sorted, totalUnread, latestMessageAt });
+    });
+    groups.sort((a, b) => {
+      const ta = a.latestMessageAt ? new Date(a.latestMessageAt).getTime() : 0;
+      const tb = b.latestMessageAt ? new Date(b.latestMessageAt).getTime() : 0;
+      return tb - ta;
+    });
+    return groups;
+  }, [isAdmin, filteredRooms, profileMap]);
+
+  const toggleCustomer = (customerId: string) => {
+    setExpandedCustomers((prev) => {
+      const next = new Set(prev);
+      if (next.has(customerId)) next.delete(customerId);
+      else next.add(customerId);
+      return next;
+    });
+  };
 
   const filterLabels: Record<FilterMode, string> = {
     all: "전체", unread: "안읽음", today: "오늘", week: "이번 주",
   };
 
+  const renderRoomItem = (room: ChatRoom, indented = false) => {
+    const unread = getUnreadCount(room);
+    return (
+      <button
+        key={room.id}
+        onClick={() => onSelectRoom(room.id)}
+        className={`w-full text-left transition-colors ${
+          selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
+        } ${indented ? "pl-12 pr-3 py-2.5 border-b" : "p-3 border-b"}`}
+      >
+        <div className="flex items-center justify-between mb-0.5">
+          <span className="text-xs font-medium truncate">{room.title}</span>
+          {room.last_message_at && (
+            <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+              {formatDateShort(room.last_message_at)}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
+          {unread > 0 && (
+            <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+              {unread}
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  };
+
   return (
     <div className="w-80 border-r flex flex-col shrink-0">
-      {/* Search */}
       <div className="p-3 border-b space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
-            placeholder="이름, 아이디, 제목 검색"
+            placeholder="이름, 제목 검색"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-9 pl-9 pr-8 rounded-lg border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -116,7 +183,6 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
             </button>
           )}
         </div>
-        {/* Filter chips */}
         <div className="flex gap-1 flex-wrap">
           {(Object.keys(filterLabels) as FilterMode[]).map((mode) => (
             <button
@@ -138,10 +204,102 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
         </div>
       </div>
 
-      {/* Room list */}
       <ScrollArea className="flex-1">
         {loadingRooms ? (
           <div className="p-4 text-center text-sm text-muted-foreground">로딩 중...</div>
+        ) : isAdmin && groupedByCustomer ? (
+          groupedByCustomer.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              {searchQuery || filterMode !== "all" ? "검색 결과가 없습니다" : "채팅방이 없습니다."}
+            </div>
+          ) : (
+            groupedByCustomer.map((group) => {
+              const isExpanded = expandedCustomers.has(group.customerId);
+              const hasSingleRoom = group.rooms.length === 1;
+
+              if (hasSingleRoom) {
+                // Single room: show directly as customer row, click opens room
+                const room = group.rooms[0];
+                const unread = getUnreadCount(room);
+                return (
+                  <button
+                    key={group.customerId}
+                    onClick={() => onSelectRoom(room.id)}
+                    className={`w-full p-3 text-left border-b transition-colors ${
+                      selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="font-medium text-sm truncate">{group.name}</span>
+                          {room.last_message_at && (
+                            <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
+                              {formatDateShort(room.last_message_at)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mb-0.5">{room.title}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
+                          {unread > 0 && (
+                            <span className="shrink-0 min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                              {unread}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
+
+              // Multiple rooms: expandable group
+              return (
+                <div key={group.customerId}>
+                  <button
+                    onClick={() => toggleCustomer(group.customerId)}
+                    className={`w-full p-3 text-left border-b transition-colors hover:bg-accent/50 ${
+                      isExpanded ? "bg-accent/30" : ""
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium text-sm">{group.name}</span>
+                            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full">
+                              <MessageCircle className="h-2.5 w-2.5" /> {group.rooms.length}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {group.totalUnread > 0 && (
+                              <span className="min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                                {group.totalUnread}
+                              </span>
+                            )}
+                            {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </div>
+                        </div>
+                        {group.latestMessageAt && (
+                          <p className="text-[11px] text-muted-foreground">
+                            최근: {formatDateShort(group.latestMessageAt)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  {isExpanded && group.rooms.map((room) => renderRoomItem(room, true))}
+                </div>
+              );
+            })
+          )
         ) : filteredRooms.length === 0 ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
             {searchQuery || filterMode !== "all" ? "검색 결과가 없습니다" : "채팅방이 없습니다."}
@@ -159,7 +317,6 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
                 }`}
               >
                 <div className="flex items-start gap-2.5">
-                  {/* Avatar */}
                   <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                     <User className="h-4 w-4 text-primary" />
                   </div>
