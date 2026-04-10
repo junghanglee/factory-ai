@@ -83,19 +83,43 @@ const ChatPage = () => {
     } else if (state.orderInfo) {
       setAutoCreated(true);
       const title = `[의뢰] ${state.orderInfo.serviceTitle}`;
-      const orderMeta = {
+      const orderMeta: Record<string, any> = {
         serviceTitle: state.orderInfo.serviceTitle,
         packageName: state.orderInfo.packageName,
         price: state.orderInfo.price,
         deliveryDays: state.orderInfo.deliveryDays,
         serviceId: state.orderInfo.serviceId,
       };
+      if (state.orderInfo.orderRequest) {
+        orderMeta.orderRequest = state.orderInfo.orderRequest;
+      }
       const room = await createRoom(title, state.orderInfo.serviceId, orderMeta);
       if (room) {
         selectRoom(room.id);
         notifyRoomOpen();
-        const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
-        setTimeout(async () => { await sendMessage(orderMsg); }, 500);
+        // Build detailed order message
+        const req = state.orderInfo.orderRequest;
+        let orderMsg = `📋 의뢰 요청서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일`;
+        if (req) {
+          if (req.subject) orderMsg += `\n주제: ${req.subject}`;
+          if (req.refUrl) orderMsg += `\n참고 URL: ${req.refUrl}`;
+          if (req.productionTime) orderMsg += `\n제작시간(편당): ${req.productionTime}`;
+          if (req.videoTime) orderMsg += `\n영상시간: ${req.videoTime}`;
+          if (req.quantity) orderMsg += `\n제작 수량: ${req.quantity}`;
+          if (req.llmOwned) orderMsg += `\nLLM 보유: ${req.llmOwned}`;
+          if (req.pcMemory) orderMsg += `\nPC 메모리: ${req.pcMemory}`;
+          if (req.aiAgentExp) orderMsg += `\nAI에이전트 경험: ${req.aiAgentExp}`;
+          if (req.description) orderMsg += `\n\n상세설명:\n${req.description}`;
+        }
+        orderMsg += "\n\n위 내용으로 의뢰합니다.";
+        setTimeout(async () => {
+          await sendMessage(orderMsg);
+          // Upload attached files
+          const orderFiles: File[] = state.orderInfo.files || [];
+          for (const file of orderFiles) {
+            await sendFile(file, 100);
+          }
+        }, 500);
         await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }

@@ -10,6 +10,7 @@ interface AdminInfoPanelProps {
   customerId: string;
   roomId: string;
   currentUserId: string;
+  metadata?: Record<string, any> | null;
 }
 
 interface MemberInfo {
