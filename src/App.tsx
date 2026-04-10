@@ -12,6 +12,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import ChatPage from "./pages/ChatPage";
 import OrderPage from "./pages/OrderPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
+import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/order" element={<OrderPage />} />
             <Route path="/my-projects" element={<MyProjectsPage />} />
+            <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             {/* Admin routes - require admin role */}
