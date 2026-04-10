@@ -1,5 +1,7 @@
-import { Download, DownloadCloud, Reply } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, DownloadCloud, Reply, User } from "lucide-react";
 import type { ChatMessage } from "@/hooks/useChat";
+import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -25,10 +27,34 @@ async function downloadFile(url: string, name: string) {
   }
 }
 
+const avatarCache = new Map<string, string | null>();
+
+function useAvatar(senderId: string) {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(avatarCache.get(senderId) ?? null);
+  useEffect(() => {
+    if (avatarCache.has(senderId)) {
+      setAvatarUrl(avatarCache.get(senderId) ?? null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", senderId).maybeSingle();
+      if (!cancelled) {
+        const url = data?.avatar_url || null;
+        avatarCache.set(senderId, url);
+        setAvatarUrl(url);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [senderId]);
+  return avatarUrl;
+}
+
 export default function ImageGroupBubble({ messages, isMine, onReply }: ImageGroupBubbleProps) {
   const bubbleClass = isMine ? "bg-primary text-primary-foreground" : "bg-secondary";
   const timeClass = isMine ? "text-primary-foreground/70" : "text-muted-foreground";
   const lastMsg = messages[messages.length - 1];
+  const avatarUrl = useAvatar(messages[0].sender_id);
 
   const handleSaveAll = () => {
     messages.forEach((m) => {
@@ -36,12 +62,22 @@ export default function ImageGroupBubble({ messages, isMine, onReply }: ImageGro
     });
   };
 
-  // Determine grid cols based on count
   const count = messages.length;
   const gridCols = count === 2 ? "grid-cols-2" : count === 3 ? "grid-cols-3" : "grid-cols-2";
 
+  const Avatar = () => (
+    <div className="shrink-0 w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center mt-0.5">
+      {avatarUrl ? (
+        <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+      ) : (
+        <User className="h-4 w-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+
   return (
-    <div className={`flex ${isMine ? "justify-end" : "justify-start"} group`}>
+    <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2 group`}>
+      {!isMine && <Avatar />}
       <div className={`max-w-[70%] rounded-2xl px-3 py-2.5 ${bubbleClass} relative`}>
         <div className={`grid ${gridCols} gap-1 rounded-lg overflow-hidden`}>
           {messages.map((m) => (
@@ -74,7 +110,6 @@ export default function ImageGroupBubble({ messages, isMine, onReply }: ImageGro
           </div>
         </div>
 
-        {/* Hover reply */}
         {onReply && (
           <div className={`absolute top-1 ${isMine ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"} hidden group-hover:flex`}>
             <button onClick={() => onReply(lastMsg)} className="p-1 rounded hover:bg-accent" title="답장">
@@ -83,6 +118,7 @@ export default function ImageGroupBubble({ messages, isMine, onReply }: ImageGro
           </div>
         )}
       </div>
+      {isMine && <Avatar />}
     </div>
   );
 }

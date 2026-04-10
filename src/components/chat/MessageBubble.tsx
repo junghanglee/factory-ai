@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { FileText, Download, Play, MessageCircle, Reply } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { FileText, Download, Play, MessageCircle, Reply, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/hooks/useChat";
 import VideoReviewDialog from "./VideoReviewDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -29,6 +30,67 @@ async function downloadFile(url: string, name: string) {
   }
 }
 
+// URL detection and linkification
+function linkify(text: string): (string | JSX.Element)[] {
+  const urlRegex = /(https?:\/\/[^\s<]+)/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const url = match[0];
+    parts.push(
+      <a
+        key={match.index}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline break-all hover:opacity-80"
+      >
+        {url}
+      </a>
+    );
+    lastIndex = match.index + url.length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts;
+}
+
+// Avatar cache hook
+const avatarCache = new Map<string, string | null>();
+
+function useAvatar(senderId: string) {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(avatarCache.get(senderId) ?? null);
+
+  useEffect(() => {
+    if (avatarCache.has(senderId)) {
+      setAvatarUrl(avatarCache.get(senderId) ?? null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("user_id", senderId)
+        .maybeSingle();
+      if (!cancelled) {
+        const url = data?.avatar_url || null;
+        avatarCache.set(senderId, url);
+        setAvatarUrl(url);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [senderId]);
+
+  return avatarUrl;
+}
+
 interface MessageBubbleProps {
   msg: ChatMessage;
   isMine: boolean;
@@ -40,6 +102,7 @@ const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageBubbleProps) {
   const [showReview, setShowReview] = useState(false);
+  const avatarUrl = useAvatar(msg.sender_id);
 
   const isSystem = msg.sender_id === SYSTEM_USER_ID;
 
@@ -66,8 +129,19 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
     ? msg.message
     : null;
 
+  const Avatar = () => (
+    <div className="shrink-0 w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center mt-0.5">
+      {avatarUrl ? (
+        <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+      ) : (
+        <User className="h-4 w-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+
   return (
-    <div className={`flex ${isMine ? "justify-end" : "justify-start"} group`}>
+    <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2 group`}>
+      {!isMine && <Avatar />}
       <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${bubbleClass} relative`}>
         {/* Image */}
         {isImage && msg.file_url && (
@@ -109,22 +183,21 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
         )}
 
         {attachedText && (
-          <p className="text-sm whitespace-pre-wrap mt-1">{attachedText}</p>
+          <p className="text-sm whitespace-pre-wrap mt-1">{linkify(attachedText)}</p>
         )}
 
         {msg.message_type === "text" && msg.message && (
-          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+          <p className="text-sm whitespace-pre-wrap">{linkify(msg.message)}</p>
         )}
         {msg.message_type === "order" && msg.message && (
           <div className="text-sm">
             <p className="font-semibold mb-1">📋 주문서</p>
-            <p className="whitespace-pre-wrap">{msg.message}</p>
+            <p className="whitespace-pre-wrap">{linkify(msg.message)}</p>
           </div>
         )}
 
         <div className="flex items-center justify-between gap-2 mt-1">
           <p className={`text-xs ${timeClass}`}>{formatTime(msg.created_at)}</p>
-          {/* Save button for single file messages */}
           {msg.file_url && (
             <button
               onClick={() => downloadFile(msg.file_url!, msg.file_name || "file")}
@@ -149,6 +222,7 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
           )}
         </div>
       </div>
+      {isMine && <Avatar />}
 
       {isConfirmVideo && showReview && roomId && (
         <VideoReviewDialog

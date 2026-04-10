@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageCircle, Package, Receipt, FileText, HelpCircle, User,
-  CheckCircle2, ChevronRight, Send, Plus
+  CheckCircle2, ChevronRight, Send, Plus, Camera
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,31 @@ const MyPage = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (uploadError) {
+      toast.error("아바타 업로드에 실패했습니다.");
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const { error } = await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", user.id);
+    if (error) {
+      toast.error("아바타 저장에 실패했습니다.");
+    } else {
+      setProfile((prev) => prev ? { ...prev, avatar_url: urlData.publicUrl } : prev);
+      toast.success("아바타가 변경되었습니다.");
+    }
+    setUploadingAvatar(false);
+    e.target.value = "";
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
@@ -557,6 +582,23 @@ const MyPage = () => {
                   <CardTitle className="text-base">프로필 정보</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Avatar */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative group">
+                      <div className="h-20 w-20 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-border">
+                        {profile?.avatar_url ? (
+                          <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="h-10 w-10 text-muted-foreground" />
+                        )}
+                      </div>
+                      <label className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
+                        <Camera className="h-3.5 w-3.5" />
+                        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                      </label>
+                    </div>
+                    {uploadingAvatar && <p className="text-xs text-muted-foreground">업로드 중...</p>}
+                  </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">이메일</label>
                     <Input value={user?.email || ""} disabled />
