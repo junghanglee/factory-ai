@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon } from "lucide-react";
+import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -12,6 +12,7 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { useChatNotification } from "@/hooks/useChatNotification";
+import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 
 const MAX_FILES = 10;
 
@@ -37,6 +38,7 @@ const AdminChat = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
@@ -205,8 +207,11 @@ const AdminChat = () => {
               <div className="p-4 border-b flex items-center justify-between">
                 <span className="font-medium text-sm">{selectedRoom.title}</span>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setShowFileDrawer(!showFileDrawer)}>
+                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowInfoPanel(false); }}>
                     <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
+                  </Button>
+                  <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
+                    <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
                   {!project && (
                     <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
@@ -306,12 +311,21 @@ const AdminChat = () => {
         </div>
 
         {/* File Drawer */}
-        {selectedRoom && showFileDrawer && (
+        {selectedRoom && showFileDrawer && !showInfoPanel && (
           <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
         )}
 
+        {/* Admin Info Panel */}
+        {selectedRoom && showInfoPanel && !showFileDrawer && user && (
+          <AdminInfoPanel
+            customerId={selectedRoom.customer_id}
+            roomId={selectedRoom.id}
+            currentUserId={user.id}
+          />
+        )}
+
         {/* Project Panel */}
-        {selectedRoom && project && !showFileDrawer && (
+        {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
           <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
             onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
         )}
