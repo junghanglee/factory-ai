@@ -1,11 +1,44 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, Plus } from "lucide-react";
-import { useServices, useCategories, type DbService } from "@/hooks/useSupabaseData";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
-const ServiceCard = ({ service }: { service: DbService }) => (
+interface Service {
+  id: string;
+  title: string;
+  thumbnail: string | null;
+  price: number;
+  rating: number;
+  review_count: number;
+  seller: string | null;
+}
+
+interface DisplayGroup {
+  id: string;
+  title: string;
+  sort_order: number;
+  active: boolean;
+}
+
+interface DisplayFilter {
+  id: string;
+  group_id: string;
+  name: string;
+  sort_order: number;
+}
+
+interface DisplayGroupService {
+  id: string;
+  group_id: string;
+  filter_id: string | null;
+  service_id: string;
+  sort_order: number;
+}
+
+const ServiceCard = ({ service }: { service: Service }) => (
   <Link to={`/service/${service.id}`} className="group block">
     <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary">
       <img
@@ -33,47 +66,124 @@ const ServiceCard = ({ service }: { service: DbService }) => (
   </Link>
 );
 
-const PopularServices = () => {
-  const { data: allServices = [] } = useServices();
-  const { data: categories = [] } = useCategories();
-  const [activeTab, setActiveTab] = useState(0);
+function DisplayGroupSection({ group, filters, groupServices, allServices }: {
+  group: DisplayGroup;
+  filters: DisplayFilter[];
+  groupServices: DisplayGroupService[];
+  allServices: Service[];
+}) {
+  const [activeFilter, setActiveFilter] = useState<string | null>(filters[0]?.id || null);
 
-  const tabs = categories.slice(0, 6).map((c) => ({ label: c.name, categoryId: c.id }));
-  const activeCatId = tabs[activeTab]?.categoryId;
-  const filteredServices = activeCatId
-    ? allServices.filter((s) => s.category_id === activeCatId)
-    : allServices;
-  const displayServices = filteredServices.length > 0 ? filteredServices.slice(0, 8) : allServices.slice(0, 8);
+  const visibleServiceIds = activeFilter
+    ? groupServices.filter(gs => gs.filter_id === activeFilter).sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id)
+    : groupServices.sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id);
+
+  const services = visibleServiceIds
+    .map(id => allServices.find(s => s.id === id))
+    .filter(Boolean) as Service[];
+
+  if (services.length === 0 && filters.length === 0) return null;
 
   return (
-    <section className="py-12">
+    <section className="py-10">
       <div className="max-w-[1200px] mx-auto px-5">
-        <h2 className="text-[24px] md:text-[28px] font-bold text-foreground mb-6">
-          인기 서비스
-        </h2>
-        <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
-          {tabs.map((tab, idx) => (
-            <button
-              key={tab.categoryId}
-              onClick={() => setActiveTab(idx)}
-              className={`flex items-center justify-between gap-4 px-5 py-2.5 rounded-lg border text-[14px] whitespace-nowrap transition-colors min-w-[140px] ${
-                activeTab === idx
-                  ? "border-foreground text-foreground font-medium"
-                  : "border-border text-muted-foreground hover:border-foreground/30"
-              }`}
-            >
-              <span>{tab.label}</span>
-              <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {displayServices.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10">
+          {/* Left title */}
+          <div className="md:w-[200px] shrink-0">
+            <h2 className="text-[22px] md:text-[26px] font-bold text-foreground leading-tight">
+              {group.title}
+            </h2>
+          </div>
+
+          {/* Right content */}
+          <div className="flex-1 min-w-0">
+            {/* Filter tabs */}
+            {filters.length > 0 && (
+              <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
+                {filters.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setActiveFilter(f.id)}
+                    className={`flex items-center justify-between gap-4 px-5 py-2.5 rounded-lg border text-[14px] whitespace-nowrap transition-colors min-w-[120px] ${
+                      activeFilter === f.id
+                        ? "border-foreground text-foreground font-medium"
+                        : "border-border text-muted-foreground hover:border-foreground/30"
+                    }`}
+                  >
+                    <span>{f.name}</span>
+                    <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Service cards grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {services.map((service) => (
+                <ServiceCard key={service.id} service={service} />
+              ))}
+              {services.length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full">등록된 서비스가 없습니다.</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
+  );
+}
+
+const PopularServices = () => {
+  const { data: groups = [] } = useQuery({
+    queryKey: ["display_groups_public"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("display_groups").select("*").eq("active", true).order("sort_order");
+      if (error) throw error;
+      return data as DisplayGroup[];
+    },
+  });
+
+  const { data: filters = [] } = useQuery({
+    queryKey: ["display_group_filters_public"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("display_group_filters").select("*").order("sort_order");
+      if (error) throw error;
+      return data as DisplayFilter[];
+    },
+  });
+
+  const { data: groupServices = [] } = useQuery({
+    queryKey: ["display_group_services_public"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("display_group_services").select("*").order("sort_order");
+      if (error) throw error;
+      return data as DisplayGroupService[];
+    },
+  });
+
+  const { data: allServices = [] } = useQuery({
+    queryKey: ["services_for_display"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller");
+      if (error) throw error;
+      return data as Service[];
+    },
+  });
+
+  if (groups.length === 0) return null;
+
+  return (
+    <>
+      {groups.map((group) => (
+        <DisplayGroupSection
+          key={group.id}
+          group={group}
+          filters={filters.filter(f => f.group_id === group.id)}
+          groupServices={groupServices.filter(gs => gs.group_id === group.id)}
+          allServices={allServices}
+        />
+      ))}
+    </>
   );
 };
 
