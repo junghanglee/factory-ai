@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
-  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck,
+  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +37,7 @@ const navGroups: NavGroup[] = [
       { to: "/admin/services?action=new", icon: Plus, label: "서비스 등록" },
       { to: "/admin/banners", icon: Image, label: "배너 관리" },
       { to: "/admin/portfolio", icon: Briefcase, label: "포트폴리오 관리" },
+      { to: "/admin/display-groups", icon: Monitor, label: "디스플레이 그룹" },
     ],
   },
   {
