@@ -32,6 +32,7 @@ interface PortfolioItem {
   sort_order: number;
   files: string[];
   detail_images: string[];
+  final_outputs: string[];
   client_name: string | null;
   duration: string | null;
   cost: string | null;
@@ -46,6 +47,7 @@ interface FormState {
   active: boolean;
   files: string[];
   detail_images: string[];
+  final_outputs: string[];
   client_name: string;
   duration: string;
   cost: string;
@@ -54,7 +56,7 @@ interface FormState {
 
 const emptyForm: FormState = {
   title: "", description: "", image_url: "", category: "",
-  active: true, files: [], detail_images: [], client_name: "", duration: "", cost: "", show_extra_info: false,
+  active: true, files: [], detail_images: [], final_outputs: [], client_name: "", duration: "", cost: "", show_extra_info: false,
 };
 
 function SortableCard({ item, onEdit, onDelete, onToggle }: {
@@ -110,6 +112,7 @@ const AdminPortfolio = () => {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const detailInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const finalOutputInputRef = useRef<HTMLInputElement>(null);
 
   const { data: categories } = useCategories();
 
@@ -118,7 +121,7 @@ const AdminPortfolio = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from("portfolio_items").select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []).map((d: any) => ({ ...d, files: d.files || [], detail_images: d.detail_images || [] })) as PortfolioItem[];
+      return (data ?? []).map((d: any) => ({ ...d, files: d.files || [], detail_images: d.detail_images || [], final_outputs: d.final_outputs || [] })) as PortfolioItem[];
     },
   });
 
@@ -176,7 +179,7 @@ const AdminPortfolio = () => {
     setForm({
       title: item.title, description: item.description || "", image_url: item.image_url || "",
       category: item.category || "", active: item.active, files: item.files || [],
-      detail_images: item.detail_images || [],
+      detail_images: item.detail_images || [], final_outputs: item.final_outputs || [],
       client_name: item.client_name || "", duration: item.duration || "", cost: item.cost || "",
       show_extra_info: item.show_extra_info,
     });
@@ -188,7 +191,7 @@ const AdminPortfolio = () => {
     const payload: Partial<PortfolioItem> = {
       title: form.title, description: form.description || null, image_url: form.image_url || null,
       category: form.category || null, active: form.active, files: form.files,
-      detail_images: form.detail_images,
+      detail_images: form.detail_images, final_outputs: form.final_outputs,
       client_name: form.client_name || null, duration: form.duration || null, cost: form.cost || null,
       show_extra_info: form.show_extra_info,
     };
@@ -244,11 +247,24 @@ const AdminPortfolio = () => {
     finally { setUploading(false); }
   }, [uploadToStorage]);
 
+  const uploadFinalOutputs = useCallback(async (fileList: FileList | File[]) => {
+    setUploading(true);
+    try {
+      const urls = await uploadToStorage(fileList);
+      setForm((prev) => ({ ...prev, final_outputs: [...prev.final_outputs, ...urls] }));
+      toast.success(`${urls.length}개 최종결과물 업로드 완료`);
+    } catch (e: any) { toast.error("업로드 실패: " + e.message); }
+    finally { setUploading(false); }
+  }, [uploadToStorage]);
+
   const removeDetailImage = (idx: number) => {
     setForm((prev) => ({ ...prev, detail_images: prev.detail_images.filter((_, i) => i !== idx) }));
   };
   const removeFile = (idx: number) => {
     setForm((prev) => ({ ...prev, files: prev.files.filter((_, i) => i !== idx) }));
+  };
+  const removeFinalOutput = (idx: number) => {
+    setForm((prev) => ({ ...prev, final_outputs: prev.final_outputs.filter((_, i) => i !== idx) }));
   };
 
   const getFileName = (url: string) => {
@@ -367,6 +383,49 @@ const AdminPortfolio = () => {
                       <button onClick={() => removeFile(idx)} className="text-destructive hover:text-destructive/80"><X className="h-3 w-3" /></button>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* 최종결과물 */}
+            <div className="border rounded-lg p-3 space-y-2">
+              <Label className="font-semibold">🎬 최종결과물 (영상/이미지, 상세페이지 최상단 노출, 다수 등록 가능)</Label>
+              <div
+                className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                onClick={() => finalOutputInputRef.current?.click()}
+                onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length > 0) uploadFinalOutputs(e.dataTransfer.files); }}
+                onDragOver={(e) => { e.preventDefault(); }}
+              >
+                <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{uploading ? "업로드 중..." : "클릭 또는 드래그하여 최종결과물 추가 (영상/이미지)"}</p>
+              </div>
+              <input ref={finalOutputInputRef} type="file" multiple className="hidden" accept="image/*,video/*" onChange={(e) => { if (e.target.files) uploadFinalOutputs(e.target.files); e.target.value = ""; }} />
+              {/* URL 직접 입력 */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="URL 직접 입력 (영상/이미지)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val) { setForm((prev) => ({ ...prev, final_outputs: [...prev.final_outputs, val] })); (e.target as HTMLInputElement).value = ""; }
+                    }
+                  }}
+                  className="text-xs"
+                />
+              </div>
+              {form.final_outputs.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  {form.final_outputs.map((url, idx) => {
+                    const isVideo = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url);
+                    return (
+                      <div key={idx} className="flex items-center gap-2 bg-secondary rounded px-2 py-1">
+                        {isVideo ? <Film className="h-4 w-4 text-primary shrink-0" /> : isImageFile(url) ? <img src={url} alt="" className="h-8 w-8 object-cover rounded" /> : <FileText className="h-4 w-4 text-muted-foreground shrink-0" />}
+                        <span className="text-xs truncate flex-1">{getFileName(url)}</span>
+                        <span className="text-[10px] text-muted-foreground">{idx + 1}번</span>
+                        <button onClick={() => removeFinalOutput(idx)} className="text-destructive hover:text-destructive/80"><X className="h-3 w-3" /></button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
