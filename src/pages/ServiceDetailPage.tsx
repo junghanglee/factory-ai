@@ -209,7 +209,7 @@ const ServiceDetailPage = () => {
                             </Button>
                             <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}>
                               <MessageCircle className="h-4 w-4" />
-                              문의하기
+                              채팅하기
                             </Button>
                           </div>
                         </TabsContent>
@@ -225,7 +225,7 @@ const ServiceDetailPage = () => {
                       <div className="space-y-2">
                         <Button className="w-full gap-2" onClick={handleInquiry}>
                           <MessageCircle className="h-4 w-4" />
-                          문의하기
+                          채팅하기
                         </Button>
                       </div>
                     </div>

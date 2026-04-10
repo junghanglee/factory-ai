@@ -198,7 +198,7 @@ const ChatPage = () => {
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">채팅 문의</h1>
+          <h1 className="text-2xl font-bold">채팅하기</h1>
           <Button onClick={() => setShowServicePicker(true)} className="gap-1.5">
             <MessageCirclePlus className="h-4 w-4" /> 새 문의
           </Button>
