@@ -247,11 +247,24 @@ const AdminPortfolio = () => {
     finally { setUploading(false); }
   }, [uploadToStorage]);
 
+  const uploadFinalOutputs = useCallback(async (fileList: FileList | File[]) => {
+    setUploading(true);
+    try {
+      const urls = await uploadToStorage(fileList);
+      setForm((prev) => ({ ...prev, final_outputs: [...prev.final_outputs, ...urls] }));
+      toast.success(`${urls.length}개 최종결과물 업로드 완료`);
+    } catch (e: any) { toast.error("업로드 실패: " + e.message); }
+    finally { setUploading(false); }
+  }, [uploadToStorage]);
+
   const removeDetailImage = (idx: number) => {
     setForm((prev) => ({ ...prev, detail_images: prev.detail_images.filter((_, i) => i !== idx) }));
   };
   const removeFile = (idx: number) => {
     setForm((prev) => ({ ...prev, files: prev.files.filter((_, i) => i !== idx) }));
+  };
+  const removeFinalOutput = (idx: number) => {
+    setForm((prev) => ({ ...prev, final_outputs: prev.final_outputs.filter((_, i) => i !== idx) }));
   };
 
   const getFileName = (url: string) => {
