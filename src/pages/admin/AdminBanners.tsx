@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Banner = Tables<"banners">;
@@ -25,6 +26,7 @@ interface BannerForm {
 const emptyForm: BannerForm = { title: "", subtitle: "", image_url: "", link_url: "", active: true, sort_order: 0 };
 
 const AdminBanners = () => {
+  const queryClient = useQueryClient();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -93,6 +95,7 @@ const AdminBanners = () => {
       }
       setEditOpen(false);
       fetchBanners();
+      queryClient.invalidateQueries({ queryKey: ["banners"] });
     } catch (err: any) {
       toast.error("저장 실패: " + err.message);
     } finally {
@@ -106,12 +109,14 @@ const AdminBanners = () => {
     if (error) { toast.error("삭제 실패: " + error.message); return; }
     toast.success("배너가 삭제되었습니다.");
     fetchBanners();
+    queryClient.invalidateQueries({ queryKey: ["banners"] });
   };
 
   const toggleActive = async (banner: Banner) => {
     const { error } = await supabase.from("banners").update({ active: !banner.active }).eq("id", banner.id);
     if (error) { toast.error("상태 변경 실패"); return; }
     fetchBanners();
+    queryClient.invalidateQueries({ queryKey: ["banners"] });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
