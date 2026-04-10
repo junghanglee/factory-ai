@@ -60,6 +60,13 @@ const navGroups: NavGroup[] = [
       { to: "/admin/projects", icon: FolderKanban, label: "프로젝트 관리" },
     ],
   },
+  {
+    label: "문의관리",
+    icon: Inbox,
+    items: [
+      { to: "/admin/inquiries", icon: Inbox, label: "문의 목록" },
+    ],
+  },
 ];
 
 const superAdminGroup: NavGroup = {
