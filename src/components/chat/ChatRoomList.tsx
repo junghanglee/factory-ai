@@ -25,18 +25,8 @@ interface ChatRoomListProps {
 
 type FilterMode = "all" | "unread" | "today" | "week";
 
-let popupOffset = 0;
 const openChatPopup = (roomId: string) => {
-  const w = 480;
-  const h = 700;
-  const left = window.screenX + window.outerWidth - w - 40 - (popupOffset * 30);
-  const top = window.screenY + 80 + (popupOffset * 30);
-  popupOffset = (popupOffset + 1) % 10;
-  window.open(
-    `/admin/chat-popup?roomId=${roomId}`,
-    `chat_${roomId}`,
-    `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,status=no`
-  );
+  window.open(`/admin/chat-popup?roomId=${roomId}`, `chat_${roomId}_${Date.now()}`);
 };
 
 export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAdmin, loadingRooms }: ChatRoomListProps) {
