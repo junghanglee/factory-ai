@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,16 @@ import { Shield } from "lucide-react";
 const AdminLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { signIn, user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // If already logged in as admin, redirect
-  if (!authLoading && user && isAdmin) {
-    navigate("/admin/dashboard", { replace: true });
-    return null;
-  }
+  // Redirect when auth state confirms admin
+  useEffect(() => {
+    if (!authLoading && user && isAdmin) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [authLoading, user, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,17 +28,22 @@ const AdminLoginPage = () => {
       toast.error("이메일과 비밀번호를 입력해주세요.");
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     const { error } = await signIn(email, password);
-    setLoading(false);
     if (error) {
+      setSubmitting(false);
       toast.error("로그인 실패: " + error.message);
-    } else {
-      // Role check happens via AuthProvider; redirect handled by ProtectedRoute
-      toast.success("로그인 성공!");
-      navigate("/admin/dashboard", { replace: true });
     }
+    // Don't navigate here — useEffect above handles redirect after role is confirmed
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-4">
@@ -69,8 +75,8 @@ const AdminLoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "로그인 중..." : "관리자 로그인"}
+            <Button className="w-full" type="submit" disabled={submitting}>
+              {submitting ? "로그인 중..." : "관리자 로그인"}
             </Button>
           </form>
         </CardContent>
