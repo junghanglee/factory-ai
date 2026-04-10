@@ -345,6 +345,108 @@ export type Database = {
         }
         Relationships: []
       }
+      display_group_filters: {
+        Row: {
+          group_id: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_group_filters_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "display_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      display_group_services: {
+        Row: {
+          filter_id: string | null
+          group_id: string
+          id: string
+          service_id: string
+          sort_order: number
+        }
+        Insert: {
+          filter_id?: string | null
+          group_id: string
+          id?: string
+          service_id: string
+          sort_order?: number
+        }
+        Update: {
+          filter_id?: string | null
+          group_id?: string
+          id?: string
+          service_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_group_services_filter_id_fkey"
+            columns: ["filter_id"]
+            isOneToOne: false
+            referencedRelation: "display_group_filters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "display_group_services_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "display_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "display_group_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      display_groups: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_requests: {
         Row: {
           created_at: string
