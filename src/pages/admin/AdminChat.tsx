@@ -245,46 +245,47 @@ const AdminChat = () => {
               {/* Input area */}
               <div className="p-4 border-t space-y-2">
                 {pendingFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 px-1">
-                    {pendingFiles.map((file, idx) => (
-                      <div key={idx} className="relative group/file">
-                        {file.type.startsWith("image/") ? (
-                          <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
-                        ) : file.type.startsWith("video/") ? (
-                          <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
-                            <Film className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <div className="h-16 w-16 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
-                            <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
-                            <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
-                          </div>
-                        )}
-                        <button onClick={() => removePendingFile(idx)}
-                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
-                          <X className="h-3 w-3" />
+                  <>
+                    <div className="flex flex-wrap gap-2 px-1">
+                      {pendingFiles.map((file, idx) => (
+                        <div key={idx} className="relative group/file">
+                          {file.type.startsWith("image/") ? (
+                            <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
+                          ) : file.type.startsWith("video/") ? (
+                            <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
+                              <Film className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          ) : (
+                            <div className="h-16 w-16 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
+                              <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
+                              <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
+                            </div>
+                          )}
+                          <button onClick={() => removePendingFile(idx)}
+                            className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {pendingFiles.length < MAX_FILES && (
+                        <button onClick={() => fileInputRef.current?.click()}
+                          className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
+                          <Plus className="h-5 w-5 text-muted-foreground" />
                         </button>
-                      </div>
-                    ))}
-                    {pendingFiles.length < MAX_FILES && (
-                      <button onClick={() => fileInputRef.current?.click()}
-                        className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
-                        <Plus className="h-5 w-5 text-muted-foreground" />
-                      </button>
-                    )}
-                  </div>
-                  {/* Feedback toggle - only when files are attached */}
-                  <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={isFeedbackMode}
-                      onChange={(e) => setIsFeedbackMode(e.target.checked)}
-                      className="accent-amber-500 w-4 h-4"
-                    />
-                    <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>
-                      📝 피드백 요청으로 전송
-                    </span>
-                  </label>
+                      )}
+                    </div>
+                    <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isFeedbackMode}
+                        onChange={(e) => setIsFeedbackMode(e.target.checked)}
+                        className="accent-amber-500 w-4 h-4"
+                      />
+                      <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>
+                        📝 피드백 요청으로 전송
+                      </span>
+                    </label>
+                  </>
                 )}
                 {replyTo && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
