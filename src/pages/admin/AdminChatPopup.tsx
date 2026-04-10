@@ -137,6 +137,10 @@ const AdminChatPopup = () => {
     return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
   }
 
+  if (!user || !isAdmin) {
+    return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
+  }
+
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       <Sonner />
