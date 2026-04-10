@@ -72,16 +72,10 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const superAdminGroup: NavGroup = {
-  label: "관리자관리",
-  icon: ShieldCheck,
-  items: [
-    { to: "/admin/staff", icon: ShieldCheck, label: "관리자 목록" },
-  ],
-};
+// superAdminGroup removed - staff management moved into 회원관리 group
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isSuperAdmin } = useAuth();
+  // useAuth removed - no longer needed here
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -126,7 +120,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Nav groups */}
         <nav className="flex-1 px-3 pt-2 pb-3 space-y-1 overflow-y-auto">
-          {(isSuperAdmin ? [...navGroups, superAdminGroup] : navGroups).map((group) => {
+          {navGroups.map((group) => {
             const isOpen = openGroups[group.label];
             const hasActive = group.items.some((i) => location.pathname === i.to);
 
