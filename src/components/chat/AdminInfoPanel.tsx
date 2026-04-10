@@ -269,6 +269,11 @@ export default function AdminInfoPanel({ customerId, roomId, currentUserId, meta
           </ScrollArea>
         </TabsContent>
 
+        {/* Order Request Tab */}
+        <TabsContent value="request" className="flex-1 m-0 overflow-auto">
+          <OrderRequestTab metadata={metadata || null} />
+        </TabsContent>
+
         {/* Video Feedback Tab */}
         <TabsContent value="feedback" className="flex-1 m-0 overflow-auto">
           <ScrollArea className="h-full">
