@@ -82,20 +82,89 @@ const navGroups: NavGroup[] = [
 // superAdminGroup removed - staff management moved into 회원관리 group
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  // useAuth removed - no longer needed here
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileDept, setProfileDept] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     navGroups.forEach((g) => {
       init[g.label] = g.items.some((i) => location.pathname === i.to);
     });
-    // default open first group
     if (!Object.values(init).some(Boolean)) init[navGroups[0].label] = true;
     return init;
   });
 
   const toggleGroup = (label: string) =>
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/admin");
+  };
+
+  const openProfileDialog = async () => {
+    if (user) {
+      const { data } = await supabase
+        .from("admin_profiles")
+        .select("name, department")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setProfileName(data.name || "");
+        setProfileDept(data.department || "");
+      }
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    // Update admin_profiles
+    const { error: profileError } = await supabase
+      .from("admin_profiles")
+      .update({ name: profileName.trim(), department: profileDept.trim() || null })
+      .eq("user_id", user.id);
+    if (profileError) {
+      toast.error("정보 수정 실패: " + profileError.message);
+      setSaving(false);
+      return;
+    }
+
+    // Update password if provided
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        toast.error("비밀번호는 6자 이상이어야 합니다.");
+        setSaving(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error("비밀번호가 일치하지 않습니다.");
+        setSaving(false);
+        return;
+      }
+      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+      if (pwError) {
+        toast.error("비밀번호 변경 실패: " + pwError.message);
+        setSaving(false);
+        return;
+      }
+    }
+
+    toast.success("정보가 수정되었습니다.");
+    setSaving(false);
+    setShowProfile(false);
+  };
 
   return (
     <div className="min-h-screen flex">
