@@ -272,10 +272,44 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 bg-gray-50 p-8 overflow-auto">
-        {children}
-      </main>
+      {/* Profile edit dialog */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>내 정보 수정</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>이메일</Label>
+              <Input value={user?.email || ""} disabled className="bg-muted" />
+            </div>
+            <div>
+              <Label>이름</Label>
+              <Input value={profileName} onChange={(e) => setProfileName(e.target.value)} placeholder="이름" />
+            </div>
+            <div>
+              <Label>소속</Label>
+              <Input value={profileDept} onChange={(e) => setProfileDept(e.target.value)} placeholder="소속 부서" />
+            </div>
+            <div className="pt-2 border-t">
+              <p className="text-xs text-muted-foreground mb-2">비밀번호 변경 (변경하지 않으려면 비워두세요)</p>
+              <div className="space-y-2">
+                <div>
+                  <Label>새 비밀번호</Label>
+                  <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="6자 이상" />
+                </div>
+                <div>
+                  <Label>비밀번호 확인</Label>
+                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="비밀번호 확인" />
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+              {saving ? "저장 중..." : "저장"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
