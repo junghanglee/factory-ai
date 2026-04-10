@@ -9,9 +9,28 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [myPageMenuOpen, setMyPageMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const myPageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const myPageMenuItems = [
+    { id: "projects", label: "신청내역", icon: Package },
+    { id: "payments", label: "결제내역", icon: Receipt },
+    { id: "invoice", label: "계산서 요청", icon: FileText },
+    { id: "inquiries", label: "1:1 문의", icon: HelpCircle },
+    { id: "chat", label: "채팅 상담", icon: MessageCircle },
+    { id: "profile", label: "내 정보", icon: User },
+  ];
+
+  const handleMyPageEnter = () => {
+    if (myPageTimeoutRef.current) clearTimeout(myPageTimeoutRef.current);
+    setMyPageMenuOpen(true);
+  };
+  const handleMyPageLeave = () => {
+    myPageTimeoutRef.current = setTimeout(() => setMyPageMenuOpen(false), 150);
+  };
 
   const handleSignOut = async () => {
     await signOut();
