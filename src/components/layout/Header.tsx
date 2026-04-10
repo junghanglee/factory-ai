@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Search, Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories } from "@/data/categories";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
