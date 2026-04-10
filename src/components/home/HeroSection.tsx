@@ -26,18 +26,24 @@ const HeroSection = () => {
   const [banners, setBanners] = useState<BannerData[]>([]);
 
   useEffect(() => {
-    const fetchBanners = async () => {
-      const { data, error } = await supabase
-        .from("banners")
-        .select("*")
-        .eq("active", true)
-        .order("sort_order", { ascending: true });
+    let cancelled = false;
+    const fetchBanners = async (retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        const { data, error } = await supabase
+          .from("banners")
+          .select("*")
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        setBanners(data);
+        if (!cancelled && !error && data && data.length > 0) {
+          setBanners(data);
+          return;
+        }
+        if (i < retries - 1) await new Promise(r => setTimeout(r, 1000 * (i + 1)));
       }
     };
     fetchBanners();
+    return () => { cancelled = true; };
   }, []);
 
   const displayBanners = banners.length > 0 ? banners : fallbackBanners;
