@@ -66,6 +66,13 @@ const MyPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
+  // Auto-redirect to /chat when entering with chat tab and chat rooms exist
+  useEffect(() => {
+    if (!loading && user && activeTab === "chat" && !loadingChatRooms && chatRooms.length > 0) {
+      navigate("/chat", { replace: true });
+    }
+  }, [loading, user, activeTab, loadingChatRooms, chatRooms, navigate]);
+
   // Load projects
   useEffect(() => {
     if (!user) return;
