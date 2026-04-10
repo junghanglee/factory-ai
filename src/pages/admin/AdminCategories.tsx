@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
 
 const AdminCategories = () => {
   const { data: cats = [], isLoading } = useCategories();
@@ -108,32 +110,45 @@ const AdminCategories = () => {
           <DialogHeader>
             <DialogTitle>{editId ? "카테고리 수정" : "새 카테고리 추가"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>카테고리명</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="AI 이미지/디자인" />
-            </div>
-            <div>
-              <Label>슬러그</Label>
-              <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="ai-image" disabled={!!editId} />
-            </div>
-            <div>
-              <Label>설명</Label>
-              <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="로고, 배너, 상세페이지..." />
-            </div>
-            <div>
-              <Label>색상 (HSL)</Label>
-              <div className="flex gap-2 items-center">
-                <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
-                <div className="w-10 h-10 rounded-lg shrink-0 border" style={{ backgroundColor: form.color }} />
+          <Tabs defaultValue="basic">
+            <TabsList className="w-full">
+              <TabsTrigger value="basic" className="flex-1">기본 정보</TabsTrigger>
+              <TabsTrigger value="feedback" className="flex-1">피드백 기본값</TabsTrigger>
+            </TabsList>
+            <TabsContent value="basic" className="space-y-4 mt-4">
+              <div>
+                <Label>카테고리명</Label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="AI 이미지/디자인" />
               </div>
-            </div>
-            <div>
-              <Label>정렬 순서</Label>
-              <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
-            </div>
-            <Button onClick={handleSave} className="w-full gap-2"><Save className="h-4 w-4" /> 저장</Button>
-          </div>
+              <div>
+                <Label>슬러그</Label>
+                <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="ai-image" disabled={!!editId} />
+              </div>
+              <div>
+                <Label>설명</Label>
+                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="로고, 배너, 상세페이지..." />
+              </div>
+              <div>
+                <Label>색상 (HSL)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
+                  <div className="w-10 h-10 rounded-lg shrink-0 border" style={{ backgroundColor: form.color }} />
+                </div>
+              </div>
+              <div>
+                <Label>정렬 순서</Label>
+                <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
+              </div>
+              <Button onClick={handleSave} className="w-full gap-2"><Save className="h-4 w-4" /> 저장</Button>
+            </TabsContent>
+            <TabsContent value="feedback" className="mt-4">
+              {editId ? (
+                <FeedbackFieldsEditor categoryId={editId} isCategoryLevel />
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">카테고리를 먼저 저장한 후 피드백 항목을 설정할 수 있습니다.</p>
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </AdminLayout>
