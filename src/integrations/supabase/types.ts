@@ -445,29 +445,50 @@ export type Database = {
       }
       portfolio_items: {
         Row: {
+          active: boolean
           category: string | null
+          client_name: string | null
+          cost: string | null
           created_at: string
           description: string | null
+          duration: string | null
+          files: string[] | null
           id: string
           image_url: string | null
+          show_extra_info: boolean
+          sort_order: number
           title: string
           updated_at: string
         }
         Insert: {
+          active?: boolean
           category?: string | null
+          client_name?: string | null
+          cost?: string | null
           created_at?: string
           description?: string | null
+          duration?: string | null
+          files?: string[] | null
           id?: string
           image_url?: string | null
+          show_extra_info?: boolean
+          sort_order?: number
           title: string
           updated_at?: string
         }
         Update: {
+          active?: boolean
           category?: string | null
+          client_name?: string | null
+          cost?: string | null
           created_at?: string
           description?: string | null
+          duration?: string | null
+          files?: string[] | null
           id?: string
           image_url?: string | null
+          show_extra_info?: boolean
+          sort_order?: number
           title?: string
           updated_at?: string
         }
