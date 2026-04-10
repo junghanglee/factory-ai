@@ -255,9 +255,14 @@ const ChatPage = () => {
                 <div className="p-4 border-b flex items-center justify-between">
                   <span className="font-medium text-sm">{selectedRoom.title}</span>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setShowFileDrawer(!showFileDrawer)}>
+                    <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowOrderInfo(false); }}>
                       <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
                     </Button>
+                    {(selectedRoom.metadata as any)?.orderRequest && (
+                      <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
+                        <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
+                      </Button>
+                    )}
                     {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>}
                   </div>
                 </div>
@@ -370,10 +375,21 @@ const ChatPage = () => {
             )}
           </div>
 
-          {selectedRoom && showFileDrawer && (
+          {selectedRoom && showFileDrawer && !showOrderInfo && (
             <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
           )}
-          {selectedRoom && project && !showFileDrawer && (
+          {selectedRoom && showOrderInfo && !showFileDrawer && (
+            <div className="w-80 border-l flex flex-col shrink-0 bg-card">
+              <div className="p-3 border-b flex items-center justify-between">
+                <span className="text-sm font-semibold">요청사항</span>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setShowOrderInfo(false)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <OrderRequestTab metadata={selectedRoom.metadata as Record<string, any> | null} />
+            </div>
+          )}
+          {selectedRoom && project && !showFileDrawer && !showOrderInfo && (
             <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={false}
               onConfirmProject={confirmProject} onRequestRevision={requestRevision} />
           )}
