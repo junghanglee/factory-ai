@@ -3,6 +3,7 @@ import { FileText, Download, Play, MessageCircle, Reply, User } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/hooks/useChat";
 import VideoReviewDialog from "./VideoReviewDialog";
+import FeedbackRequestBubble from "./FeedbackRequestBubble";
 import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(dateStr: string) {
@@ -106,7 +107,6 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
 
   // Delegate feedback_request messages to FeedbackRequestBubble
   if (msg.message_type === "feedback_request") {
-    const FeedbackRequestBubble = require("./FeedbackRequestBubble").default;
     return <FeedbackRequestBubble msg={msg} isMine={isMine} roomId={roomId} />;
   }
 
