@@ -166,6 +166,17 @@ const ChatPage = () => {
     }
   };
 
+  const handleServiceSelect = async (service: { id: string; title: string; thumbnail: string | null; seller: string | null; price: number }) => {
+    setShowServicePicker(false);
+    const title = `[문의] ${service.title}`;
+    const room = await createRoom(title, service.id);
+    if (room) {
+      selectRoom(room.id);
+      notifyRoomOpen();
+      await sendAutoMessage(room.id, "new_room");
+    }
+  };
+
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
 
   // Group messages by date, then group consecutive images
