@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon } from "lucide-react";
+import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -12,6 +12,7 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { useChatNotification } from "@/hooks/useChatNotification";
+import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 
 const MAX_FILES = 10;
 
@@ -37,6 +38,7 @@ const AdminChat = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
