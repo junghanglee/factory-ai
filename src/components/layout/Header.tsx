@@ -213,7 +213,7 @@ const Header = () => {
                   className="flex items-center gap-3 px-3 py-3 text-[14px] rounded-lg hover:bg-secondary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <img src={cat.image} alt={cat.name} className="h-5 w-5 object-contain" />
+                  <img src={getCategoryIcon(cat.slug)} alt={cat.name} className="h-5 w-5 object-contain" />
                   {cat.name}
                 </Link>
               ))}
