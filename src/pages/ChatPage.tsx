@@ -54,6 +54,26 @@ const ChatPage = () => {
   const [showServicePicker, setShowServicePicker] = useState(false);
   const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
   const { sendAutoMessage } = useAutoMessages();
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
+
+  // Track pending feedback requests for the selected room
+  useEffect(() => {
+    if (!selectedRoomId) { setPendingFeedbackCount(0); return; }
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from("feedback_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("room_id", selectedRoomId)
+        .eq("status", "pending");
+      setPendingFeedbackCount(count || 0);
+    };
+    fetchPending();
+    const channel = supabase
+      .channel(`feedback_badge_${selectedRoomId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "feedback_requests", filter: `room_id=eq.${selectedRoomId}` }, () => fetchPending())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedRoomId]);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
