@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, MessageSquareText } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -32,8 +32,7 @@ const AdminChat = () => {
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
 
-  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
+  const [isFeedbackMode, setIsFeedbackMode] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -60,6 +59,14 @@ const AdminChat = () => {
 
   const handleSend = async () => {
     if (pendingFiles.length > 0) {
+      if (isFeedbackMode) {
+        // Send files as feedback request
+        await sendFeedbackRequest(input.trim() || "", pendingFiles);
+        setPendingFiles([]);
+        setInput("");
+        setIsFeedbackMode(false);
+        return;
+      }
       for (const file of pendingFiles) {
         await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
       }
