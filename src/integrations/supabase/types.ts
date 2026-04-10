@@ -451,6 +451,7 @@ export type Database = {
           cost: string | null
           created_at: string
           description: string | null
+          detail_images: string[] | null
           duration: string | null
           files: string[] | null
           id: string
@@ -467,6 +468,7 @@ export type Database = {
           cost?: string | null
           created_at?: string
           description?: string | null
+          detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
           id?: string
@@ -483,6 +485,7 @@ export type Database = {
           cost?: string | null
           created_at?: string
           description?: string | null
+          detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
           id?: string
