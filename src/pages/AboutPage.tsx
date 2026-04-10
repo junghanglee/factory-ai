@@ -1,7 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { cn } from "@/lib/utils";
-import { DollarSign, Users, Zap, Globe, Film, Settings, Smartphone, GraduationCap, Handshake, MapPin, MessageCircle, Mail, Phone, ChevronDown, ArrowRight } from "lucide-react";
+import { DollarSign, Users, Zap, Globe, Film, Settings, Smartphone, GraduationCap, Handshake, MapPin, MessageCircle, Mail, Phone, ChevronDown, ArrowRight, Send, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import aboutHero from "@/assets/about-hero.jpg";
 import aboutStrengths from "@/assets/about-strengths.jpg";
 import aboutServices from "@/assets/about-services.jpg";
@@ -15,8 +21,12 @@ const tabs = [
   { id: "contact", label: "Contact Us" },
 ];
 
+const emptyForm = { name: "", email: "", phone: "", company: "", inquiry_type: "일반 문의", message: "" };
+
 const AboutPage = () => {
   const [activeTab, setActiveTab] = useState("brand");
+  const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const scrollToSection = (id: string) => {
@@ -341,7 +351,7 @@ const AboutPage = () => {
         ref={(el) => { sectionRefs.current["contact"] = el; }}
         className="py-24 md:py-32"
       >
-        <div className="max-w-[900px] mx-auto px-6">
+        <div className="max-w-[1000px] mx-auto px-6">
           <div className="text-center mb-16">
             <p className="text-sm tracking-[0.2em] uppercase text-primary font-semibold mb-3">Contact Us</p>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">문의 및 상담</h2>
@@ -384,33 +394,126 @@ const AboutPage = () => {
             </div>
           </div>
 
-          {/* Location & Contact */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-card border border-border rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="h-5 w-5 text-primary" />
-                <h4 className="font-bold">Location</h4>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                2nd Floor, District 1,<br />
-                Ho Chi Minh City, Vietnam
-              </p>
+          <div className="grid md:grid-cols-5 gap-8">
+            {/* Inquiry Form */}
+            <div className="md:col-span-3 bg-card border border-border rounded-2xl p-6 md:p-8">
+              <h3 className="text-lg font-bold mb-6">문의하기</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!form.name || !form.email || !form.message) {
+                    toast.error("이름, 이메일, 메시지는 필수입니다.");
+                    return;
+                  }
+                  setSubmitting(true);
+                  try {
+                    const { error } = await supabase.from("contact_inquiries").insert({
+                      name: form.name,
+                      email: form.email,
+                      phone: form.phone || null,
+                      company: form.company || null,
+                      inquiry_type: form.inquiry_type,
+                      message: form.message,
+                    });
+                    if (error) throw error;
+                    toast.success("문의가 접수되었습니다. 빠르게 연락드리겠습니다!");
+                    setForm(emptyForm);
+                  } catch (err: any) {
+                    toast.error("문의 접수 실패: " + err.message);
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">이름 *</label>
+                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="홍길동" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">회사명</label>
+                    <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} placeholder="(주)회사명" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">이메일 *</label>
+                    <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">전화번호</label>
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="010-0000-0000" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">문의 유형</label>
+                  <Select value={form.inquiry_type} onValueChange={(v) => setForm({ ...form, inquiry_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="일반 문의">일반 문의</SelectItem>
+                      <SelectItem value="AI 영상 제작">AI 영상 제작</SelectItem>
+                      <SelectItem value="AI 자동화 솔루션">AI 자동화 솔루션</SelectItem>
+                      <SelectItem value="디지털 마케팅">디지털 마케팅</SelectItem>
+                      <SelectItem value="AI 아카데미">AI 아카데미</SelectItem>
+                      <SelectItem value="B2B 파트너십">B2B 파트너십</SelectItem>
+                      <SelectItem value="기타">기타</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">메시지 *</label>
+                  <Textarea
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    placeholder="문의 내용을 입력해주세요..."
+                    rows={4}
+                  />
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full gap-2">
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {submitting ? "접수 중..." : "문의 보내기"}
+                </Button>
+              </form>
             </div>
-            <div className="bg-card border border-border rounded-2xl p-6">
-              <h4 className="font-bold mb-4">Quick Contact</h4>
-              <div className="space-y-3">
-                <a href="#" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                  카카오톡 문의
-                </a>
-                <a href="#" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <Mail className="h-4 w-4 text-primary" />
-                  이메일 접수
-                </a>
-                <a href="#" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <Phone className="h-4 w-4 text-primary" />
-                  오피스 유선 번호
-                </a>
+
+            {/* Contact Info */}
+            <div className="md:col-span-2 space-y-6">
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <h4 className="font-bold">Location</h4>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  2nd Floor, District 1,<br />
+                  Ho Chi Minh City, Vietnam
+                </p>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <h4 className="font-bold mb-4">Quick Contact</h4>
+                <div className="space-y-4">
+                  <a href="https://open.kakao.com/o/seanvtn6620" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <MessageCircle className="h-4 w-4 text-primary" />
+                    <div>
+                      <div className="font-medium text-foreground">카카오톡 문의</div>
+                      <div className="text-xs">seanvtn6620@kakao.com</div>
+                    </div>
+                  </a>
+                  <a href="mailto:junghanglee@gmail.com" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <div>
+                      <div className="font-medium text-foreground">이메일 접수</div>
+                      <div className="text-xs">junghanglee@gmail.com</div>
+                    </div>
+                  </a>
+                  <a href="tel:+840777436620" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <div>
+                      <div className="font-medium text-foreground">오피스 유선 번호</div>
+                      <div className="text-xs">+84 077-743-6620 (한국어가능)</div>
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

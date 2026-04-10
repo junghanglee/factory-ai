@@ -24,6 +24,7 @@ import AdminBanners from "./pages/admin/AdminBanners";
 import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import AdminAutoMessages from "./pages/admin/AdminAutoMessages";
 import AdminStaff from "./pages/admin/AdminStaff";
+import AdminInquiries from "./pages/admin/AdminInquiries";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/auto-messages" element={<ProtectedRoute requireAdmin><AdminAutoMessages /></ProtectedRoute>} />
             <Route path="/admin/staff" element={<ProtectedRoute requireSuperAdmin><AdminStaff /></ProtectedRoute>} />
+            <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
