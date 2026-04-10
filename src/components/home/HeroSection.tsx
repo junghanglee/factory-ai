@@ -1,35 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { popularKeywords } from "@/data/services";
+import { supabase } from "@/integrations/supabase/client";
 
-const banners = [
-  {
-    title: "에이전시 반값!",
-    subtitle: "AI 콘텐츠 제작\n지금 바로 시작하세요",
-    cta: "서비스 둘러보기",
-    link: "/category/ai-image",
-  },
-  {
-    title: "대량생산 가능",
-    subtitle: "수백 개의 콘텐츠도\n균일한 퀄리티로",
-    cta: "대량 주문 문의",
-    link: "/chat",
-  },
-  {
-    title: "빠른 납기",
-    subtitle: "AI 자동화로\n3~5배 빠르게 납품",
-    cta: "자세히 보기",
-    link: "/category/ai-video",
-  },
+interface BannerData {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  link_url: string | null;
+  active: boolean;
+  sort_order: number;
+}
+
+const fallbackBanners = [
+  { title: "에이전시 반값!", subtitle: "AI 콘텐츠 제작\n지금 바로 시작하세요", link_url: "/category/ai-image", image_url: null },
+  { title: "대량생산 가능", subtitle: "수백 개의 콘텐츠도\n균일한 퀄리티로", link_url: "/chat", image_url: null },
+  { title: "빠른 납기", subtitle: "AI 자동화로\n3~5배 빠르게 납품", link_url: "/category/ai-video", image_url: null },
 ];
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [banners, setBanners] = useState<BannerData[]>([]);
 
-  const nextBanner = () => setCurrentBanner((prev) => (prev + 1) % banners.length);
-  const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
+  useEffect(() => {
+    const fetchBanners = async () => {
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        setBanners(data);
+      }
+    };
+    fetchBanners();
+  }, []);
+
+  const displayBanners = banners.length > 0 ? banners : fallbackBanners;
+  const current = displayBanners[currentBanner % displayBanners.length];
+
+  const nextBanner = () => setCurrentBanner((prev) => (prev + 1) % displayBanners.length);
+  const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
+
+  // Auto-rotate every 5 seconds
+  useEffect(() => {
+    if (displayBanners.length <= 1) return;
+    const timer = setInterval(nextBanner, 5000);
+    return () => clearInterval(timer);
+  }, [displayBanners.length]);
+
+  const hasBannerImage = current.image_url && !current.image_url.endsWith(".mp4");
 
   return (
     <section className="relative overflow-hidden">
@@ -43,7 +67,6 @@ const HeroSection = () => {
       >
         <source src="/videos/hero-bg.mp4" type="video/mp4" />
       </video>
-      {/* Dark overlay for text readability */}
       <div className="absolute inset-0 bg-black/60" />
 
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
@@ -87,30 +110,38 @@ const HeroSection = () => {
           {/* Right side - promotional banner carousel */}
           <div className="w-full md:w-[380px] shrink-0">
             <div className="relative rounded-2xl overflow-hidden aspect-[380/260]">
+              {/* Banner image background */}
+              {hasBannerImage && (
+                <img
+                  src={current.image_url!}
+                  alt={current.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                />
+              )}
               <div
-                className="absolute inset-0 bg-white/10 backdrop-blur-md p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20"
+                className={`absolute inset-0 ${hasBannerImage ? "bg-black/40" : "bg-white/10 backdrop-blur-md"} p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20`}
               >
                 <div>
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/80 text-white text-[12px] font-medium mb-3">
                     AI팩토리
                   </span>
                   <h3 className="text-[22px] font-bold text-white leading-snug mb-1">
-                    {banners[currentBanner].title}
+                    {current.title}
                   </h3>
                   <p className="text-[14px] text-white/80 whitespace-pre-line leading-relaxed">
-                    {banners[currentBanner].subtitle}
+                    {current.subtitle}
                   </p>
                 </div>
                 <div className="flex items-center justify-between">
                   <Link
-                    to={banners[currentBanner].link}
+                    to={current.link_url || "/"}
                     className="text-[13px] text-white/90 hover:text-white underline underline-offset-2"
                   >
-                    {banners[currentBanner].cta} →
+                    자세히 보기 →
                   </Link>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] text-white/70">
-                      {currentBanner + 1} / {banners.length}
+                      {(currentBanner % displayBanners.length) + 1} / {displayBanners.length}
                     </span>
                     <div className="flex gap-1">
                       <button
