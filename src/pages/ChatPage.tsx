@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useChatNotification } from "@/hooks/useChatNotification";
+import { useAutoMessages } from "@/hooks/useAutoMessages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,10 +47,17 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [autoCreated, setAutoCreated] = useState(false);
+  const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
+  const { sendAutoMessage } = useAutoMessages();
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
+
+  // Notification on new messages
+  useEffect(() => {
+    notifyNewMessage(messages, selectedRoomId, user?.id);
+  }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleAutoCreate = useCallback(async () => {
     if (autoCreated || loadingRooms || !user) return;
@@ -57,6 +66,7 @@ const ChatPage = () => {
     if (state.openRoomId) {
       setAutoCreated(true);
       selectRoom(state.openRoomId);
+      notifyRoomOpen();
       navigate("/chat", { replace: true });
       return;
     }
@@ -64,7 +74,13 @@ const ChatPage = () => {
       setAutoCreated(true);
       const title = `[문의] ${state.inquiry.serviceTitle}`;
       const room = await createRoom(title, state.inquiry.serviceId);
-      if (room) { selectRoom(room.id); navigate("/chat", { replace: true }); }
+      if (room) {
+        selectRoom(room.id);
+        notifyRoomOpen();
+        // Send auto welcome message
+        await sendAutoMessage(room.id, "new_room");
+        navigate("/chat", { replace: true });
+      }
     } else if (state.orderInfo) {
       setAutoCreated(true);
       const title = `[의뢰] ${state.orderInfo.serviceTitle}`;
@@ -78,12 +94,15 @@ const ChatPage = () => {
       const room = await createRoom(title, state.orderInfo.serviceId, orderMeta);
       if (room) {
         selectRoom(room.id);
+        notifyRoomOpen();
         const orderMsg = `📋 주문서\n\n서비스: ${state.orderInfo.serviceTitle}\n패키지: ${state.orderInfo.packageName}\n금액: ${state.orderInfo.price?.toLocaleString()}원\n납기: ${state.orderInfo.deliveryDays}일\n\n위 내용으로 의뢰합니다.`;
         setTimeout(async () => { await sendMessage(orderMsg); }, 500);
+        // Send auto message for order
+        await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
     }
-  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage]);
+  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, notifyRoomOpen, sendAutoMessage]);
 
   useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -130,7 +149,13 @@ const ChatPage = () => {
   const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) return;
     const room = await createRoom(newRoomTitle.trim());
-    if (room) { selectRoom(room.id); setShowNewRoom(false); setNewRoomTitle(""); }
+    if (room) {
+      selectRoom(room.id);
+      notifyRoomOpen();
+      await sendAutoMessage(room.id, "new_room");
+      setShowNewRoom(false);
+      setNewRoomTitle("");
+    }
   };
 
   const filteredRooms = rooms.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()));

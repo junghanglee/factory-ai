@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
+import { useChatNotification } from "@/hooks/useChatNotification";
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -44,8 +45,14 @@ const AdminChat = () => {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  // Notification on new messages
+  useEffect(() => {
+    notifyNewMessage(messages, selectedRoomId, user?.id);
+  }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
     if (pendingFile) {

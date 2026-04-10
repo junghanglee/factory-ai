@@ -22,8 +22,25 @@ interface MessageBubbleProps {
   roomId?: string;
 }
 
+const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
+
 export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageBubbleProps) {
   const [showReview, setShowReview] = useState(false);
+
+  const isSystem = msg.sender_id === SYSTEM_USER_ID;
+
+  // System messages render centered
+  if (isSystem) {
+    return (
+      <div className="flex justify-center">
+        <div className="max-w-[80%] bg-accent/60 text-accent-foreground rounded-xl px-4 py-2.5 text-center">
+          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+          <p className="text-xs text-muted-foreground mt-1">{formatTime(msg.created_at)}</p>
+        </div>
+      </div>
+    );
+  }
+
   const bubbleClass = isMine ? "bg-primary text-primary-foreground" : "bg-secondary";
   const timeClass = isMine ? "text-primary-foreground/70" : "text-muted-foreground";
 
