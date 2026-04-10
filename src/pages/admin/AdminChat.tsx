@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, MessageSquareText } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -32,8 +32,7 @@ const AdminChat = () => {
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
 
-  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
+  const [isFeedbackMode, setIsFeedbackMode] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -60,6 +59,14 @@ const AdminChat = () => {
 
   const handleSend = async () => {
     if (pendingFiles.length > 0) {
+      if (isFeedbackMode) {
+        // Send files as feedback request
+        await sendFeedbackRequest(input.trim() || "", pendingFiles);
+        setPendingFiles([]);
+        setInput("");
+        setIsFeedbackMode(false);
+        return;
+      }
       for (const file of pendingFiles) {
         await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
       }
@@ -238,34 +245,47 @@ const AdminChat = () => {
               {/* Input area */}
               <div className="p-4 border-t space-y-2">
                 {pendingFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 px-1">
-                    {pendingFiles.map((file, idx) => (
-                      <div key={idx} className="relative group/file">
-                        {file.type.startsWith("image/") ? (
-                          <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
-                        ) : file.type.startsWith("video/") ? (
-                          <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
-                            <Film className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <div className="h-16 w-16 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
-                            <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
-                            <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
-                          </div>
-                        )}
-                        <button onClick={() => removePendingFile(idx)}
-                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
-                          <X className="h-3 w-3" />
+                  <>
+                    <div className="flex flex-wrap gap-2 px-1">
+                      {pendingFiles.map((file, idx) => (
+                        <div key={idx} className="relative group/file">
+                          {file.type.startsWith("image/") ? (
+                            <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
+                          ) : file.type.startsWith("video/") ? (
+                            <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
+                              <Film className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          ) : (
+                            <div className="h-16 w-16 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
+                              <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
+                              <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
+                            </div>
+                          )}
+                          <button onClick={() => removePendingFile(idx)}
+                            className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {pendingFiles.length < MAX_FILES && (
+                        <button onClick={() => fileInputRef.current?.click()}
+                          className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
+                          <Plus className="h-5 w-5 text-muted-foreground" />
                         </button>
-                      </div>
-                    ))}
-                    {pendingFiles.length < MAX_FILES && (
-                      <button onClick={() => fileInputRef.current?.click()}
-                        className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
-                        <Plus className="h-5 w-5 text-muted-foreground" />
-                      </button>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                    <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isFeedbackMode}
+                        onChange={(e) => setIsFeedbackMode(e.target.checked)}
+                        className="accent-amber-500 w-4 h-4"
+                      />
+                      <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>
+                        📝 피드백 요청으로 전송
+                      </span>
+                    </label>
+                  </>
                 )}
                 {replyTo && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
@@ -279,57 +299,19 @@ const AdminChat = () => {
                   <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
                     <Paperclip className="h-5 w-5" />
                   </button>
-                  <button
-                    onClick={() => setShowFeedbackInput(!showFeedbackInput)}
-                    className={`p-2 transition-colors ${showFeedbackInput ? "text-amber-600" : "text-muted-foreground hover:text-foreground"}`}
-                    title="피드백 요청"
-                  >
-                    <MessageSquareText className="h-5 w-5" />
-                  </button>
                   {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
-                  {showFeedbackInput ? (
-                    <>
-                      <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            if (feedbackText.trim()) {
-                              sendFeedbackRequest(feedbackText.trim());
-                              setFeedbackText("");
-                              setShowFeedbackInput(false);
-                            }
-                          }
-                        }}
-                        placeholder="피드백 요청 내용을 입력하세요..."
-                        rows={1}
-                        className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30 resize-none"
-                        style={{ height: "auto", overflow: "hidden" }}
-                        onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
-                      />
-                      <Button size="icon" className="rounded-full shrink-0 bg-amber-500 hover:bg-amber-600" onClick={() => {
-                        if (feedbackText.trim()) {
-                          sendFeedbackRequest(feedbackText.trim());
-                          setFeedbackText("");
-                          setShowFeedbackInput(false);
-                        }
-                      }} disabled={!feedbackText.trim()}>
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                        placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
-                        rows={1}
-                        className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                        style={{ height: "auto", overflow: "hidden" }}
-                        onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
-                      />
-                      <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
+                  <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                    placeholder={isFeedbackMode ? "피드백 요청 메시지 (선택)" : pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+                    rows={1}
+                    className={`flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border text-sm focus:outline-none focus:ring-2 resize-none ${
+                      isFeedbackMode ? "border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 focus:ring-amber-400/30" : "bg-secondary/50 focus:ring-primary/30"
+                    }`}
+                    style={{ height: "auto", overflow: "hidden" }}
+                    onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
+                  />
+                  <Button size="icon" className={`rounded-full shrink-0 ${isFeedbackMode ? "bg-amber-500 hover:bg-amber-600" : ""}`} onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
                 {pendingFiles.length > 0 && (
                   <p className="text-xs text-muted-foreground px-2">{pendingFiles.length}/{MAX_FILES}개 파일 선택됨</p>

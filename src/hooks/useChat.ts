@@ -382,15 +382,67 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [project, selectedRoomId, user, fetchProject]);
 
-  // Admin: Send feedback request message
-  const sendFeedbackRequest = useCallback(async (requestText: string) => {
-    if (!user || !selectedRoomId || !requestText.trim()) return;
+  // Admin: Send feedback request with files
+  const sendFeedbackRequest = useCallback(async (requestText: string, files?: File[]) => {
+    if (!user || !selectedRoomId || (!requestText.trim() && (!files || files.length === 0))) return;
+
+    // Get room's service category for form template
+    const room = rooms.find((r) => r.id === selectedRoomId);
+    let categoryName = "";
+    if (room?.service_id) {
+      const { data: svc } = await supabase
+        .from("services")
+        .select("category_id")
+        .eq("id", room.service_id)
+        .maybeSingle();
+      if (svc?.category_id) {
+        const { data: cat } = await supabase
+          .from("categories")
+          .select("name")
+          .eq("id", svc.category_id)
+          .maybeSingle();
+        if (cat) categoryName = cat.name;
+      }
+    }
+    // Also check metadata for category
+    if (!categoryName && room?.metadata) {
+      const meta = room.metadata as any;
+      if (meta?.categoryName) categoryName = meta.categoryName;
+    }
+
+    // Upload files first
+    const uploadedFiles: { url: string; name: string; type: string; size: number }[] = [];
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const compressed = await smartCompress(file, "chat");
+        const ext = compressed.name.split(".").pop();
+        const path = `${selectedRoomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, compressed);
+        if (uploadError) { console.error(uploadError); continue; }
+        const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
+        uploadedFiles.push({
+          url: urlData.publicUrl,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        });
+      }
+    }
+
+    // Build feedback message content with metadata
+    const feedbackMeta = JSON.stringify({
+      categoryName,
+      files: uploadedFiles,
+    });
+
     // Insert chat message with feedback_request type
     const { data: msgData, error: msgError } = await supabase.from("chat_messages").insert({
       room_id: selectedRoomId,
       sender_id: user.id,
-      message: requestText.trim(),
+      message: requestText.trim() || "피드백을 요청합니다.",
       message_type: "feedback_request",
+      file_url: uploadedFiles.length > 0 ? uploadedFiles[0].url : null,
+      file_name: uploadedFiles.length > 0 ? feedbackMeta : null,
     }).select().single();
     if (msgError || !msgData) { console.error(msgError); return; }
 
@@ -398,15 +450,15 @@ export function useChat() {
     await supabase.from("feedback_requests").insert({
       room_id: selectedRoomId,
       message_id: msgData.id,
-      request_text: requestText.trim(),
+      request_text: requestText.trim() || "피드백을 요청합니다.",
       status: "pending",
     } as any);
 
     await supabase.from("chat_rooms").update({
-      last_message: `📝 피드백 요청: ${requestText.trim().slice(0, 50)}`,
+      last_message: `📝 피드백 요청: ${requestText.trim().slice(0, 50) || "첨부파일 확인 요청"}`,
       last_message_at: new Date().toISOString(),
     }).eq("id", selectedRoomId);
-  }, [user, selectedRoomId]);
+  }, [user, selectedRoomId, rooms]);
 
   // Realtime subscriptions
   useEffect(() => {

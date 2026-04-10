@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, MessageSquareText } from "lucide-react";
+import { Send, Paperclip, Plus, X, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,6 +12,7 @@ import { groupMessages } from "@/utils/messageGrouping";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Film as FilmIcon, Video as VideoIcon } from "lucide-react";
 
 const MAX_FILES = 10;
 
@@ -34,35 +35,35 @@ const AdminChatPopup = () => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
-  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
+  const [isFeedbackMode, setIsFeedbackMode] = useState(false);
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-select room from URL param
   useEffect(() => {
-    if (roomId && !loading) {
-      selectRoom(roomId);
-    }
+    if (roomId && !loading) selectRoom(roomId);
   }, [roomId, loading]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Set window title
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
   useEffect(() => {
-    if (selectedRoom) {
-      document.title = `💬 ${selectedRoom.title} - AI팩토리`;
-    }
+    if (selectedRoom) document.title = `💬 ${selectedRoom.title} - AI팩토리`;
   }, [selectedRoom]);
 
   const handleSend = async () => {
     if (pendingFiles.length > 0) {
+      if (isFeedbackMode) {
+        await sendFeedbackRequest(input.trim() || "", pendingFiles);
+        setPendingFiles([]);
+        setInput("");
+        setIsFeedbackMode(false);
+        return;
+      }
       for (const file of pendingFiles) {
         await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
       }
@@ -120,7 +121,6 @@ const AdminChatPopup = () => {
     setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
   };
 
-  // Group messages
   const groupedMessages: { date: string; items: ReturnType<typeof groupMessages> }[] = [];
   const dateGroups: { date: string; msgs: ChatMessage[] }[] = [];
   messages.forEach((msg) => {
@@ -133,23 +133,16 @@ const AdminChatPopup = () => {
     groupedMessages.push({ date: g.date, items: groupMessages(g.msgs) });
   });
 
-  if (loading) {
-    return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
-  }
-
-  if (!user || !isAdmin) {
-    return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
-  }
+  if (loading) return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
+  if (!user || !isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       <Sonner />
-      {/* Header */}
       <div className="p-3 border-b bg-card flex items-center gap-2 shrink-0">
         <span className="font-semibold text-sm truncate">{selectedRoom?.title || "채팅"}</span>
       </div>
 
-      {/* Messages */}
       <div
         className={`flex-1 flex flex-col relative overflow-hidden ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
         onDrop={handleDrop}
@@ -166,20 +159,9 @@ const AdminChatPopup = () => {
                 <div className="space-y-3">
                   {group.items.map((item) =>
                     item.type === "image_group" ? (
-                      <ImageGroupBubble
-                        key={item.messages[0].id}
-                        messages={item.messages}
-                        isMine={item.messages[0].sender_id === user?.id}
-                        onReply={(m) => setReplyTo(m)}
-                      />
+                      <ImageGroupBubble key={item.messages[0].id} messages={item.messages} isMine={item.messages[0].sender_id === user?.id} onReply={(m) => setReplyTo(m)} />
                     ) : (
-                      <MessageBubble
-                        key={item.msg.id}
-                        msg={item.msg}
-                        isMine={item.msg.sender_id === user?.id}
-                        onReply={(m) => setReplyTo(m)}
-                        roomId={selectedRoomId || undefined}
-                      />
+                      <MessageBubble key={item.msg.id} msg={item.msg} isMine={item.msg.sender_id === user?.id} onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
                     )
                   )}
                 </div>
@@ -190,37 +172,42 @@ const AdminChatPopup = () => {
         </ScrollArea>
       </div>
 
-      {/* Input */}
       <div className="p-3 border-t bg-card space-y-2 shrink-0">
         {pendingFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-1">
-            {pendingFiles.map((file, idx) => (
-              <div key={idx} className="relative group/file">
-                {file.type.startsWith("image/") ? (
-                  <img src={URL.createObjectURL(file)} alt={file.name} className="h-14 w-14 object-cover rounded-lg border" />
-                ) : file.type.startsWith("video/") ? (
-                  <div className="h-14 w-14 rounded-lg border bg-secondary flex items-center justify-center">
-                    <Film className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                ) : (
-                  <div className="h-14 w-14 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
-                    <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
-                    <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
-                  </div>
-                )}
-                <button onClick={() => removePendingFile(idx)}
-                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
-                  <X className="h-3 w-3" />
+          <>
+            <div className="flex flex-wrap gap-2 px-1">
+              {pendingFiles.map((file, idx) => (
+                <div key={idx} className="relative group/file">
+                  {file.type.startsWith("image/") ? (
+                    <img src={URL.createObjectURL(file)} alt={file.name} className="h-14 w-14 object-cover rounded-lg border" />
+                  ) : file.type.startsWith("video/") ? (
+                    <div className="h-14 w-14 rounded-lg border bg-secondary flex items-center justify-center">
+                      <FilmIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="h-14 w-14 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
+                      <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
+                      <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
+                    </div>
+                  )}
+                  <button onClick={() => removePendingFile(idx)}
+                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {pendingFiles.length < MAX_FILES && (
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="h-14 w-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
+                  <Plus className="h-5 w-5 text-muted-foreground" />
                 </button>
-              </div>
-            ))}
-            {pendingFiles.length < MAX_FILES && (
-              <button onClick={() => fileInputRef.current?.click()}
-                className="h-14 w-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
-                <Plus className="h-5 w-5 text-muted-foreground" />
-              </button>
-            )}
-          </div>
+              )}
+            </div>
+            <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+              <input type="checkbox" checked={isFeedbackMode} onChange={(e) => setIsFeedbackMode(e.target.checked)} className="accent-amber-500 w-4 h-4" />
+              <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>📝 피드백 요청으로 전송</span>
+            </label>
+          </>
         )}
         {replyTo && (
           <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
@@ -234,61 +221,22 @@ const AdminChatPopup = () => {
           <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
             <Paperclip className="h-5 w-5" />
           </button>
-          <button
-            onClick={() => setShowFeedbackInput(!showFeedbackInput)}
-            className={`p-2 transition-colors ${showFeedbackInput ? "text-amber-600" : "text-muted-foreground hover:text-foreground"}`}
-            title="피드백 요청"
-          >
-            <MessageSquareText className="h-5 w-5" />
-          </button>
           {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
-          {showFeedbackInput ? (
-            <>
-              <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (feedbackText.trim()) {
-                      sendFeedbackRequest(feedbackText.trim());
-                      setFeedbackText("");
-                      setShowFeedbackInput(false);
-                    }
-                  }
-                }}
-                placeholder="피드백 요청 내용을 입력하세요..."
-                rows={1}
-                className="flex-1 min-h-[40px] max-h-[100px] px-4 py-2 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30 resize-none"
-                style={{ height: "auto", overflow: "hidden" }}
-                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 100) + "px"; }}
-              />
-              <Button size="icon" className="rounded-full shrink-0 bg-amber-500 hover:bg-amber-600" onClick={() => {
-                if (feedbackText.trim()) {
-                  sendFeedbackRequest(feedbackText.trim());
-                  setFeedbackText("");
-                  setShowFeedbackInput(false);
-                }
-              }} disabled={!feedbackText.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
-                rows={1}
-                className="flex-1 min-h-[40px] max-h-[100px] px-4 py-2 rounded-2xl border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                style={{ height: "auto", overflow: "hidden" }}
-                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 100) + "px"; }}
-              />
-              <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+            placeholder={isFeedbackMode ? "피드백 요청 메시지 (선택)" : pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+            rows={1}
+            className={`flex-1 min-h-[40px] max-h-[100px] px-4 py-2 rounded-2xl border text-sm focus:outline-none focus:ring-2 resize-none ${
+              isFeedbackMode ? "border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 focus:ring-amber-400/30" : "bg-secondary/50 focus:ring-primary/30"
+            }`}
+            style={{ height: "auto", overflow: "hidden" }}
+            onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 100) + "px"; }}
+          />
+          <Button size="icon" className={`rounded-full shrink-0 ${isFeedbackMode ? "bg-amber-500 hover:bg-amber-600" : ""}`} onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Video type dialog */}
       <Dialog open={showVideoTypeDialog} onOpenChange={setShowVideoTypeDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>영상 업로드 유형</DialogTitle></DialogHeader>
@@ -297,7 +245,7 @@ const AdminChatPopup = () => {
             <Select value={videoUploadType} onValueChange={(v) => setVideoUploadType(v as "general" | "confirm")}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="general"><div className="flex items-center gap-2"><Film className="h-4 w-4" /> 일반 영상</div></SelectItem>
+                <SelectItem value="general"><div className="flex items-center gap-2"><FilmIcon className="h-4 w-4" /> 일반 영상</div></SelectItem>
                 <SelectItem value="confirm"><div className="flex items-center gap-2"><VideoIcon className="h-4 w-4" /> 컨펌 요청 영상</div></SelectItem>
               </SelectContent>
             </Select>
