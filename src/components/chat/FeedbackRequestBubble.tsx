@@ -112,11 +112,27 @@ export default function FeedbackRequestBubble({ msg, isMine, roomId }: FeedbackR
     });
     const responseText = responseLines.join("\n") || "컨펌완료";
 
+    // Update feedback_requests record
     await supabase.from("feedback_requests").update({
       response_text: responseText,
       status: "responded",
       responded_at: new Date().toISOString(),
     }).eq("id", feedback.id);
+
+    // Also send a chat message so it appears in realtime
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser && msg.room_id) {
+      await supabase.from("chat_messages").insert({
+        room_id: msg.room_id,
+        sender_id: currentUser.id,
+        message: `💬 피드백 응답:\n${responseText}`,
+        message_type: "text",
+      });
+      await supabase.from("chat_rooms").update({
+        last_message: "💬 피드백 응답",
+        last_message_at: new Date().toISOString(),
+      }).eq("id", msg.room_id);
+    }
 
     setFeedback({ ...feedback, status: "responded", response_text: responseText, responded_at: new Date().toISOString() });
     setFormValues({});
