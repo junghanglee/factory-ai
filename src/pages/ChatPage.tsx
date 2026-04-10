@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useChatNotification } from "@/hooks/useChatNotification";
+import { useAutoMessages } from "@/hooks/useAutoMessages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,10 +47,17 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [autoCreated, setAutoCreated] = useState(false);
+  const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
+  const { sendAutoMessage } = useAutoMessages();
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
+
+  // Notification on new messages
+  useEffect(() => {
+    notifyNewMessage(messages, selectedRoomId, user?.id);
+  }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleAutoCreate = useCallback(async () => {
     if (autoCreated || loadingRooms || !user) return;
