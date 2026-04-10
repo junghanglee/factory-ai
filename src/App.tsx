@@ -61,6 +61,7 @@ const App = () => (
             <Route path="/admin/auto-messages" element={<ProtectedRoute requireAdmin><AdminAutoMessages /></ProtectedRoute>} />
             <Route path="/admin/staff" element={<ProtectedRoute requireSuperAdmin><AdminStaff /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
+            <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
