@@ -49,6 +49,39 @@ export type Database = {
           },
         ]
       }
+      admin_profiles: {
+        Row: {
+          active: boolean
+          created_at: string
+          department: string | null
+          id: string
+          menu_permissions: string[]
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          id?: string
+          menu_permissions?: string[]
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          id?: string
+          menu_permissions?: string[]
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       auto_messages: {
         Row: {
           active: boolean
@@ -272,6 +305,7 @@ export type Database = {
       }
       members: {
         Row: {
+          assigned_admin_id: string | null
           created_at: string
           email: string
           id: string
@@ -283,6 +317,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_admin_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -294,6 +329,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_admin_id?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -304,7 +340,15 @@ export type Database = {
           total_spent?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_assigned_admin_id_fkey"
+            columns: ["assigned_admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       portfolio_items: {
         Row: {
