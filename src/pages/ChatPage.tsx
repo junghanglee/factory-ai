@@ -101,6 +101,14 @@ const ChatPage = () => {
   }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, notifyRoomOpen, sendAutoMessage]);
 
   useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
+
+  // Auto-select first room if none selected and rooms loaded
+  useEffect(() => {
+    if (!loadingRooms && rooms.length > 0 && !selectedRoomId && !autoCreated) {
+      selectRoom(rooms[0].id);
+    }
+  }, [loadingRooms, rooms, selectedRoomId, autoCreated, selectRoom]);
+
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async () => {
