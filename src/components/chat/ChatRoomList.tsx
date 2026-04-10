@@ -153,10 +153,10 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   const PopupButton = ({ roomId }: { roomId: string }) => (
     <button
       onClick={(e) => { e.stopPropagation(); openChatPopup(roomId); }}
-      className="shrink-0 w-8 h-8 flex items-center justify-center rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+      className="shrink-0 w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-muted-foreground hover:text-primary transition-colors mr-1"
       title="새 창으로 열기"
     >
-      <ExternalLink className="h-3.5 w-3.5" />
+      <ExternalLink className="h-4 w-4" />
     </button>
   );
 
