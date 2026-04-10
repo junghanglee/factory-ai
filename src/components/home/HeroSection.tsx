@@ -41,7 +41,8 @@ const HeroSection = () => {
   }, []);
 
   const displayBanners = banners.length > 0 ? banners : fallbackBanners;
-  const current = displayBanners[currentBanner % displayBanners.length];
+  const safeIndex = currentBanner % displayBanners.length;
+  const current = displayBanners[safeIndex];
 
   const nextBanner = () => setCurrentBanner((prev) => (prev + 1) % displayBanners.length);
   const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
@@ -49,7 +50,9 @@ const HeroSection = () => {
   // Auto-rotate every 5 seconds
   useEffect(() => {
     if (displayBanners.length <= 1) return;
-    const timer = setInterval(nextBanner, 5000);
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % displayBanners.length);
+    }, 5000);
     return () => clearInterval(timer);
   }, [displayBanners.length]);
 
