@@ -389,6 +389,8 @@ export function useChat() {
     // Get room's service category for form template
     const room = rooms.find((r) => r.id === selectedRoomId);
     let categoryName = "";
+    let serviceId = room?.service_id || "";
+    let categoryId = "";
     if (room?.service_id) {
       const { data: svc } = await supabase
         .from("services")
@@ -396,6 +398,7 @@ export function useChat() {
         .eq("id", room.service_id)
         .maybeSingle();
       if (svc?.category_id) {
+        categoryId = svc.category_id;
         const { data: cat } = await supabase
           .from("categories")
           .select("name")
@@ -408,6 +411,7 @@ export function useChat() {
     if (!categoryName && room?.metadata) {
       const meta = room.metadata as any;
       if (meta?.categoryName) categoryName = meta.categoryName;
+      if (meta?.categoryId) categoryId = meta.categoryId;
     }
 
     // Upload files first
@@ -432,6 +436,8 @@ export function useChat() {
     // Build feedback message content with metadata
     const feedbackMeta = JSON.stringify({
       categoryName,
+      serviceId,
+      categoryId,
       files: uploadedFiles,
     });
 
