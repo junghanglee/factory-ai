@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { createBannerUploadPath, getBannerDisplayImageUrl } from "@/lib/heroBanners";
+import { compressImage } from "@/utils/imageCompression";
 
 type Banner = Tables<"banners">;
 
@@ -159,8 +160,9 @@ const AdminBanners = () => {
     if (file.size > 5 * 1024 * 1024) { toast.error("파일 크기는 5MB 이하만 가능합니다."); return; }
     setUploading(true);
     try {
-      const fileName = createBannerUploadPath(file.name);
-      const { error: uploadError } = await supabase.storage.from("chat-files").upload(fileName, file);
+      const compressed = await compressImage(file, "banner");
+      const fileName = createBannerUploadPath(compressed.name);
+      const { error: uploadError } = await supabase.storage.from("chat-files").upload(fileName, compressed);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(fileName);
       setForm((f) => ({ ...f, image_url: urlData.publicUrl }));

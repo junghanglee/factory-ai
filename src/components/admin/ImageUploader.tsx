@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { compressImage } from "@/utils/imageCompression";
+import { compressImage, type ImageSizePreset } from "@/utils/imageCompression";
 import { cn } from "@/lib/utils";
 
 interface ImageUploaderProps {
@@ -11,6 +11,7 @@ interface ImageUploaderProps {
   folder?: string;
   className?: string;
   aspectLabel?: string;
+  sizePreset?: ImageSizePreset;
 }
 
 export default function ImageUploader({
@@ -20,6 +21,7 @@ export default function ImageUploader({
   folder = "services",
   className,
   aspectLabel = "대표이미지",
+  sizePreset = "thumbnail",
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -28,7 +30,7 @@ export default function ImageUploader({
   const upload = useCallback(async (file: File) => {
     setUploading(true);
     try {
-      const compressed = await compressImage(file);
+      const compressed = await compressImage(file, sizePreset);
       const ext = compressed.name.split(".").pop() || "webp";
       const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from(bucket).upload(path, compressed);

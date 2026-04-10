@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Upload, X, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { compressImage } from "@/utils/imageCompression";
+import { compressImage, type ImageSizePreset } from "@/utils/imageCompression";
 import { cn } from "@/lib/utils";
 
 interface MultiImageUploaderProps {
@@ -10,6 +10,7 @@ interface MultiImageUploaderProps {
   bucket?: string;
   folder?: string;
   maxFiles?: number;
+  sizePreset?: ImageSizePreset;
 }
 
 export default function MultiImageUploader({
@@ -18,6 +19,7 @@ export default function MultiImageUploader({
   bucket = "portfolio-files",
   folder = "services/portfolio",
   maxFiles = 10,
+  sizePreset = "detail",
 }: MultiImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -30,7 +32,7 @@ export default function MultiImageUploader({
     try {
       const urls: string[] = [];
       for (const file of fileArr) {
-        const compressed = await compressImage(file);
+        const compressed = await compressImage(file, sizePreset);
         const ext = compressed.name.split(".").pop() || "webp";
         const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error } = await supabase.storage.from(bucket).upload(path, compressed);

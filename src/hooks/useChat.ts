@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { smartCompress } from "@/utils/imageCompression";
 
 export interface ChatRoom {
   id: string;
@@ -175,9 +176,10 @@ export function useChat() {
       alert(`파일 크기가 ${maxSizeMB}MB를 초과합니다.`);
       return;
     }
-    const ext = file.name.split(".").pop();
+    const compressed = await smartCompress(file, "chat");
+    const ext = compressed.name.split(".").pop();
     const path = `${roomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
+    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, compressed);
     if (uploadError) { console.error(uploadError); return; }
     const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
 
@@ -207,9 +209,10 @@ export function useChat() {
   // Send confirm video (admin only)
   const sendConfirmVideo = useCallback(async (file: File, attachedMessage?: string) => {
     if (!user || !selectedRoomId) return;
-    const ext = file.name.split(".").pop();
+    const compressed = await smartCompress(file, "chat");
+    const ext = compressed.name.split(".").pop();
     const path = `${selectedRoomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
+    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, compressed);
     if (uploadError) { console.error(uploadError); return; }
     const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
 
@@ -300,9 +303,10 @@ export function useChat() {
   // Admin: Upload deliverable file to project
   const uploadDeliverable = useCallback(async (file: File) => {
     if (!project || !user) return;
-    const ext = file.name.split(".").pop();
+    const compressed = await smartCompress(file, "detail");
+    const ext = compressed.name.split(".").pop();
     const path = `deliverables/${project.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, file);
+    const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, compressed);
     if (uploadError) { console.error(uploadError); return; }
     const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
 
