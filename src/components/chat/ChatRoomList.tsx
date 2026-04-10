@@ -170,24 +170,20 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
           onClick={() => onSelectRoom(room.id)}
           className={`flex-1 min-w-0 text-left transition-colors ${
             selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-          } ${indented ? "pl-12 pr-2 py-2.5" : "p-3"}`}
+          } ${indented ? "pl-10 pr-1 py-2" : "p-2.5"}`}
         >
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-xs font-medium truncate">{room.title}</span>
+          <div className="flex items-center gap-1 mb-0.5">
+            <span className="text-xs font-medium truncate min-w-0 flex-1">{room.title}</span>
             {room.last_message_at && (
-              <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                {formatDateShort(room.last_message_at)}
-              </span>
+              <span className="text-[10px] text-muted-foreground shrink-0">{formatDateShort(room.last_message_at)}</span>
             )}
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground truncate pr-1">{room.last_message || "새 대화"}</p>
             {unread > 0 && (
-              <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+              <span className="shrink-0 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
                 {unread}
               </span>
             )}
           </div>
+          <p className="text-[11px] text-muted-foreground truncate">{room.last_message || "새 대화"}</p>
         </button>
         {isAdmin && <PopupButton roomId={room.id} />}
       </div>
@@ -252,32 +248,28 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
                   <div key={group.customerId} className="flex items-center border-b overflow-hidden">
                     <button
                       onClick={() => onSelectRoom(room.id)}
-                      className={`flex-1 min-w-0 p-3 text-left transition-colors ${
+                      className={`flex-1 min-w-0 p-2.5 text-left transition-colors ${
                         selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
                       }`}
                     >
-                      <div className="flex items-start gap-2.5">
-                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                          <User className="h-4 w-4 text-primary" />
+                      <div className="flex min-w-0 items-start gap-2">
+                        <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                          <User className="h-3.5 w-3.5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-medium text-sm truncate">{group.name}</span>
+                          <div className="flex items-center gap-1 mb-0.5">
+                            <span className="font-medium text-sm truncate min-w-0 flex-1">{group.name}</span>
                             {room.last_message_at && (
-                              <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
-                                {formatDateShort(room.last_message_at)}
-                              </span>
+                              <span className="text-[10px] text-muted-foreground shrink-0">{formatDateShort(room.last_message_at)}</span>
                             )}
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate mb-0.5">{room.title}</p>
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground truncate pr-1">{room.last_message || "새 대화"}</p>
                             {unread > 0 && (
-                              <span className="shrink-0 min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                              <span className="shrink-0 min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
                                 {unread}
                               </span>
                             )}
                           </div>
+                          <p className="text-[11px] text-muted-foreground truncate mb-0.5">{room.title}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{room.last_message || "새 대화"}</p>
                         </div>
                       </div>
                     </button>
