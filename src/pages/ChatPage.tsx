@@ -66,6 +66,7 @@ const ChatPage = () => {
     if (state.openRoomId) {
       setAutoCreated(true);
       selectRoom(state.openRoomId);
+      notifyRoomOpen();
       navigate("/chat", { replace: true });
       return;
     }
@@ -73,7 +74,13 @@ const ChatPage = () => {
       setAutoCreated(true);
       const title = `[문의] ${state.inquiry.serviceTitle}`;
       const room = await createRoom(title, state.inquiry.serviceId);
-      if (room) { selectRoom(room.id); navigate("/chat", { replace: true }); }
+      if (room) {
+        selectRoom(room.id);
+        notifyRoomOpen();
+        // Send auto welcome message
+        await sendAutoMessage(room.id, "new_room");
+        navigate("/chat", { replace: true });
+      }
     } else if (state.orderInfo) {
       setAutoCreated(true);
       const title = `[의뢰] ${state.orderInfo.serviceTitle}`;
