@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, MessageSquareText } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -27,10 +27,13 @@ function formatDate(dateStr: string) {
 const AdminChat = () => {
   const {
     rooms, selectedRoomId, messages, loadingRooms,
-    selectRoom, sendMessage, sendFile, sendConfirmVideo, user,
+    selectRoom, sendMessage, sendFile, sendConfirmVideo, sendFeedbackRequest, user,
     project, projectFiles,
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
+
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
