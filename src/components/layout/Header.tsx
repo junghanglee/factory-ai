@@ -149,6 +149,13 @@ const Header = () => {
               </button>
             </div>
             <div className="space-y-0.5">
+              <Link
+                to="/about"
+                className="flex items-center gap-3 px-3 py-3 text-[14px] font-semibold text-primary rounded-lg hover:bg-secondary"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                AI팩토리 소개
+              </Link>
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
