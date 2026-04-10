@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { User, Video, MessageSquare, Send, Trash2, Clock, Mail, Phone, CalendarDays, ShoppingCart, DollarSign } from "lucide-react";
+import { User, Video, MessageSquare, Send, Trash2, Clock, Mail, Phone, CalendarDays, ShoppingCart, DollarSign, ClipboardList } from "lucide-react";
+import OrderRequestTab from "@/components/chat/OrderRequestTab";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -60,7 +61,7 @@ function formatTimestamp(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function AdminInfoPanel({ customerId, roomId, currentUserId }: AdminInfoPanelProps) {
+export default function AdminInfoPanel({ customerId, roomId, currentUserId, metadata }: AdminInfoPanelProps) {
   const [member, setMember] = useState<MemberInfo | null>(null);
   const [feedbacks, setFeedbacks] = useState<VideoFeedback[]>([]);
   const [notes, setNotes] = useState<AdminNote[]>([]);
@@ -197,10 +198,13 @@ export default function AdminInfoPanel({ customerId, roomId, currentUserId }: Ad
 
   return (
     <div className="w-80 border-l flex flex-col shrink-0 bg-card">
-      <Tabs defaultValue="member" className="flex flex-col h-full">
+      <Tabs defaultValue={metadata?.orderRequest ? "request" : "member"} className="flex flex-col h-full">
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2 pt-2 pb-0 h-auto">
           <TabsTrigger value="member" className="text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2">
             <User className="h-3.5 w-3.5 mr-1" /> 회원정보
+          </TabsTrigger>
+          <TabsTrigger value="request" className="text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2">
+            <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
           </TabsTrigger>
           <TabsTrigger value="feedback" className="text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-2">
             <Video className="h-3.5 w-3.5 mr-1" /> 피드백
