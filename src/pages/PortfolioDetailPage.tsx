@@ -2,9 +2,9 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import MainLayout from "@/components/layout/MainLayout";
-import { ArrowLeft, Calendar, Building2, Banknote, FileText, Play } from "lucide-react";
+import { ArrowLeft, Calendar, Building2, Banknote, FileText, Play, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const isVideoUrl = (url: string) => /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url);
 const isImageUrl = (url: string) => /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i.test(url) || url.includes("unsplash");
@@ -13,11 +13,25 @@ function FinalOutputItem({ url, title }: { url: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isVideoUrl(url)) return;
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.src = url;
+    video.onloadedmetadata = () => {
+      if (video.videoWidth && video.videoHeight) {
+        setAspectRatio(video.videoWidth / video.videoHeight);
+      }
+    };
+  }, [url]);
 
   if (isVideoUrl(url)) {
     return (
       <div
         className="relative w-full rounded-xl overflow-hidden bg-black group cursor-pointer"
+        style={aspectRatio ? { aspectRatio: `${aspectRatio}` } : undefined}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => {
@@ -30,18 +44,22 @@ function FinalOutputItem({ url, title }: { url: string; title: string }) {
         <video
           ref={videoRef}
           src={url}
-          className="w-full max-h-[600px] object-contain"
+          className="w-full h-full object-contain"
           preload="metadata"
           playsInline
           onEnded={() => setIsPlaying(false)}
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            if (v.videoWidth && v.videoHeight && !aspectRatio) {
+              setAspectRatio(v.videoWidth / v.videoHeight);
+            }
+          }}
           controls={isPlaying && isHovered}
         />
         {/* Netflix-style overlay */}
         {(!isPlaying || isHovered) && (
           <div className={`absolute inset-0 transition-opacity duration-300 ${isPlaying && isHovered ? 'opacity-60' : 'opacity-100'}`}>
-            {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-            {/* Play button */}
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/40 group-hover:bg-white/30 group-hover:scale-110 transition-all">
@@ -49,7 +67,6 @@ function FinalOutputItem({ url, title }: { url: string; title: string }) {
                 </div>
               </div>
             )}
-            {/* Bottom info bar - Netflix style */}
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
               <h3 className="text-white font-bold text-lg md:text-xl drop-shadow-lg">{title}</h3>
               <div className="flex items-center gap-3 mt-1">
@@ -145,6 +162,14 @@ const PortfolioDetailPage = () => {
             {finalOutputs.map((url, idx) => (
               <FinalOutputItem key={idx} url={url} title={item.title} />
             ))}
+
+            {/* Watermark disclaimer */}
+            <div className="flex items-start gap-3 bg-muted/60 border border-border rounded-lg px-4 py-3">
+              <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                고객의 정보보호를 위해 최종결과물보다 다운그레이드된 결과물을 제공합니다.
+              </p>
+            </div>
           </div>
         )}
 
