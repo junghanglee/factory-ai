@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, X, User, ChevronDown, ChevronRight, MessageCircle } from "lucide-react";
+import { Search, X, User, ChevronDown, ChevronRight, MessageCircle, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatRoom } from "@/hooks/useChat";
