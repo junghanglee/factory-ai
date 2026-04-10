@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageCircle, Package, Receipt, FileText, HelpCircle, User,
-  CheckCircle2, ChevronRight, Send, Plus
+  CheckCircle2, ChevronRight, Send, Plus, Camera
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
