@@ -366,6 +366,12 @@ const ChatPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ServicePickerDialog
+        open={showServicePicker}
+        onOpenChange={setShowServicePicker}
+        onSelectService={handleServiceSelect}
+      />
     </MainLayout>
   );
 };
