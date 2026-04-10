@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { categories } from "@/data/categories";
+import { useCategories } from "@/hooks/useSupabaseData";
+import { getCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,6 +13,8 @@ const Header = () => {
   const [myPageMenuOpen, setMyPageMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, isAdmin, signOut } = useAuth();
+  const { data: dbCategories = [] } = useCategories();
+  const categories = dbCategories.filter((c) => shouldShowInHeroGrid(c.slug));
   const navigate = useNavigate();
   const myPageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -149,7 +152,7 @@ const Header = () => {
                       to={`/category/${cat.id}`}
                       className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
                     >
-                      <img src={cat.image} alt={cat.name} className="h-5 w-5 object-contain" />
+                      <img src={getCategoryIcon(cat.slug)} alt={cat.name} className="h-5 w-5 object-contain" />
                       <span>{cat.name}</span>
                     </Link>
                   ))}
