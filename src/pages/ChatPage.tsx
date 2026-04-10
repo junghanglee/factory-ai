@@ -329,7 +329,16 @@ const ChatPage = () => {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">채팅방을 선택하거나 새 문의를 시작하세요</div>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
+                <MessageCirclePlus className="h-12 w-12 text-muted-foreground/50" />
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">채팅방이 없습니다</p>
+                  <p className="text-sm text-muted-foreground/70">서비스를 선택하여 새 문의를 시작하세요</p>
+                </div>
+                <Button onClick={() => setShowServicePicker(true)} className="gap-1.5 mt-2">
+                  <MessageCirclePlus className="h-4 w-4" /> 새 문의 시작
+                </Button>
+              </div>
             )}
           </div>
 
