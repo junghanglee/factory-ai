@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -16,6 +16,7 @@ import ImageGroupBubble from "@/components/chat/ImageGroupBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import ChatRoomList from "@/components/chat/ChatRoomList";
+import ServicePickerDialog from "@/components/chat/ServicePickerDialog";
 import { groupMessages } from "@/utils/messageGrouping";
 
 const MAX_FILES = 10;
@@ -46,6 +47,7 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [autoCreated, setAutoCreated] = useState(false);
+  const [showServicePicker, setShowServicePicker] = useState(false);
   const { notifyNewMessage, notifyRoomOpen } = useChatNotification();
   const { sendAutoMessage } = useAutoMessages();
 
@@ -164,6 +166,17 @@ const ChatPage = () => {
     }
   };
 
+  const handleServiceSelect = async (service: { id: string; title: string; thumbnail: string | null; seller: string | null; price: number }) => {
+    setShowServicePicker(false);
+    const title = `[문의] ${service.title}`;
+    const room = await createRoom(title, service.id);
+    if (room) {
+      selectRoom(room.id);
+      notifyRoomOpen();
+      await sendAutoMessage(room.id, "new_room");
+    }
+  };
+
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
 
   // Group messages by date, then group consecutive images
@@ -186,6 +199,9 @@ const ChatPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">채팅 문의</h1>
+          <Button onClick={() => setShowServicePicker(true)} className="gap-1.5">
+            <MessageCirclePlus className="h-4 w-4" /> 새 문의
+          </Button>
         </div>
 
         <div className="flex border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 280px)" }}>
@@ -313,7 +329,16 @@ const ChatPage = () => {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">채팅방을 선택하거나 새 문의를 시작하세요</div>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
+                <MessageCirclePlus className="h-12 w-12 text-muted-foreground/50" />
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">채팅방이 없습니다</p>
+                  <p className="text-sm text-muted-foreground/70">서비스를 선택하여 새 문의를 시작하세요</p>
+                </div>
+                <Button onClick={() => setShowServicePicker(true)} className="gap-1.5 mt-2">
+                  <MessageCirclePlus className="h-4 w-4" /> 새 문의 시작
+                </Button>
+              </div>
             )}
           </div>
 
@@ -341,6 +366,12 @@ const ChatPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ServicePickerDialog
+        open={showServicePicker}
+        onOpenChange={setShowServicePicker}
+        onSelectService={handleServiceSelect}
+      />
     </MainLayout>
   );
 };
