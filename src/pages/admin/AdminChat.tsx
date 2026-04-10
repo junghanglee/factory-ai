@@ -273,6 +273,18 @@ const AdminChat = () => {
                       </button>
                     )}
                   </div>
+                  {/* Feedback toggle - only when files are attached */}
+                  <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isFeedbackMode}
+                      onChange={(e) => setIsFeedbackMode(e.target.checked)}
+                      className="accent-amber-500 w-4 h-4"
+                    />
+                    <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>
+                      📝 피드백 요청으로 전송
+                    </span>
+                  </label>
                 )}
                 {replyTo && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
