@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { createBannerUploadPath, getBannerDisplayImageUrl } from "@/lib/heroBanners";
+import { compressImage } from "@/utils/imageCompression";
 
 type Banner = Tables<"banners">;
 
