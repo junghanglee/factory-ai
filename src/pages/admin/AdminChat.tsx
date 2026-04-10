@@ -279,17 +279,57 @@ const AdminChat = () => {
                   <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
                     <Paperclip className="h-5 w-5" />
                   </button>
+                  <button
+                    onClick={() => setShowFeedbackInput(!showFeedbackInput)}
+                    className={`p-2 transition-colors ${showFeedbackInput ? "text-amber-600" : "text-muted-foreground hover:text-foreground"}`}
+                    title="피드백 요청"
+                  >
+                    <MessageSquareText className="h-5 w-5" />
+                  </button>
                   {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
-                  <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                    placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
-                    rows={1}
-                    className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                    style={{ height: "auto", overflow: "hidden" }}
-                    onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
-                  />
-                  <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
-                    <Send className="h-4 w-4" />
-                  </Button>
+                  {showFeedbackInput ? (
+                    <>
+                      <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            if (feedbackText.trim()) {
+                              sendFeedbackRequest(feedbackText.trim());
+                              setFeedbackText("");
+                              setShowFeedbackInput(false);
+                            }
+                          }
+                        }}
+                        placeholder="피드백 요청 내용을 입력하세요..."
+                        rows={1}
+                        className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30 resize-none"
+                        style={{ height: "auto", overflow: "hidden" }}
+                        onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
+                      />
+                      <Button size="icon" className="rounded-full shrink-0 bg-amber-500 hover:bg-amber-600" onClick={() => {
+                        if (feedbackText.trim()) {
+                          sendFeedbackRequest(feedbackText.trim());
+                          setFeedbackText("");
+                          setShowFeedbackInput(false);
+                        }
+                      }} disabled={!feedbackText.trim()}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                        placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+                        rows={1}
+                        className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                        style={{ height: "auto", overflow: "hidden" }}
+                        onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
+                      />
+                      <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
                 {pendingFiles.length > 0 && (
                   <p className="text-xs text-muted-foreground px-2">{pendingFiles.length}/{MAX_FILES}개 파일 선택됨</p>
