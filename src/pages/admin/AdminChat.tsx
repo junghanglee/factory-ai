@@ -302,7 +302,7 @@ const AdminChat = () => {
           <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
         )}
         {selectedRoom && showInfoPanel && !showFileDrawer && user && (
-          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} />
+          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
         )}
         {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
           <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
