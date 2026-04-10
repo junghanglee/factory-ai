@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus,
+  LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,13 @@ interface NavGroup {
 }
 
 const navGroups: NavGroup[] = [
+  {
+    label: "AI팩토리 소개",
+    icon: Info,
+    items: [
+      { to: "/about", icon: Info, label: "소개 페이지 보기" },
+    ],
+  },
   {
     label: "사이트관리",
     icon: Globe,
