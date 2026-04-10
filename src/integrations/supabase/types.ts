@@ -425,6 +425,30 @@ export type Database = {
           },
         ]
       }
+      quick_phrases: {
+        Row: {
+          created_at: string
+          id: string
+          phrase: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phrase: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phrase?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_packages: {
         Row: {
           created_at: string
