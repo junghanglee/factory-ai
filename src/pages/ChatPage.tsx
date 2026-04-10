@@ -101,6 +101,14 @@ const ChatPage = () => {
   }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, notifyRoomOpen, sendAutoMessage]);
 
   useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
+
+  // Auto-select first room if none selected and rooms loaded
+  useEffect(() => {
+    if (!loadingRooms && rooms.length > 0 && !selectedRoomId && !autoCreated) {
+      selectRoom(rooms[0].id);
+    }
+  }, [loadingRooms, rooms, selectedRoomId, autoCreated, selectRoom]);
+
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSend = async () => {
@@ -178,7 +186,6 @@ const ChatPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">채팅 문의</h1>
-          <Button onClick={() => setShowNewRoom(true)} size="sm"><Plus className="h-4 w-4 mr-1" /> 새 문의</Button>
         </div>
 
         <div className="flex border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 280px)" }}>

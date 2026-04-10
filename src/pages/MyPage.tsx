@@ -47,6 +47,8 @@ const MyPage = () => {
   const [profile, setProfile] = useState<{ name: string | null; phone: string | null; avatar_url: string | null } | null>(null);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [loadingChatRooms, setLoadingChatRooms] = useState(true);
 
   // Inquiry form
   const [inquiryForm, setInquiryForm] = useState({
@@ -110,6 +112,21 @@ const MyPage = () => {
       setLoadingInquiries(false);
     })();
   }, [user, activeTab]);
+
+  // Load chat rooms
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setLoadingChatRooms(true);
+      const { data } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .eq("customer_id", user.id)
+        .limit(1);
+      setChatRooms(data || []);
+      setLoadingChatRooms(false);
+    })();
+  }, [user]);
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
@@ -511,13 +528,14 @@ const MyPage = () => {
                     담당 매니저와 1:1 채팅으로 빠르게 상담받으세요.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button onClick={() => navigate("/chat")} className="gap-1.5">
-                    <MessageCircle className="h-4 w-4" /> 채팅 상담 시작
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate("/chat", { state: { inquiry: { serviceTitle: "새 문의" } } })} className="gap-1.5">
-                    <Plus className="h-4 w-4" /> 새 문의 시작
-                  </Button>
+                <div className="flex justify-center">
+                  {loadingChatRooms ? (
+                    <p className="text-sm text-muted-foreground">로딩 중...</p>
+                  ) : (
+                    <Button onClick={() => navigate("/chat")} className="gap-1.5">
+                      <MessageCircle className="h-4 w-4" /> {chatRooms.length > 0 ? "채팅 상담 바로가기" : "채팅 상담 시작"}
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 text-sm text-muted-foreground">
                   <a href="https://open.kakao.com/o/seanvtn6620" className="hover:text-foreground transition-colors">
