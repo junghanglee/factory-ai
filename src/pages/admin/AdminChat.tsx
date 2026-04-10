@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Search, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -9,17 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
+import ImageGroupBubble from "@/components/chat/ImageGroupBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { useChatNotification } from "@/hooks/useChatNotification";
 import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
+import ChatRoomList from "@/components/chat/ChatRoomList";
+import { groupMessages } from "@/utils/messageGrouping";
 
 const MAX_FILES = 10;
-
-function formatTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-}
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
@@ -35,7 +33,6 @@ const AdminChat = () => {
   } = useChat();
 
   const [input, setInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
@@ -54,7 +51,6 @@ const AdminChat = () => {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Notification on new messages
   useEffect(() => {
     notifyNewMessage(messages, selectedRoomId, user?.id);
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
@@ -86,7 +82,6 @@ const AdminChat = () => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     e.target.value = "";
-    // If single video, ask type
     if (files.length === 1 && files[0].type.startsWith("video/")) {
       setPendingVideoFile(files[0]);
       setShowVideoTypeDialog(true);
@@ -113,8 +108,7 @@ const AdminChat = () => {
   };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+    e.preventDefault(); setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
     if (files.length === 1 && files[0].type.startsWith("video/")) {
       setPendingVideoFile(files[0]);
@@ -123,19 +117,22 @@ const AdminChat = () => {
     }
     setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
   };
-
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
 
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
-  const filteredRooms = rooms.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const groupedMessages: { date: string; msgs: ChatMessage[] }[] = [];
+  // Group messages by date, then group consecutive images
+  const groupedMessages: { date: string; items: ReturnType<typeof groupMessages> }[] = [];
+  const dateGroups: { date: string; msgs: ChatMessage[] }[] = [];
   messages.forEach((msg) => {
     const date = formatDate(msg.created_at);
-    const last = groupedMessages[groupedMessages.length - 1];
+    const last = dateGroups[dateGroups.length - 1];
     if (last && last.date === date) last.msgs.push(msg);
-    else groupedMessages.push({ date, msgs: [msg] });
+    else dateGroups.push({ date, msgs: [msg] });
+  });
+  dateGroups.forEach((g) => {
+    groupedMessages.push({ date: g.date, items: groupMessages(g.msgs) });
   });
 
   const handleCreateProject = async () => {
@@ -157,38 +154,13 @@ const AdminChat = () => {
       <h1 className="text-2xl font-bold mb-6">채팅 관리</h1>
       <div className="flex border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 200px)" }}>
         {/* Room list */}
-        <div className="w-72 border-r flex flex-col shrink-0">
-          <div className="p-3 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input placeholder="검색" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-lg border bg-secondary/50 text-sm focus:outline-none" />
-            </div>
-          </div>
-          <ScrollArea className="flex-1">
-            {loadingRooms ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">로딩 중...</div>
-            ) : filteredRooms.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">채팅이 없습니다</div>
-            ) : (
-              filteredRooms.map((room) => (
-                <button key={room.id} onClick={() => selectRoom(room.id)}
-                  className={`w-full p-4 text-left border-b hover:bg-accent/50 transition-colors ${selectedRoomId === room.id ? "bg-accent" : ""}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm truncate">{room.title}</span>
-                    {room.last_message_at && <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatTime(room.last_message_at)}</span>}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
-                    {room.unread_admin > 0 && (
-                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow-md shadow-red-500/30 animate-pulse">{room.unread_admin}</span>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
-          </ScrollArea>
-        </div>
+        <ChatRoomList
+          rooms={rooms}
+          selectedRoomId={selectedRoomId}
+          onSelectRoom={selectRoom}
+          isAdmin={true}
+          loadingRooms={loadingRooms}
+        />
 
         {/* Messages */}
         <div className={`flex-1 flex flex-col relative ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
@@ -236,10 +208,24 @@ const AdminChat = () => {
                         <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">{group.date}</span>
                       </div>
                       <div className="space-y-3">
-                        {group.msgs.map((msg) => (
-                          <MessageBubble key={msg.id} msg={msg} isMine={msg.sender_id === user?.id}
-                            onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
-                        ))}
+                        {group.items.map((item) =>
+                          item.type === "image_group" ? (
+                            <ImageGroupBubble
+                              key={item.messages[0].id}
+                              messages={item.messages}
+                              isMine={item.messages[0].sender_id === user?.id}
+                              onReply={(m) => setReplyTo(m)}
+                            />
+                          ) : (
+                            <MessageBubble
+                              key={item.msg.id}
+                              msg={item.msg}
+                              isMine={item.msg.sender_id === user?.id}
+                              onReply={(m) => setReplyTo(m)}
+                              roomId={selectedRoomId || undefined}
+                            />
+                          )
+                        )}
                       </div>
                     </div>
                   ))}
@@ -248,14 +234,12 @@ const AdminChat = () => {
               </ScrollArea>
               {/* Input area */}
               <div className="p-4 border-t space-y-2">
-                {/* Pending files preview */}
                 {pendingFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 px-1">
                     {pendingFiles.map((file, idx) => (
                       <div key={idx} className="relative group/file">
                         {file.type.startsWith("image/") ? (
-                          <img src={URL.createObjectURL(file)} alt={file.name}
-                            className="h-16 w-16 object-cover rounded-lg border" />
+                          <img src={URL.createObjectURL(file)} alt={file.name} className="h-16 w-16 object-cover rounded-lg border" />
                         ) : file.type.startsWith("video/") ? (
                           <div className="h-16 w-16 rounded-lg border bg-secondary flex items-center justify-center">
                             <Film className="h-5 w-5 text-muted-foreground" />
@@ -310,21 +294,12 @@ const AdminChat = () => {
           )}
         </div>
 
-        {/* File Drawer */}
         {selectedRoom && showFileDrawer && !showInfoPanel && (
           <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
         )}
-
-        {/* Admin Info Panel */}
         {selectedRoom && showInfoPanel && !showFileDrawer && user && (
-          <AdminInfoPanel
-            customerId={selectedRoom.customer_id}
-            roomId={selectedRoom.id}
-            currentUserId={user.id}
-          />
+          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} />
         )}
-
-        {/* Project Panel */}
         {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
           <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
             onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
