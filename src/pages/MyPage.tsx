@@ -40,7 +40,7 @@ const MyPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") || "projects";
+  const activeTab = searchParams.get("tab") || "chat";
 
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
