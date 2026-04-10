@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, X, User, ChevronDown, ChevronRight, MessageCircle } from "lucide-react";
+import { Search, X, User, ChevronDown, ChevronRight, MessageCircle, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChatRoom } from "@/hooks/useChat";
@@ -24,6 +24,18 @@ interface ChatRoomListProps {
 }
 
 type FilterMode = "all" | "unread" | "today" | "week";
+
+const openChatPopup = (roomId: string) => {
+  const w = 480;
+  const h = 700;
+  const left = window.screenX + window.outerWidth - w - 40;
+  const top = window.screenY + 80;
+  window.open(
+    `/admin/chat-popup?roomId=${roomId}`,
+    `chat_${roomId}`,
+    `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+};
 
 export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAdmin, loadingRooms }: ChatRoomListProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -139,30 +151,40 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
   const renderRoomItem = (room: ChatRoom, indented = false) => {
     const unread = getUnreadCount(room);
     return (
-      <button
-        key={room.id}
-        onClick={() => onSelectRoom(room.id)}
-        className={`w-full text-left transition-colors ${
-          selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-        } ${indented ? "pl-12 pr-3 py-2.5 border-b" : "p-3 border-b"}`}
-      >
-        <div className="flex items-center justify-between mb-0.5">
-          <span className="text-xs font-medium truncate">{room.title}</span>
-          {room.last_message_at && (
-            <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-              {formatDateShort(room.last_message_at)}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
-          {unread > 0 && (
-            <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-              {unread}
-            </span>
-          )}
-        </div>
-      </button>
+      <div key={room.id} className="relative group/room">
+        <button
+          onClick={() => onSelectRoom(room.id)}
+          className={`w-full text-left transition-colors ${
+            selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
+          } ${indented ? "pl-12 pr-3 py-2.5 border-b" : "p-3 border-b"}`}
+        >
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-xs font-medium truncate pr-6">{room.title}</span>
+            {room.last_message_at && (
+              <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                {formatDateShort(room.last_message_at)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
+            {unread > 0 && (
+              <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                {unread}
+              </span>
+            )}
+          </div>
+        </button>
+        {isAdmin && (
+          <button
+            onClick={(e) => { e.stopPropagation(); openChatPopup(room.id); }}
+            className="absolute top-2 right-2 p-1 rounded-md opacity-0 group-hover/room:opacity-100 transition-opacity hover:bg-secondary"
+            title="새 창으로 열기"
+          >
+            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -218,42 +240,49 @@ export default function ChatRoomList({ rooms, selectedRoomId, onSelectRoom, isAd
               const hasSingleRoom = group.rooms.length === 1;
 
               if (hasSingleRoom) {
-                // Single room: show directly as customer row, click opens room
                 const room = group.rooms[0];
                 const unread = getUnreadCount(room);
                 return (
-                  <button
-                    key={group.customerId}
-                    onClick={() => onSelectRoom(room.id)}
-                    className={`w-full p-3 text-left border-b transition-colors ${
-                      selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                        <User className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className="font-medium text-sm truncate">{group.name}</span>
-                          {room.last_message_at && (
-                            <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
-                              {formatDateShort(room.last_message_at)}
-                            </span>
-                          )}
+                  <div key={group.customerId} className="relative group/room">
+                    <button
+                      onClick={() => onSelectRoom(room.id)}
+                      className={`w-full p-3 text-left border-b transition-colors ${
+                        selectedRoomId === room.id ? "bg-accent" : "hover:bg-accent/50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                          <User className="h-4 w-4 text-primary" />
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mb-0.5">{room.title}</p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
-                          {unread > 0 && (
-                            <span className="shrink-0 min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
-                              {unread}
-                            </span>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-medium text-sm truncate">{group.name}</span>
+                            {room.last_message_at && (
+                              <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
+                                {formatDateShort(room.last_message_at)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mb-0.5">{room.title}</p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
+                            {unread > 0 && (
+                              <span className="shrink-0 min-w-[20px] h-[20px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                                {unread}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openChatPopup(room.id); }}
+                      className="absolute top-2 right-2 p-1 rounded-md opacity-0 group-hover/room:opacity-100 transition-opacity hover:bg-secondary"
+                      title="새 창으로 열기"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  </div>
                 );
               }
 
