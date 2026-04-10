@@ -207,8 +207,11 @@ const AdminChat = () => {
               <div className="p-4 border-b flex items-center justify-between">
                 <span className="font-medium text-sm">{selectedRoom.title}</span>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setShowFileDrawer(!showFileDrawer)}>
+                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowInfoPanel(false); }}>
                     <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
+                  </Button>
+                  <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
+                    <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
                   {!project && (
                     <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
