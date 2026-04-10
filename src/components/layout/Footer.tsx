@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { categories } from "@/data/categories";
+import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 
 const Footer = () => {
   return (
@@ -9,13 +10,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div
-                className="w-7 h-7 rounded-md flex items-center justify-center text-primary-foreground font-bold text-[10px]"
-                style={{ background: "var(--gradient-primary)" }}
-              >
-                AI
-              </div>
-              <span className="text-[18px] font-bold text-foreground">AI팩토리</span>
+              <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-8 w-auto" />
             </div>
             <p className="text-[13px] text-muted-foreground leading-relaxed">
               AI로 만드는 콘텐츠,<br />에이전시 반값에.

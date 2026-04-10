@@ -100,13 +100,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Logo */}
         <div className="p-5 border-b border-white/10">
           <Link to="/admin" className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white"
-              style={{ background: "linear-gradient(135deg, hsl(246,65%,56%), hsl(210,100%,56%))" }}
-            >
-              AI
-            </div>
-            <span className="font-bold text-white">AI팩토리 관리자</span>
+            <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-8 w-auto brightness-0 invert" />
+            <span className="font-bold text-white">관리자</span>
           </Link>
         </div>
 
