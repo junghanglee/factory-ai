@@ -149,7 +149,13 @@ const ChatPage = () => {
   const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) return;
     const room = await createRoom(newRoomTitle.trim());
-    if (room) { selectRoom(room.id); setShowNewRoom(false); setNewRoomTitle(""); }
+    if (room) {
+      selectRoom(room.id);
+      notifyRoomOpen();
+      await sendAutoMessage(room.id, "new_room");
+      setShowNewRoom(false);
+      setNewRoomTitle("");
+    }
   };
 
   const filteredRooms = rooms.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()));
