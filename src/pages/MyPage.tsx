@@ -113,6 +113,21 @@ const MyPage = () => {
     })();
   }, [user, activeTab]);
 
+  // Load chat rooms
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setLoadingChatRooms(true);
+      const { data } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .eq("customer_id", user.id)
+        .limit(1);
+      setChatRooms(data || []);
+      setLoadingChatRooms(false);
+    })();
+  }, [user]);
+
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
   };
