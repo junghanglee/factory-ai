@@ -64,6 +64,7 @@ const AdminStaff = () => {
   const openNew = () => {
     setEditing(null);
     setFormEmail("");
+    setFormPassword("");
     setFormName("");
     setFormDepartment("");
     setFormPermissions([]);
