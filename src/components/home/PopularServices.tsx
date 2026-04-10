@@ -90,7 +90,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Left title */}
           <div className="md:w-[200px] shrink-0">
-            <h2 className="text-[22px] md:text-[26px] font-bold text-foreground leading-tight">
+            <h2 className="text-[22px] md:text-[26px] font-bold text-foreground leading-tight whitespace-pre-line">
               {group.title}
             </h2>
           </div>

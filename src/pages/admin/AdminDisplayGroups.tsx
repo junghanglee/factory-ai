@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Save, GripVertical, X, ChevronDown, ChevronRight, Package } from "lucide-react";
+import { useState } from "react";
+import { Plus, Edit, Trash2, Save, GripVertical, X, ChevronDown, ChevronRight, Package, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -7,12 +7,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface DisplayGroup {
   id: string;
@@ -43,6 +60,28 @@ interface Service {
   price: number;
 }
 
+// Sortable service item for drag-and-drop
+function SortableServiceItem({ id, service, onRemove }: { id: string; service: Service; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-2 rounded-lg bg-background border">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+        <GripVertical className="h-4 w-4" />
+      </button>
+      {service.thumbnail && <img src={service.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm truncate">{service.title}</p>
+        <p className="text-xs text-muted-foreground">{service.price.toLocaleString()}원</p>
+      </div>
+      <button onClick={onRemove} className="text-destructive hover:text-destructive/80">
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 const AdminDisplayGroups = () => {
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
@@ -50,20 +89,23 @@ const AdminDisplayGroups = () => {
   const [formTitle, setFormTitle] = useState("");
   const [formActive, setFormActive] = useState(true);
 
-  // Filter editing
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [filterGroupId, setFilterGroupId] = useState<string | null>(null);
   const [filterName, setFilterName] = useState("");
   const [editingFilter, setEditingFilter] = useState<DisplayFilter | null>(null);
 
-  // Service assignment
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [assignGroupId, setAssignGroupId] = useState<string | null>(null);
   const [assignFilterId, setAssignFilterId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [serviceSearch, setServiceSearch] = useState("");
 
-  // Expanded groups
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const { data: groups = [] } = useQuery({
     queryKey: ["display_groups"],
@@ -107,7 +149,6 @@ const AdminDisplayGroups = () => {
     queryClient.invalidateQueries({ queryKey: ["display_group_services"] });
   };
 
-  // Group CRUD
   const saveGroup = useMutation({
     mutationFn: async () => {
       if (editGroup) {
@@ -139,7 +180,6 @@ const AdminDisplayGroups = () => {
     onSuccess: () => invalidateAll(),
   });
 
-  // Filter CRUD
   const saveFilter = useMutation({
     mutationFn: async () => {
       if (editingFilter) {
@@ -163,10 +203,8 @@ const AdminDisplayGroups = () => {
     onSuccess: () => { invalidateAll(); toast.success("필터 삭제됨"); },
   });
 
-  // Service assignment
   const saveServiceAssignment = useMutation({
     mutationFn: async () => {
-      // Remove existing services for this group+filter
       let query = supabase.from("display_group_services").delete().eq("group_id", assignGroupId!);
       if (assignFilterId) {
         query = query.eq("filter_id", assignFilterId);
@@ -175,7 +213,6 @@ const AdminDisplayGroups = () => {
       }
       await query;
 
-      // Insert new
       if (selectedServices.length > 0) {
         const rows = selectedServices.map((sid, idx) => ({
           group_id: assignGroupId!,
@@ -193,7 +230,6 @@ const AdminDisplayGroups = () => {
 
   const openNewGroup = () => { setEditGroup(null); setFormTitle(""); setFormActive(true); setEditOpen(true); };
   const openEditGroup = (g: DisplayGroup) => { setEditGroup(g); setFormTitle(g.title); setFormActive(g.active); setEditOpen(true); };
-
   const openNewFilter = (groupId: string) => { setFilterGroupId(groupId); setEditingFilter(null); setFilterName(""); setFilterDialogOpen(true); };
   const openEditFilter = (f: DisplayFilter) => { setFilterGroupId(f.group_id); setEditingFilter(f); setFilterName(f.name); setFilterDialogOpen(true); };
 
@@ -202,8 +238,10 @@ const AdminDisplayGroups = () => {
     setAssignFilterId(filterId);
     const existing = groupServices
       .filter(gs => gs.group_id === groupId && gs.filter_id === filterId)
+      .sort((a, b) => a.sort_order - b.sort_order)
       .map(gs => gs.service_id);
     setSelectedServices(existing);
+    setServiceSearch("");
     setServiceDialogOpen(true);
   };
 
@@ -213,7 +251,23 @@ const AdminDisplayGroups = () => {
     );
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSelectedServices(prev => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  };
+
   const getServiceById = (id: string) => allServices.find(s => s.id === id);
+
+  const filteredAvailableServices = allServices.filter(svc => {
+    if (serviceSearch && !svc.title.toLowerCase().includes(serviceSearch.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <AdminLayout>
@@ -234,7 +288,7 @@ const AdminDisplayGroups = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => setExpanded(prev => ({ ...prev, [group.id]: !prev[group.id] }))}>
                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    <CardTitle className="text-lg">{group.title}</CardTitle>
+                    <CardTitle className="text-lg whitespace-pre-line">{group.title}</CardTitle>
                     <Badge variant="outline">{groupFilters.length}개 필터</Badge>
                     <Badge variant="secondary">{groupSvcs.length}개 서비스</Badge>
                   </div>
@@ -248,7 +302,6 @@ const AdminDisplayGroups = () => {
 
               {isExpanded && (
                 <CardContent className="space-y-4">
-                  {/* Filters */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label className="font-semibold">서브 필터 (탭)</Label>
@@ -267,10 +320,9 @@ const AdminDisplayGroups = () => {
                     </div>
                   </div>
 
-                  {/* Service assignments per filter */}
                   <div className="space-y-3">
                     {groupFilters.map(f => {
-                      const svcs = groupSvcs.filter(gs => gs.filter_id === f.id);
+                      const svcs = groupSvcs.filter(gs => gs.filter_id === f.id).sort((a, b) => a.sort_order - b.sort_order);
                       return (
                         <div key={f.id} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
@@ -282,11 +334,7 @@ const AdminDisplayGroups = () => {
                           <div className="flex flex-wrap gap-2">
                             {svcs.map(gs => {
                               const svc = getServiceById(gs.service_id);
-                              return svc ? (
-                                <Badge key={gs.id} variant="outline" className="gap-1">
-                                  {svc.title}
-                                </Badge>
-                              ) : null;
+                              return svc ? <Badge key={gs.id} variant="outline" className="gap-1">{svc.title}</Badge> : null;
                             })}
                             {svcs.length === 0 && <span className="text-xs text-muted-foreground">배정된 서비스 없음</span>}
                           </div>
@@ -294,7 +342,6 @@ const AdminDisplayGroups = () => {
                       );
                     })}
 
-                    {/* Unfiltered services */}
                     {groupFilters.length === 0 && (
                       <div className="border rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
@@ -304,7 +351,7 @@ const AdminDisplayGroups = () => {
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {groupSvcs.filter(gs => !gs.filter_id).map(gs => {
+                          {groupSvcs.filter(gs => !gs.filter_id).sort((a, b) => a.sort_order - b.sort_order).map(gs => {
                             const svc = getServiceById(gs.service_id);
                             return svc ? <Badge key={gs.id} variant="outline">{svc.title}</Badge> : null;
                           })}
@@ -319,7 +366,7 @@ const AdminDisplayGroups = () => {
         })}
       </div>
 
-      {/* Group Edit Dialog */}
+      {/* Group Edit Dialog - Textarea for multiline title */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -327,8 +374,13 @@ const AdminDisplayGroups = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>그룹 타이틀</Label>
-              <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="예: 쇼핑몰 사장님이 많이 찾아요" />
+              <Label>그룹 타이틀 (줄바꿈 가능)</Label>
+              <Textarea
+                value={formTitle}
+                onChange={e => setFormTitle(e.target.value)}
+                placeholder={"예: 쇼핑몰 사장님이\n많이 찾아요"}
+                rows={3}
+              />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={formActive} onCheckedChange={setFormActive} />
@@ -359,29 +411,70 @@ const AdminDisplayGroups = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Service Assignment Dialog */}
+      {/* Service Assignment Dialog with search + drag-and-drop */}
       <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>서비스 지정</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-3">표시할 서비스를 선택하세요 ({selectedServices.length}개 선택됨)</p>
-          <div className="space-y-2">
-            {allServices.map(svc => (
-              <label key={svc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary cursor-pointer">
-                <Checkbox
-                  checked={selectedServices.includes(svc.id)}
-                  onCheckedChange={() => toggleServiceSelection(svc.id)}
+
+          <div className="flex gap-4 flex-1 min-h-0 overflow-hidden">
+            {/* Left: search & add services */}
+            <div className="w-1/2 flex flex-col min-h-0">
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={serviceSearch}
+                  onChange={e => setServiceSearch(e.target.value)}
+                  placeholder="서비스 검색..."
+                  className="pl-9"
                 />
-                {svc.thumbnail && <img src={svc.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate">{svc.title}</p>
-                  <p className="text-xs text-muted-foreground">{svc.price.toLocaleString()}원</p>
-                </div>
-              </label>
-            ))}
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-1 border rounded-lg p-2">
+                {filteredAvailableServices.map(svc => (
+                  <label key={svc.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-secondary cursor-pointer">
+                    <Checkbox
+                      checked={selectedServices.includes(svc.id)}
+                      onCheckedChange={() => toggleServiceSelection(svc.id)}
+                    />
+                    {svc.thumbnail && <img src={svc.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs truncate">{svc.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{svc.price.toLocaleString()}원</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: selected services with drag-and-drop ordering */}
+            <div className="w-1/2 flex flex-col min-h-0">
+              <p className="text-sm font-medium mb-2">노출 순서 ({selectedServices.length}개)</p>
+              <div className="flex-1 overflow-y-auto space-y-1 border rounded-lg p-2">
+                {selectedServices.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">왼쪽에서 서비스를 선택하세요</p>
+                ) : (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={selectedServices} strategy={verticalListSortingStrategy}>
+                      {selectedServices.map(sid => {
+                        const svc = getServiceById(sid);
+                        return svc ? (
+                          <SortableServiceItem
+                            key={sid}
+                            id={sid}
+                            service={svc}
+                            onRemove={() => setSelectedServices(prev => prev.filter(s => s !== sid))}
+                          />
+                        ) : null;
+                      })}
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
+            </div>
           </div>
-          <Button onClick={() => saveServiceAssignment.mutate()} disabled={saveServiceAssignment.isPending} className="w-full mt-4">
+
+          <Button onClick={() => saveServiceAssignment.mutate()} disabled={saveServiceAssignment.isPending} className="w-full mt-3">
             <Save className="h-4 w-4 mr-2" /> 저장
           </Button>
         </DialogContent>
