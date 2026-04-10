@@ -48,7 +48,7 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, name, department, menu_permissions } = await req.json();
+    const { email, password, name, department, menu_permissions, receive_assignments } = await req.json();
 
     if (!email || !password || !name) {
       return new Response(JSON.stringify({ error: "Email, password, and name are required" }), {
@@ -84,6 +84,7 @@ serve(async (req) => {
       name,
       department: department || null,
       menu_permissions: menu_permissions || [],
+      receive_assignments: receive_assignments ?? true,
     });
 
     return new Response(JSON.stringify({ success: true, user_id: userId }), {
