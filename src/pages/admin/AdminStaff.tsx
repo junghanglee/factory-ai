@@ -43,6 +43,7 @@ const AdminStaff = () => {
 
   // Form state
   const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [formName, setFormName] = useState("");
   const [formDepartment, setFormDepartment] = useState("");
   const [formPermissions, setFormPermissions] = useState<string[]>([]);
