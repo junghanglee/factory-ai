@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
 import FileDrawer from "@/components/chat/FileDrawer";
+import { useChatNotification } from "@/hooks/useChatNotification";
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
