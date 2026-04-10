@@ -277,9 +277,13 @@ const AdminChat = () => {
                     <Paperclip className="h-5 w-5" />
                   </button>
                   {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
-                  <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                  <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                     placeholder={pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
-                    className="flex-1 h-10 px-4 rounded-full border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    rows={1}
+                    className="flex-1 min-h-[40px] max-h-[120px] px-4 py-2 rounded-2xl border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                    style={{ height: "auto", overflow: "hidden" }}
+                    onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
+                  />
                   <Button size="icon" className="rounded-full shrink-0" onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
                     <Send className="h-4 w-4" />
                   </Button>
