@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useChatNotification } from "@/hooks/useChatNotification";
 import { useAutoMessages } from "@/hooks/useAutoMessages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import MessageBubble from "@/components/chat/MessageBubble";
@@ -19,6 +19,7 @@ import ChatRoomList from "@/components/chat/ChatRoomList";
 import ServicePickerDialog from "@/components/chat/ServicePickerDialog";
 import { groupMessages } from "@/utils/messageGrouping";
 import OrderRequestTab from "@/components/chat/OrderRequestTab";
+import { useCategories, useServices } from "@/hooks/useSupabaseData";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 100;
@@ -360,16 +361,7 @@ const ChatPage = () => {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
-                <MessageCirclePlus className="h-12 w-12 text-muted-foreground/50" />
-                <div>
-                  <p className="text-muted-foreground font-medium mb-1">채팅방이 없습니다</p>
-                  <p className="text-sm text-muted-foreground/70">서비스를 선택하여 새 문의를 시작하세요</p>
-                </div>
-                <Button onClick={() => setShowServicePicker(true)} className="gap-1.5 mt-2">
-                  <MessageCirclePlus className="h-4 w-4" /> 새 문의 시작
-                </Button>
-              </div>
+              <InlineServicePicker onSelectService={handleServiceSelect} />
             )}
           </div>
 
@@ -417,5 +409,129 @@ const ChatPage = () => {
     </MainLayout>
   );
 };
+
+const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+
+function InlineServicePicker({ onSelectService }: { onSelectService: (service: any) => void }) {
+  const { data: categories = [] } = useCategories();
+  const { data: allServices = [] } = useServices();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredServices = useMemo(() => {
+    let list = allServices;
+    if (selectedCategoryId) list = list.filter((s) => s.category_id === selectedCategoryId);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((s) => s.title.toLowerCase().includes(q) || s.seller?.toLowerCase().includes(q));
+    }
+    return list;
+  }, [allServices, selectedCategoryId, searchQuery]);
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {/* Step header */}
+      <div className="px-6 py-5 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</div>
+          <h3 className="text-base font-semibold">상담할 서비스를 선택해주세요</h3>
+        </div>
+        <p className="text-xs text-muted-foreground ml-10">원하시는 서비스를 선택하면 전문 상담사와 1:1 채팅이 시작됩니다.</p>
+      </div>
+
+      {/* Search + Category filters */}
+      <div className="px-6 py-3 border-b space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            className="pl-9 h-9 text-sm"
+            placeholder="서비스명으로 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedCategoryId(null)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              !selectedCategoryId
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary/50 text-muted-foreground border-transparent hover:bg-secondary"
+            }`}
+          >
+            전체
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategoryId(cat.id)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                selectedCategoryId === cat.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/50 text-muted-foreground border-transparent hover:bg-secondary"
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Service list */}
+      <ScrollArea className="flex-1 px-6 py-4">
+        {filteredServices.length === 0 ? (
+          <div className="py-12 text-center text-sm text-muted-foreground">검색 결과가 없습니다.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredServices.map((service) => (
+              <button
+                key={service.id}
+                onClick={() => onSelectService({
+                  id: service.id,
+                  title: service.title,
+                  thumbnail: service.thumbnail,
+                  seller: service.seller,
+                  price: service.price,
+                  rating: service.rating,
+                  review_count: service.review_count,
+                  delivery_days: service.delivery_days,
+                })}
+                className="flex gap-3 p-3 border rounded-xl text-left hover:border-primary/40 hover:shadow-md transition-all group bg-card"
+              >
+                <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
+                  <img
+                    src={service.thumbnail || "/placeholder.svg"}
+                    alt={service.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                  <div>
+                    {service.seller && <p className="text-[11px] text-muted-foreground mb-0.5">{service.seller}</p>}
+                    <h4 className="text-sm font-medium line-clamp-2 leading-tight">{service.title}</h4>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{service.rating}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <Clock className="h-3 w-3" />{service.delivery_days}일
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-primary">{formatPrice(service.price)}원</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
+    </div>
+  );
+}
 
 export default ChatPage;
