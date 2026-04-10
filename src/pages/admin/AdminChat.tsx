@@ -37,7 +37,7 @@ const AdminChat = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showFileDrawer, setShowFileDrawer] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
@@ -58,9 +58,14 @@ const AdminChat = () => {
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
-    if (pendingFile) {
-      await sendFile(pendingFile, 0, input.trim() || undefined);
-      setPendingFile(null);
+    if (pendingFiles.length > 0) {
+      for (const file of pendingFiles) {
+        await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
+      }
+      if (pendingFiles.length > 1 && input.trim()) {
+        await sendMessage(input.trim());
+      }
+      setPendingFiles([]);
       setInput("");
       return;
     }
@@ -75,17 +80,21 @@ const AdminChat = () => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     e.target.value = "";
-    // If video, ask type
-    if (file.type.startsWith("video/")) {
-      setPendingVideoFile(file);
+    // If single video, ask type
+    if (files.length === 1 && files[0].type.startsWith("video/")) {
+      setPendingVideoFile(files[0]);
       setShowVideoTypeDialog(true);
       return;
     }
-    setPendingFile(file);
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleVideoTypeConfirm = async () => {
@@ -95,13 +104,13 @@ const AdminChat = () => {
       await sendConfirmVideo(pendingVideoFile, input.trim() || undefined);
       setInput("");
     } else {
-      setPendingFile(pendingVideoFile);
+      setPendingFiles((prev) => [...prev, pendingVideoFile].slice(0, MAX_FILES));
     }
     setPendingVideoFile(null);
     setVideoUploadType("general");
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
@@ -110,11 +119,7 @@ const AdminChat = () => {
       setShowVideoTypeDialog(true);
       return;
     }
-    if (files.length === 1) {
-      setPendingFile(files[0]);
-    } else {
-      for (const file of files) { await sendFile(file, 0); }
-    }
+    setPendingFiles((prev) => [...prev, ...files].slice(0, MAX_FILES));
   };
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
