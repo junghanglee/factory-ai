@@ -271,7 +271,7 @@ export default function AdminInfoPanel({ customerId, roomId, currentUserId, meta
 
         {/* Order Request Tab */}
         <TabsContent value="request" className="flex-1 m-0 overflow-auto">
-          <OrderRequestTab metadata={metadata || null} />
+          <OrderRequestTab metadata={metadata || null} roomId={roomId} />
         </TabsContent>
 
         {/* Video Feedback Tab */}
