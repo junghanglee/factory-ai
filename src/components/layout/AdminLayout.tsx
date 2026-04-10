@@ -310,6 +310,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Main content */}
+      <main className="flex-1 overflow-auto bg-secondary/30">
+        {children}
+      </main>
     </div>
   );
 };
