@@ -387,6 +387,49 @@ const AdminPortfolio = () => {
               )}
             </div>
 
+            {/* 최종결과물 */}
+            <div className="border rounded-lg p-3 space-y-2">
+              <Label className="font-semibold">🎬 최종결과물 (영상/이미지, 상세페이지 최상단 노출, 다수 등록 가능)</Label>
+              <div
+                className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                onClick={() => finalOutputInputRef.current?.click()}
+                onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length > 0) uploadFinalOutputs(e.dataTransfer.files); }}
+                onDragOver={(e) => { e.preventDefault(); }}
+              >
+                <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{uploading ? "업로드 중..." : "클릭 또는 드래그하여 최종결과물 추가 (영상/이미지)"}</p>
+              </div>
+              <input ref={finalOutputInputRef} type="file" multiple className="hidden" accept="image/*,video/*" onChange={(e) => { if (e.target.files) uploadFinalOutputs(e.target.files); e.target.value = ""; }} />
+              {/* URL 직접 입력 */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="URL 직접 입력 (영상/이미지)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val) { setForm((prev) => ({ ...prev, final_outputs: [...prev.final_outputs, val] })); (e.target as HTMLInputElement).value = ""; }
+                    }
+                  }}
+                  className="text-xs"
+                />
+              </div>
+              {form.final_outputs.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  {form.final_outputs.map((url, idx) => {
+                    const isVideo = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url);
+                    return (
+                      <div key={idx} className="flex items-center gap-2 bg-secondary rounded px-2 py-1">
+                        {isVideo ? <Film className="h-4 w-4 text-primary shrink-0" /> : isImageFile(url) ? <img src={url} alt="" className="h-8 w-8 object-cover rounded" /> : <FileText className="h-4 w-4 text-muted-foreground shrink-0" />}
+                        <span className="text-xs truncate flex-1">{getFileName(url)}</span>
+                        <span className="text-[10px] text-muted-foreground">{idx + 1}번</span>
+                        <button onClick={() => removeFinalOutput(idx)} className="text-destructive hover:text-destructive/80"><X className="h-3 w-3" /></button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* 카테고리 */}
             <div>
               <Label>카테고리</Label>
