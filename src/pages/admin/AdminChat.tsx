@@ -181,7 +181,7 @@ const AdminChat = () => {
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground truncate pr-2">{room.last_message || "새 대화"}</p>
                     {room.unread_admin > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">{room.unread_admin}</span>
+                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow-md shadow-red-500/30 animate-pulse">{room.unread_admin}</span>
                     )}
                   </div>
                 </button>
