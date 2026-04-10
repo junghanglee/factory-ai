@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AdminProfile {
   id: string;
@@ -34,6 +35,7 @@ const ALL_MENUS = [
 
 const AdminStaff = () => {
   const { toast } = useToast();
+  const { isSuperAdmin } = useAuth();
   const [admins, setAdmins] = useState<AdminProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -185,7 +187,7 @@ const AdminStaff = () => {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">관리자 관리</h1>
-        <Button onClick={openNew} className="gap-2">
+        <Button onClick={openNew} className="gap-2" disabled={!isSuperAdmin}>
           <Plus className="h-4 w-4" /> 관리자 추가
         </Button>
       </div>
