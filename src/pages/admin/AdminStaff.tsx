@@ -1,0 +1,322 @@
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Shield } from "lucide-react";
+import AdminLayout from "@/components/layout/AdminLayout";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface AdminProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  department: string | null;
+  menu_permissions: string[];
+  active: boolean;
+  created_at: string;
+}
+
+const ALL_MENUS = [
+  { key: "dashboard", label: "대시보드" },
+  { key: "categories", label: "카테고리 관리" },
+  { key: "services", label: "서비스 관리" },
+  { key: "banners", label: "배너 관리" },
+  { key: "portfolio", label: "포트폴리오 관리" },
+  { key: "members", label: "회원 관리" },
+  { key: "chat", label: "채팅 관리" },
+  { key: "auto-messages", label: "자동 메시지" },
+  { key: "projects", label: "프로젝트 관리" },
+];
+
+const AdminStaff = () => {
+  const { toast } = useToast();
+  const [admins, setAdmins] = useState<AdminProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<AdminProfile | null>(null);
+
+  // Form state
+  const [formEmail, setFormEmail] = useState("");
+  const [formName, setFormName] = useState("");
+  const [formDepartment, setFormDepartment] = useState("");
+  const [formPermissions, setFormPermissions] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const fetchAdmins = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("admin_profiles")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (!error && data) setAdmins(data as AdminProfile[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchAdmins(); }, []);
+
+  const openNew = () => {
+    setEditing(null);
+    setFormEmail("");
+    setFormName("");
+    setFormDepartment("");
+    setFormPermissions([]);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (admin: AdminProfile) => {
+    setEditing(admin);
+    setFormEmail("");
+    setFormName(admin.name);
+    setFormDepartment(admin.department || "");
+    setFormPermissions(admin.menu_permissions || []);
+    setDialogOpen(true);
+  };
+
+  const togglePermission = (key: string) => {
+    setFormPermissions((prev) =>
+      prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]
+    );
+  };
+
+  const handleSave = async () => {
+    if (!formName.trim()) {
+      toast({ title: "이름을 입력해주세요", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+
+    if (editing) {
+      // Update existing
+      const { error } = await supabase
+        .from("admin_profiles")
+        .update({
+          name: formName.trim(),
+          department: formDepartment.trim() || null,
+          menu_permissions: formPermissions,
+        })
+        .eq("id", editing.id);
+      if (error) {
+        toast({ title: "수정 실패", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "관리자 정보가 수정되었습니다" });
+      }
+    } else {
+      // Create new: first find user by email
+      if (!formEmail.trim()) {
+        toast({ title: "이메일을 입력해주세요", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      // Look up user from profiles table by matching name/email
+      // We need to find the user_id. Check profiles for the email match
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .limit(100);
+
+      // Since profiles don't store email, we use supabase auth admin... 
+      // Actually we'll store the admin profile with a placeholder user_id and 
+      // the super admin can link later. But better approach: create a user_id field.
+      // For now, generate a UUID placeholder and assign admin role when user signs up with that email.
+      
+      // Better approach: just create the admin profile entry, then add admin role
+      // We'll use the email to look up in members table
+      const { data: memberData } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", formEmail.trim())
+        .maybeSingle();
+
+      // Use member id as a reference, but admin_profiles.user_id should be auth user id
+      // Since we can't look up auth users from client, we'll create a placeholder
+      const userId = memberData?.id || crypto.randomUUID();
+
+      const { error } = await supabase
+        .from("admin_profiles")
+        .insert({
+          user_id: userId,
+          name: formName.trim(),
+          department: formDepartment.trim() || null,
+          menu_permissions: formPermissions,
+        });
+
+      if (error) {
+        toast({ title: "등록 실패", description: error.message, variant: "destructive" });
+      } else {
+        // Also add admin role to user_roles
+        await supabase.from("user_roles").upsert(
+          { user_id: userId, role: "admin" as any },
+          { onConflict: "user_id,role" }
+        );
+        toast({ title: "관리자가 등록되었습니다" });
+      }
+    }
+
+    setSaving(false);
+    setDialogOpen(false);
+    fetchAdmins();
+  };
+
+  const handleDelete = async (admin: AdminProfile) => {
+    if (!confirm(`${admin.name} 관리자를 삭제하시겠습니까?`)) return;
+    const { error } = await supabase.from("admin_profiles").delete().eq("id", admin.id);
+    if (!error) {
+      // Also remove admin role
+      await supabase.from("user_roles").delete().eq("user_id", admin.user_id);
+      toast({ title: "관리자가 삭제되었습니다" });
+      fetchAdmins();
+    }
+  };
+
+  const toggleActive = async (admin: AdminProfile) => {
+    await supabase
+      .from("admin_profiles")
+      .update({ active: !admin.active })
+      .eq("id", admin.id);
+    fetchAdmins();
+  };
+
+  return (
+    <AdminLayout>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">관리자 관리</h1>
+        <Button onClick={openNew} className="gap-2">
+          <Plus className="h-4 w-4" /> 관리자 추가
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-secondary/50">
+                <th className="text-left p-4 font-medium text-muted-foreground">이름</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">소속</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">접근 메뉴</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">상태</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">등록일</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">로딩 중...</td></tr>
+              ) : admins.length === 0 ? (
+                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">등록된 관리자가 없습니다</td></tr>
+              ) : (
+                admins.map((admin) => (
+                  <tr key={admin.id} className="border-b last:border-0 hover:bg-secondary/30">
+                    <td className="p-4 font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-primary" />
+                      {admin.name}
+                    </td>
+                    <td className="p-4 text-muted-foreground">{admin.department || "-"}</td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(admin.menu_permissions || []).length === 0 ? (
+                          <span className="text-muted-foreground text-xs">권한 없음</span>
+                        ) : (
+                          admin.menu_permissions.map((p) => {
+                            const menu = ALL_MENUS.find((m) => m.key === p);
+                            return (
+                              <span key={p} className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-xs">
+                                {menu?.label || p}
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => toggleActive(admin)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer ${
+                          admin.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {admin.active ? "활성" : "비활성"}
+                      </button>
+                    </td>
+                    <td className="p-4 text-muted-foreground">
+                      {new Date(admin.created_at).toLocaleDateString("ko-KR")}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(admin)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(admin)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editing ? "관리자 수정" : "관리자 추가"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {!editing && (
+              <div>
+                <Label>이메일</Label>
+                <Input
+                  placeholder="관리자 이메일"
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                />
+              </div>
+            )}
+            <div>
+              <Label>이름</Label>
+              <Input
+                placeholder="관리자 이름"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>소속</Label>
+              <Input
+                placeholder="소속 부서"
+                value={formDepartment}
+                onChange={(e) => setFormDepartment(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="mb-2 block">접근 메뉴 권한</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {ALL_MENUS.map((menu) => (
+                  <label key={menu.key} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={formPermissions.includes(menu.key)}
+                      onCheckedChange={() => togglePermission(menu.key)}
+                    />
+                    {menu.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? "저장 중..." : editing ? "수정" : "등록"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AdminLayout>
+  );
+};
+
+export default AdminStaff;

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus,
-  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare,
+  Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   to: string;
@@ -54,7 +55,16 @@ const navGroups: NavGroup[] = [
   },
 ];
 
+const superAdminGroup: NavGroup = {
+  label: "관리자관리",
+  icon: ShieldCheck,
+  items: [
+    { to: "/admin/staff", icon: ShieldCheck, label: "관리자 목록" },
+  ],
+};
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  const { isSuperAdmin } = useAuth();
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -104,7 +114,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Nav groups */}
         <nav className="flex-1 px-3 pt-2 pb-3 space-y-1 overflow-y-auto">
-          {navGroups.map((group) => {
+          {(isSuperAdmin ? [...navGroups, superAdminGroup] : navGroups).map((group) => {
             const isOpen = openGroups[group.label];
             const hasActive = group.items.some((i) => location.pathname === i.to);
 

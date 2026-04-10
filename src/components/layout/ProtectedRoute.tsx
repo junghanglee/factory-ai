@@ -4,10 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 interface Props {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireSuperAdmin?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAdmin = false }: Props) => {
-  const { user, loading, isAdmin } = useAuth();
+const ProtectedRoute = ({ children, requireAdmin = false, requireSuperAdmin = false }: Props) => {
+  const { user, loading, isAdmin, isSuperAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -18,6 +19,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: Props) => {
   }
 
   if (!user) return <Navigate to="/login" replace />;
+  if (requireSuperAdmin && !isSuperAdmin) return <Navigate to="/" replace />;
   if (requireAdmin && !isAdmin) return <Navigate to="/" replace />;
 
   return <>{children}</>;
