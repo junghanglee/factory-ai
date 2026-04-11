@@ -114,7 +114,7 @@ const HeroSection = () => {
 
           {/* Right side - promotional banner carousel */}
           <div className="w-full md:w-[400px] shrink-0 flex items-stretch">
-            <div className="relative rounded-2xl overflow-hidden w-full shadow-lg">
+            <div className="relative rounded-2xl overflow-hidden w-full shadow-lg min-h-[280px]">
               {hasBannerImage && (
                 <img
                   src={current.image_url!}
@@ -123,7 +123,7 @@ const HeroSection = () => {
                 />
               )}
               <div
-                className={`w-full h-full ${hasBannerImage ? "bg-black/40" : "bg-primary/90"} p-7 flex flex-col justify-between transition-colors duration-300`}
+                className={`relative z-10 w-full h-full ${hasBannerImage ? "bg-black/40" : "bg-primary/90"} p-7 flex flex-col justify-between transition-colors duration-300`}
               >
                 <div>
                   <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[12px] font-medium mb-3">
