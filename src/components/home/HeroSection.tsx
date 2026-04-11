@@ -22,7 +22,6 @@ const HeroSection = () => {
   const nextBanner = () => setCurrentBanner((prev) => (prev + 1) % displayBanners.length);
   const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
 
-  // Auto-rotate every 5 seconds
   useEffect(() => {
     if (displayBanners.length <= 1) return;
     const timer = setInterval(() => {
@@ -34,24 +33,12 @@ const HeroSection = () => {
   const hasBannerImage = current.image_url && !current.image_url.endsWith(".mp4");
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src="/videos/hero-bg.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/10" />
-
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-primary/30">
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
         <div className="flex flex-col md:flex-row items-start gap-10 md:gap-16">
           {/* Left side - text + search */}
-          <div className="flex-1 pt-2" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)" }}>
-            <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight drop-shadow-lg">
+          <div className="flex-1 pt-2">
+            <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight">
               최고의 AI콘텐츠 전문가와,
               <br />
               대량생산 자동화공정을 통해
@@ -66,7 +53,7 @@ const HeroSection = () => {
                 placeholder="어떤 서비스가 필요하세요?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-white/10 text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-white/60 transition-colors shadow-sm"
+                className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-white/10 text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-white/60 transition-colors shadow-sm backdrop-blur-sm"
               />
               <button className="absolute right-2 top-2 h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors">
                 <Search className="h-5 w-5" />
@@ -79,7 +66,7 @@ const HeroSection = () => {
                 <Link
                   key={keyword}
                   to={`/category/ai-image`}
-                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors bg-white/10"
+                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors bg-white/10 backdrop-blur-sm"
                 >
                   {keyword}
                 </Link>
@@ -90,7 +77,6 @@ const HeroSection = () => {
           {/* Right side - promotional banner carousel */}
           <div className="w-full md:w-[380px] shrink-0">
             <div className="relative rounded-2xl overflow-hidden aspect-[380/260]">
-              {/* Banner image background */}
               {hasBannerImage && (
                 <img
                   src={current.image_url!}
@@ -99,7 +85,7 @@ const HeroSection = () => {
                 />
               )}
               <div
-                className={`absolute inset-0 ${hasBannerImage ? "bg-black/40" : "bg-white/10"} p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20`}
+                className={`absolute inset-0 ${hasBannerImage ? "bg-black/40" : "bg-white/10"} p-7 flex flex-col justify-between transition-colors duration-300 border border-white/20 backdrop-blur-sm`}
               >
                 <div>
                   <span className="inline-block px-3 py-1 rounded-full bg-primary/80 text-white text-[12px] font-medium mb-3">
