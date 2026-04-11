@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Star } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
+import ReviewManager from "@/components/admin/ReviewManager";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -42,6 +43,8 @@ const AdminServices = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<any>({});
   const [pkgForms, setPkgForms] = useState<PackageForm[]>([]);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewService, setReviewService] = useState<{ id: string; title: string } | null>(null);
 
   const openNew = () => {
     setEditId(null);
@@ -210,9 +213,12 @@ const AdminServices = () => {
                         ))}
                       </div>
                     </td>
-                    <td className="p-4">{svc.rating}</td>
+                    <td className="p-4">{svc.rating} ({svc.review_count})</td>
                     <td className="p-4">
                       <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReviewService({ id: svc.id, title: svc.title }); setReviewOpen(true); }}>
+                          <Star className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}><Edit className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
@@ -374,7 +380,7 @@ const AdminServices = () => {
 
             <TabsContent value="feedback" className="mt-4">
               {editId ? (
-                <FeedbackFieldsEditor serviceId={editId} />
+                <FeedbackFieldsEditor serviceId={editId} categoryId={form.category_id || null} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">서비스를 먼저 저장한 후 피드백 항목을 설정할 수 있습니다.</p>
               )}
@@ -386,6 +392,15 @@ const AdminServices = () => {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {reviewService && (
+        <ReviewManager
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          serviceId={reviewService.id}
+          serviceTitle={reviewService.title}
+        />
+      )}
     </AdminLayout>
   );
 };

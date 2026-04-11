@@ -4,6 +4,7 @@ import CategoryGrid from "@/components/home/CategoryGrid";
 import PopularServices from "@/components/home/PopularServices";
 import USPBanner from "@/components/home/USPBanner";
 import PortfolioGallery from "@/components/home/PortfolioGallery";
+import RecentReviews from "@/components/home/RecentReviews";
 
 const Index = () => {
   return (
@@ -12,6 +13,7 @@ const Index = () => {
       <CategoryGrid />
       <PopularServices />
       <USPBanner />
+      <RecentReviews />
       <PortfolioGallery />
     </MainLayout>
   );
