@@ -76,7 +76,8 @@ export default function FeedbackFieldsEditor({ serviceId, categoryId, isCategory
     setSaving(true);
     try {
       // Delete existing
-      await supabase.from("feedback_fields").delete().eq(ownerColumn, ownerId);
+      const { error: deleteError } = await supabase.from("feedback_fields").delete().eq(ownerColumn, ownerId);
+      if (deleteError) throw new Error("기존 항목 삭제 실패: " + deleteError.message);
 
       if (fields.length > 0) {
         const inserts = fields.map((f, i) => ({
