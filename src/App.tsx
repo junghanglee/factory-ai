@@ -30,6 +30,7 @@ import AdminDisplayGroups from "./pages/admin/AdminDisplayGroups";
 import AdminChatPopup from "./pages/admin/AdminChatPopup";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import PortfolioDetailPage from "./pages/PortfolioDetailPage";
+import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/category/:id" element={<CategoryPage />} />
             <Route path="/service/:id" element={<ServiceDetailPage />} />
             <Route path="/chat" element={<ChatPage />} />
