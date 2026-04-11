@@ -41,14 +41,37 @@ export default function FeedbackFieldsEditor({ serviceId, categoryId, isCategory
         .select("*")
         .eq(ownerColumn, ownerId)
         .order("sort_order");
-      if (data) setFields(data.map((d: any) => ({
-        id: d.id,
-        field_key: d.field_key,
-        field_label: d.field_label,
-        field_type: d.field_type,
-        field_options: d.field_options || [],
-        sort_order: d.sort_order,
-      })));
+
+      if (data && data.length > 0) {
+        setFields(data.map((d: any) => ({
+          id: d.id,
+          field_key: d.field_key,
+          field_label: d.field_label,
+          field_type: d.field_type,
+          field_options: d.field_options || [],
+          sort_order: d.sort_order,
+        })));
+      } else if (serviceId && categoryId) {
+        // Fallback: load category defaults when service has no own fields
+        const { data: catFields } = await supabase
+          .from("feedback_fields")
+          .select("*")
+          .eq("category_id", categoryId)
+          .order("sort_order");
+        if (catFields && catFields.length > 0) {
+          setFields(catFields.map((d: any) => ({
+            field_key: d.field_key,
+            field_label: d.field_label,
+            field_type: d.field_type,
+            field_options: d.field_options || [],
+            sort_order: d.sort_order,
+          })));
+        } else {
+          setFields([]);
+        }
+      } else {
+        setFields([]);
+      }
       setLoading(false);
     })();
   }, [ownerId]);
