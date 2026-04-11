@@ -242,23 +242,23 @@ const AdminServices = () => {
               {/* Thumbnail upload */}
               <div>
                 <Label className="mb-2 block">대표이미지</Label>
-                <ImageUploader
+              <ImageUploader
                   value={form.thumbnail || ""}
-                  onChange={(url) => setForm({ ...form, thumbnail: url })}
+                  onChange={(url) => setForm((prev: any) => ({ ...prev, thumbnail: url }))}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>서비스명</Label>
-                  <Input value={form.title || ""} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                  <Input value={form.title || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, title: v })); }} />
                 </div>
                 <div>
                   <Label>카테고리</Label>
                   <select
                     className="w-full h-10 border rounded-md px-3 text-sm bg-background"
                     value={form.category_id || ""}
-                    onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                    onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, category_id: v })); }}
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -268,45 +268,45 @@ const AdminServices = () => {
               </div>
               <div>
                 <Label>간단 설명</Label>
-                <Input value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Input value={form.description || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, description: v })); }} />
               </div>
               <div>
                 <Label className="mb-2 block">상세 설명</Label>
                 <SimpleRichEditor
                   value={form.detailed_description || ""}
-                  onChange={(html) => setForm({ ...form, detailed_description: html })}
+                  onChange={(html) => setForm((prev: any) => ({ ...prev, detailed_description: html }))}
                   placeholder="서비스 상세 설명을 입력하세요..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>판매자</Label>
-                  <Input value={form.seller || ""} onChange={(e) => setForm({ ...form, seller: e.target.value })} />
+                  <Input value={form.seller || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, seller: v })); }} />
                 </div>
                 <div>
                   <Label>납기일(일) - 제작 평균기간</Label>
-                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => setForm({ ...form, delivery_days: Number(e.target.value) })} />
+                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => { const v = Number(e.target.value); setForm((prev: any) => ({ ...prev, delivery_days: v })); }} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>AI팩토리 평균가격</Label>
-                  <Input type="number" value={form.price || 0} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+                  <Input type="number" value={form.price || 0} onChange={(e) => { const v = Number(e.target.value); setForm((prev: any) => ({ ...prev, price: v })); }} />
                 </div>
                 <div>
                   <Label>AGENCY 평균가격</Label>
-                  <Input type="number" value={form.original_price || 0} onChange={(e) => setForm({ ...form, original_price: Number(e.target.value) })} />
+                  <Input type="number" value={form.original_price || 0} onChange={(e) => { const v = Number(e.target.value); setForm((prev: any) => ({ ...prev, original_price: v })); }} />
                 </div>
               </div>
               <div>
                 <Label>검색 키워드 / 태그 (쉼표 구분)</Label>
-                <Input value={(form.tags || []).join(", ")} onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t: string) => t.trim()) })} />
+                <Input value={(form.tags || []).join(", ")} onChange={(e) => { const v = e.target.value.split(",").map((t: string) => t.trim()); setForm((prev: any) => ({ ...prev, tags: v })); }} />
               </div>
               <div>
                 <Label className="mb-2 block">포트폴리오 이미지</Label>
                 <MultiImageUploader
                   value={form.portfolio_images || []}
-                  onChange={(urls) => setForm({ ...form, portfolio_images: urls })}
+                  onChange={(urls) => setForm((prev: any) => ({ ...prev, portfolio_images: urls }))}
                 />
               </div>
             </TabsContent>
