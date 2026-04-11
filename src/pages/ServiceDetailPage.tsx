@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap } from "lucide-react";
+import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, Shield, User } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
+import { useServiceReviews } from "@/hooks/useServiceReviews";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,12 +12,6 @@ import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderReques
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
-const reviews = [
-  { user: "김**", rating: 5, date: "2026.03.15", content: "퀄리티가 정말 좋습니다. 에이전시보다 훨씬 저렴하고 빠르게 받았어요!" },
-  { user: "이**", rating: 5, date: "2026.03.10", content: "대량 주문했는데 퀄리티가 균일하게 잘 나왔습니다. 추천합니다." },
-  { user: "박**", rating: 4, date: "2026.03.05", content: "전반적으로 만족합니다. 수정 요청도 빠르게 반영해주셨어요." },
-];
-
 const ServiceDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,6 +19,7 @@ const ServiceDetailPage = () => {
   const { data: service, isLoading } = useService(id);
   const { data: packages = [] } = useServicePackages(id);
   const { data: categories = [] } = useCategories();
+  const { data: reviews = [] } = useServiceReviews(id);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<typeof packages[0] | null>(null);
 
@@ -46,7 +42,6 @@ const ServiceDetailPage = () => {
   const category = categories.find((c) => c.id === service.category_id);
   const defaultTab = packages.length > 1 ? packages[Math.min(1, packages.length - 1)].name : packages[0]?.name || "Basic";
 
-  // Price comparison calculations
   const discountRate = service.original_price > 0 && service.price < service.original_price
     ? Math.round((1 - service.price / service.original_price) * 100)
     : 0;
@@ -90,7 +85,6 @@ const ServiceDetailPage = () => {
     navigate("/chat", { state: { inquiry: { serviceId: service.id, serviceTitle: service.title } } });
   };
 
-  // Package sidebar rendering based on count
   const renderPackageSidebar = () => {
     if (packages.length === 0) {
       return (
@@ -137,7 +131,6 @@ const ServiceDetailPage = () => {
       );
     }
 
-    // 2-5 packages: use tabs, scroll if many
     return (
       <Tabs defaultValue={defaultTab}>
         <TabsList className={`w-full rounded-none border-b ${packages.length > 3 ? 'flex-wrap h-auto' : ''}`}>
@@ -176,6 +169,10 @@ const ServiceDetailPage = () => {
     );
   };
 
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : service.rating;
+
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,7 +186,7 @@ const ServiceDetailPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left - Service info */}
+          {/* Left */}
           <div className="lg:col-span-2 space-y-8">
             <div className="aspect-video rounded-xl overflow-hidden border">
               <img src={service.thumbnail || "/placeholder.svg"} alt={service.title} className="w-full h-full object-cover" />
@@ -199,7 +196,7 @@ const ServiceDetailPage = () => {
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
                 {discountRate > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500/10 text-red-600">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive/10 text-destructive">
                     AGENCY 대비 {discountRate}% 절감
                   </span>
                 )}
@@ -209,7 +206,7 @@ const ServiceDetailPage = () => {
                 <span className="font-medium text-foreground">{service.seller}</span>
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  {service.rating} ({service.review_count}개 리뷰)
+                  {avgRating} ({reviews.length}개 리뷰)
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
@@ -252,7 +249,7 @@ const ServiceDetailPage = () => {
               </div>
             )}
 
-            {/* Price comparison section */}
+            {/* Price comparison */}
             {service.original_price > 0 && service.original_price > service.price && (
               <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -277,37 +274,58 @@ const ServiceDetailPage = () => {
                 </div>
                 <div className="mt-4 flex items-center justify-center gap-6 text-sm">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
-                    <span className="font-medium text-red-600">{discountRate}% 비용 절감</span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-destructive" />
+                    <span className="font-medium text-destructive">{discountRate}% 비용 절감</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="font-medium text-blue-600">{Math.round((1 - 1 / 2.5) * 100)}% 빠른 납기</span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-primary" />
+                    <span className="font-medium text-primary">{Math.round((1 - 1 / 2.5) * 100)}% 빠른 납기</span>
                   </div>
                 </div>
               </div>
             )}
 
+            {/* Reviews section */}
             <div>
-              <h2 className="text-lg font-semibold mb-4">리뷰 ({service.review_count})</h2>
-              <div className="space-y-4">
-                {reviews.map((review, idx) => (
-                  <div key={idx} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{review.user}</span>
-                        <div className="flex">
-                          {Array.from({ length: review.rating }).map((_, i) => (
-                            <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          ))}
+              <h2 className="text-lg font-semibold mb-4">리뷰 ({reviews.length})</h2>
+              {reviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8 border rounded-lg border-dashed">
+                  아직 리뷰가 없습니다.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span title={review.is_admin_entry ? "관리자 등록" : "실사용자"}>
+                            {review.is_admin_entry ? (
+                              <Shield className="h-3.5 w-3.5 text-primary" />
+                            ) : (
+                              <User className="h-3.5 w-3.5 text-emerald-600" />
+                            )}
+                          </span>
+                          <span className="font-medium text-sm">{review.nickname}</span>
+                          <div className="flex">
+                            {Array.from({ length: review.rating }).map((_, i) => (
+                              <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
                         </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(review.created_at).toLocaleDateString("ko-KR")}
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{review.date}</span>
+                      {review.review_text && (
+                        <p className="text-sm text-muted-foreground">{review.review_text}</p>
+                      )}
+                      {review.image_url && (
+                        <img src={review.image_url} alt="" className="mt-2 h-24 rounded-lg object-cover" />
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{review.content}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

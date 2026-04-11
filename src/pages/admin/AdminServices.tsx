@@ -392,6 +392,15 @@ const AdminServices = () => {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {reviewService && (
+        <ReviewManager
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          serviceId={reviewService.id}
+          serviceTitle={reviewService.title}
+        />
+      )}
     </AdminLayout>
   );
 };
