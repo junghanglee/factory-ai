@@ -33,21 +33,27 @@ const AdminCategories = () => {
   };
 
   const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast.error("카테고리명을 입력해주세요.");
+      return;
+    }
     try {
       if (editId) {
-        const { error } = await supabase.from("categories").update({
-          name: form.name, description: form.description, color: form.color, slug: form.slug, icon_name: form.icon_name, sort_order: form.sort_order,
-        }).eq("id", editId);
+        const { error, data } = await supabase.from("categories").update({
+          name: form.name, description: form.description, color: form.color, icon_name: form.icon_name, sort_order: form.sort_order,
+        }).eq("id", editId).select();
         if (error) throw error;
+        if (!data || data.length === 0) throw new Error("저장 권한이 없거나 해당 카테고리를 찾을 수 없습니다.");
         toast.success("카테고리가 수정되었습니다.");
       } else {
+        const slug = form.slug.trim() || form.name.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-|-$/g, "");
         const { error } = await supabase.from("categories").insert({
-          name: form.name, description: form.description, color: form.color, slug: form.slug || form.name.toLowerCase().replace(/\s/g, "-"), icon_name: form.icon_name, sort_order: form.sort_order,
+          name: form.name, description: form.description, color: form.color, slug, icon_name: form.icon_name, sort_order: form.sort_order,
         });
         if (error) throw error;
         toast.success("카테고리가 추가되었습니다.");
       }
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
       setEditOpen(false);
     } catch (err: any) {
       toast.error("저장 실패: " + err.message);
