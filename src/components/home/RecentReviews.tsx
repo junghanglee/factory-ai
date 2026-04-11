@@ -20,11 +20,13 @@ const RecentReviews = () => {
             <div key={review.id} className="p-5 border rounded-xl hover:shadow-md transition-shadow bg-card">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  {review.is_admin_entry ? (
-                    <Shield className="h-3.5 w-3.5 text-primary" title="관리자 등록" />
-                  ) : (
-                    <User className="h-3.5 w-3.5 text-green-600" title="실사용자" />
-                  )}
+                  <span title={review.is_admin_entry ? "관리자 등록" : "실사용자"}>
+                    {review.is_admin_entry ? (
+                      <Shield className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <User className="h-3.5 w-3.5 text-emerald-600" />
+                    )}
+                  </span>
                   <span className="font-medium text-sm">{review.nickname}</span>
                 </div>
                 <div className="flex">

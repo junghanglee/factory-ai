@@ -155,11 +155,13 @@ export default function ReviewManager({ open, onOpenChange, serviceId, serviceTi
                 {rows.map((row, idx) => (
                   <tr key={idx} className="border-b last:border-0 hover:bg-secondary/20">
                     <td className="p-2">
-                      {row.is_admin_entry ? (
-                        <Shield className="h-4 w-4 text-primary" title="관리자 입력" />
-                      ) : (
-                        <User className="h-4 w-4 text-green-600" title="실사용자" />
-                      )}
+                      <span title={row.is_admin_entry ? "관리자 입력" : "실사용자"}>
+                        {row.is_admin_entry ? (
+                          <Shield className="h-4 w-4 text-primary" />
+                        ) : (
+                          <User className="h-4 w-4 text-emerald-600" />
+                        )}
+                      </span>
                     </td>
                     <td className="p-2">
                       <select
