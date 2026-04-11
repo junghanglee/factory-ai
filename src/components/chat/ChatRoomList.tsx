@@ -27,7 +27,7 @@ type FilterMode = "all" | "unread" | "today" | "week";
 
 let popupOffset = 0;
 const openChatPopup = (roomId: string) => {
-  const w = 480;
+  const w = 820;
   const h = 700;
   const left = window.screenX + window.outerWidth - w - 40 - (popupOffset * 30);
   const top = window.screenY + 80 + (popupOffset * 30);
