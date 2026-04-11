@@ -1,29 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getBannerDisplayImageUrl } from "@/lib/heroBanners";
 
 export type DbCategory = Tables<"categories">;
 export type DbService = Tables<"services">;
 export type DbServicePackage = Tables<"service_packages">;
 export type DbBanner = Tables<"banners">;
 
-interface BannerResponse {
-  banners: DbBanner[];
-  error?: string;
-  fallback?: boolean;
-}
-
 export const useBanners = () =>
   useQuery({
     queryKey: ["banners"],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke<BannerResponse>("hero-content", {
-        method: "GET",
-      });
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
 
-      return (data?.banners ?? []) as DbBanner[];
+      return (data ?? []).map((banner) => ({
+        ...banner,
+        image_url: getBannerDisplayImageUrl(banner.image_url),
+      })) as DbBanner[];
     },
     retry: 1,
     staleTime: 0,
