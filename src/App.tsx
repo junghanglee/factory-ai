@@ -30,6 +30,7 @@ import AdminDisplayGroups from "./pages/admin/AdminDisplayGroups";
 import AdminChatPopup from "./pages/admin/AdminChatPopup";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import PortfolioDetailPage from "./pages/PortfolioDetailPage";
+import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
