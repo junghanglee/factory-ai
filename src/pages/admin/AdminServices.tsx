@@ -380,7 +380,7 @@ const AdminServices = () => {
 
             <TabsContent value="feedback" className="mt-4">
               {editId ? (
-                <FeedbackFieldsEditor serviceId={editId} />
+                <FeedbackFieldsEditor serviceId={editId} categoryId={form.category_id || null} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">서비스를 먼저 저장한 후 피드백 항목을 설정할 수 있습니다.</p>
               )}
