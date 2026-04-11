@@ -126,10 +126,16 @@ const AdminServices = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
+      // Clean up all FK references before deleting the service
+      await supabase.from("display_group_services").delete().eq("service_id", id);
+      await supabase.from("feedback_fields").delete().eq("service_id", id);
       await supabase.from("service_packages").delete().eq("service_id", id);
+      // Nullify service_id in chat_rooms
+      await supabase.from("chat_rooms").update({ service_id: null }).eq("service_id", id);
       const { error } = await supabase.from("services").delete().eq("id", id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["services_with_packages"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       toast.success("삭제되었습니다.");
     } catch (err: any) {
       toast.error("삭제 실패: " + err.message);

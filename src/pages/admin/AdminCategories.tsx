@@ -61,11 +61,20 @@ const AdminCategories = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
+    if (!confirm("정말 삭제하시겠습니까? 해당 카테고리의 피드백 항목도 함께 삭제됩니다.")) return;
     try {
+      // Check if services exist under this category
+      const { data: svcCount } = await supabase.from("services").select("id", { count: "exact", head: true }).eq("category_id", id);
+      if (svcCount && svcCount.length > 0) {
+        // Nullify category_id in services instead of blocking
+        await supabase.from("services").update({ category_id: null }).eq("category_id", id);
+      }
+      // Clean up FK references
+      await supabase.from("feedback_fields").delete().eq("category_id", id);
       const { error } = await supabase.from("categories").delete().eq("id", id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       toast.success("삭제되었습니다.");
     } catch (err: any) {
       toast.error("삭제 실패: " + err.message);
