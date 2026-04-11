@@ -149,6 +149,20 @@ const MyProjectsPage = () => {
                             <CheckCircle2 className="h-3.5 w-3.5" /> 완료
                           </span>
                         )}
+                        {project.status === "완료" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReviewProject(project);
+                              setReviewForm({ rating: 5, review_text: "", nickname: user?.user_metadata?.name || user?.email?.split("@")[0] || "", image_url: "" });
+                              setReviewOpen(true);
+                            }}
+                          >
+                            <Star className="h-4 w-4 mr-1" /> 후기
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -180,6 +194,85 @@ const MyProjectsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>후기 작성 - {reviewProject?.service_title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>평점</Label>
+              <div className="flex gap-1 mt-1">
+                {[1, 2, 3, 4, 5].map(v => (
+                  <button key={v} onClick={() => setReviewForm(prev => ({ ...prev, rating: v }))}>
+                    <Star className={`h-6 w-6 ${v <= reviewForm.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>닉네임</Label>
+              <Input value={reviewForm.nickname} onChange={(e) => setReviewForm(prev => ({ ...prev, nickname: e.target.value }))} />
+            </div>
+            <div>
+              <Label>후기</Label>
+              <Textarea value={reviewForm.review_text} onChange={(e) => setReviewForm(prev => ({ ...prev, review_text: e.target.value }))} placeholder="서비스 이용 후기를 작성해주세요" />
+            </div>
+            <div>
+              <Label>이미지 (선택)</Label>
+              <ImageUploader
+                value={reviewForm.image_url}
+                onChange={(url) => setReviewForm(prev => ({ ...prev, image_url: url }))}
+                folder="reviews"
+                sizePreset="thumbnail"
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={submittingReview || !reviewForm.nickname.trim()}
+              onClick={async () => {
+                if (!user || !reviewProject) return;
+                setSubmittingReview(true);
+                // Find service_id from project service_title
+                const { data: svc } = await supabase
+                  .from("services")
+                  .select("id")
+                  .eq("title", reviewProject.service_title)
+                  .limit(1)
+                  .maybeSingle();
+
+                if (!svc) {
+                  toast.error("서비스를 찾을 수 없습니다.");
+                  setSubmittingReview(false);
+                  return;
+                }
+
+                const { error } = await supabase.from("service_reviews").insert({
+                  service_id: svc.id,
+                  user_id: user.id,
+                  rating: reviewForm.rating,
+                  review_text: reviewForm.review_text || null,
+                  nickname: reviewForm.nickname,
+                  image_url: reviewForm.image_url || null,
+                  is_admin_entry: false,
+                });
+
+                if (error) {
+                  toast.error("후기 등록 실패: " + error.message);
+                } else {
+                  toast.success("후기가 등록되었습니다!");
+                  setReviewOpen(false);
+                }
+                setSubmittingReview(false);
+              }}
+            >
+              {submittingReview ? "등록 중..." : "후기 등록"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
