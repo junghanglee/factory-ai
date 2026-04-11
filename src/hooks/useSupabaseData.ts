@@ -25,10 +25,8 @@ export const useBanners = () =>
         image_url: getBannerDisplayImageUrl(banner.image_url),
       })) as DbBanner[];
     },
-    retry: 1,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnReconnect: true,
+    retry: 2,
+    staleTime: 30_000,
   });
 
 export const useCategories = () =>
