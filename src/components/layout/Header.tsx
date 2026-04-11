@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { getCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
@@ -11,7 +11,6 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [myPageMenuOpen, setMyPageMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const { user, isAdmin, signOut } = useAuth();
   const { data: dbCategories = [] } = useCategories();
   const categories = dbCategories.filter((c) => shouldShowInHeroGrid(c.slug));
@@ -49,22 +48,6 @@ const Header = () => {
           <Link to="/" className="flex items-center shrink-0">
             <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-10 w-auto" />
           </Link>
-
-          {/* Search bar - desktop */}
-          <div className="hidden md:flex flex-1 max-w-[500px]">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="어떤 AI 콘텐츠가 필요하세요?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-5 pr-14 rounded-full border border-border bg-background text-[15px] focus:outline-none focus:border-foreground transition-colors"
-              />
-              <button className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-foreground text-background flex items-center justify-center hover:bg-foreground/80 transition-colors">
-                <Search className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
@@ -188,16 +171,6 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t bg-background">
           <div className="px-5 py-4">
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="어떤 AI 콘텐츠가 필요하세요?"
-                className="w-full h-11 pl-5 pr-14 rounded-full border text-[15px] focus:outline-none focus:border-foreground"
-              />
-              <button className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-foreground text-background flex items-center justify-center">
-                <Search className="h-4 w-4" />
-              </button>
-            </div>
             <div className="space-y-0.5">
               <Link
                 to="/about"
