@@ -1,11 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle2, MessageCircle, Package } from "lucide-react";
+import { CheckCircle2, MessageCircle, Package, Star } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface ProjectRow {
   id: string;
@@ -34,6 +40,10 @@ const MyProjectsPage = () => {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [navigating, setNavigating] = useState<string | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewProject, setReviewProject] = useState<ProjectRow | null>(null);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: "", nickname: "", image_url: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     if (!user) return;
