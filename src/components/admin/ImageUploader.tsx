@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, type ImageSizePreset } from "@/utils/imageCompression";
 import { cn } from "@/lib/utils";
@@ -26,8 +26,11 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   const upload = useCallback(async (file: File) => {
+    if (uploading) return;
     setUploading(true);
     try {
       const compressed = await compressImage(file, sizePreset);
@@ -36,13 +39,13 @@ export default function ImageUploader({
       const { error } = await supabase.storage.from(bucket).upload(path, compressed);
       if (error) throw error;
       const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChangeRef.current(data.publicUrl);
     } catch (err: any) {
       console.error("Upload failed:", err.message);
     } finally {
       setUploading(false);
     }
-  }, [bucket, folder, onChange]);
+  }, [bucket, folder, sizePreset, uploading]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -73,7 +76,7 @@ export default function ImageUploader({
             </button>
             <button
               type="button"
-              onClick={() => onChange("")}
+              onClick={() => onChangeRef.current("")}
               className="p-1.5 bg-white/90 rounded"
             >
               <X className="h-4 w-4" />

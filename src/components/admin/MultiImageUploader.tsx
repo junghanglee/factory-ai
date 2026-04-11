@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Upload, X, GripVertical } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, type ImageSizePreset } from "@/utils/imageCompression";
 import { cn } from "@/lib/utils";
@@ -24,9 +24,14 @@ export default function MultiImageUploader({
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
+  const valueRef = useRef(value);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+  useEffect(() => { valueRef.current = value; }, [value]);
 
   const uploadFiles = useCallback(async (files: FileList | File[]) => {
-    const fileArr = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, maxFiles - value.length);
+    const currentValue = valueRef.current;
+    const fileArr = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, maxFiles - currentValue.length);
     if (fileArr.length === 0) return;
     setUploading(true);
     try {
@@ -40,13 +45,13 @@ export default function MultiImageUploader({
         const { data } = supabase.storage.from(bucket).getPublicUrl(path);
         urls.push(data.publicUrl);
       }
-      onChange([...value, ...urls]);
+      onChangeRef.current([...valueRef.current, ...urls]);
     } catch (err: any) {
       console.error("Upload failed:", err.message);
     } finally {
       setUploading(false);
     }
-  }, [bucket, folder, maxFiles, onChange, value]);
+  }, [bucket, folder, maxFiles, sizePreset]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -55,7 +60,7 @@ export default function MultiImageUploader({
   }, [uploadFiles]);
 
   const removeImage = (idx: number) => {
-    onChange(value.filter((_, i) => i !== idx));
+    onChangeRef.current(value.filter((_, i) => i !== idx));
   };
 
   return (
