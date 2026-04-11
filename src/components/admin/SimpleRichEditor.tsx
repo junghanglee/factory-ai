@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { Bold, Italic, List, ListOrdered, Heading2, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,17 +11,43 @@ interface SimpleRichEditorProps {
 
 export default function SimpleRichEditor({ value, onChange, className, placeholder }: SimpleRichEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const onChangeRef = useRef(onChange);
+  const internalValue = useRef(value || "");
+  const isInitialized = useRef(false);
+
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  // Only set innerHTML when value changes externally (not from user typing)
+  useEffect(() => {
+    if (!isInitialized.current) {
+      if (editorRef.current) {
+        editorRef.current.innerHTML = value || "";
+        internalValue.current = value || "";
+        isInitialized.current = true;
+      }
+      return;
+    }
+    // If value changed externally (e.g. form reset), update the editor
+    if (value !== internalValue.current && editorRef.current) {
+      editorRef.current.innerHTML = value || "";
+      internalValue.current = value || "";
+    }
+  }, [value]);
 
   const exec = useCallback((cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      internalValue.current = html;
+      onChangeRef.current(html);
     }
-  }, [onChange]);
+  }, []);
 
   const handleInput = () => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      internalValue.current = html;
+      onChangeRef.current(html);
     }
   };
 
@@ -55,7 +81,6 @@ export default function SimpleRichEditor({ value, onChange, className, placehold
         suppressContentEditableWarning
         className="min-h-[160px] p-3 text-sm focus:outline-none prose prose-sm max-w-none [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_hr]:my-3"
         onInput={handleInput}
-        dangerouslySetInnerHTML={{ __html: value || "" }}
         data-placeholder={placeholder}
       />
     </div>
