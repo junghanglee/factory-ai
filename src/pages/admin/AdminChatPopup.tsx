@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, X, Film } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ImageGroupBubble from "@/components/chat/ImageGroupBubble";
+import FileDrawer from "@/components/chat/FileDrawer";
+import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
+import ProjectPanel from "@/components/chat/ProjectPanel";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { groupMessages } from "@/utils/messageGrouping";
 import { useSearchParams } from "react-router-dom";
@@ -29,6 +32,8 @@ const AdminChatPopup = () => {
   const {
     rooms, selectedRoomId, messages,
     selectRoom, sendMessage, sendFile, sendConfirmVideo, sendFeedbackRequest, user,
+    project, projectFiles,
+    createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
 
   const [input, setInput] = useState("");
@@ -39,6 +44,8 @@ const AdminChatPopup = () => {
   const [videoUploadType, setVideoUploadType] = useState<"general" | "confirm">("general");
   const [showVideoTypeDialog, setShowVideoTypeDialog] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [showFileDrawer, setShowFileDrawer] = useState(false);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,105 +143,135 @@ const AdminChatPopup = () => {
   if (loading) return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
   if (!user || !isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
 
+  const showSidePanel = showFileDrawer || showInfoPanel || (!!project && !showFileDrawer && !showInfoPanel);
+
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       <Sonner />
-      <div className="p-3 border-b bg-card flex items-center gap-2 shrink-0">
+      {/* Header with title + action buttons */}
+      <div className="p-3 border-b bg-card flex items-center justify-between shrink-0">
         <span className="font-semibold text-sm truncate">{selectedRoom?.title || "채팅"}</span>
-      </div>
-
-      <div
-        className={`flex-1 flex flex-col relative overflow-hidden ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-      >
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {groupedMessages.map((group) => (
-              <div key={group.date}>
-                <div className="flex justify-center mb-3">
-                  <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">{group.date}</span>
-                </div>
-                <div className="space-y-3">
-                  {group.items.map((item) =>
-                    item.type === "image_group" ? (
-                      <ImageGroupBubble key={item.messages[0].id} messages={item.messages} isMine={item.messages[0].sender_id === user?.id} onReply={(m) => setReplyTo(m)} />
-                    ) : (
-                      <MessageBubble key={item.msg.id} msg={item.msg} isMine={item.msg.sender_id === user?.id} onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-      </div>
-
-      <div className="p-3 border-t bg-card space-y-2 shrink-0">
-        {pendingFiles.length > 0 && (
-          <>
-            <div className="flex flex-wrap gap-2 px-1">
-              {pendingFiles.map((file, idx) => (
-                <div key={idx} className="relative group/file">
-                  {file.type.startsWith("image/") ? (
-                    <img src={URL.createObjectURL(file)} alt={file.name} className="h-14 w-14 object-cover rounded-lg border" />
-                  ) : file.type.startsWith("video/") ? (
-                    <div className="h-14 w-14 rounded-lg border bg-secondary flex items-center justify-center">
-                      <FilmIcon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <div className="h-14 w-14 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
-                      <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
-                      <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
-                    </div>
-                  )}
-                  <button onClick={() => removePendingFile(idx)}
-                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-              {pendingFiles.length < MAX_FILES && (
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="h-14 w-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
-                  <Plus className="h-5 w-5 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-            <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
-              <input type="checkbox" checked={isFeedbackMode} onChange={(e) => setIsFeedbackMode(e.target.checked)} className="accent-amber-500 w-4 h-4" />
-              <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>📝 피드백 요청으로 전송</span>
-            </label>
-          </>
-        )}
-        {replyTo && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
-            <span className="text-muted-foreground">↩️ 답장:</span>
-            <span className="truncate flex-1">{replyTo.message?.slice(0, 50) || "파일"}</span>
-            <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
-          </div>
-        )}
         <div className="flex items-center gap-1">
-          <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" multiple />
-          <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
-            <Paperclip className="h-5 w-5" />
-          </button>
-          {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder={isFeedbackMode ? "피드백 요청 메시지 (선택)" : pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
-            rows={1}
-            className={`flex-1 min-h-[40px] max-h-[100px] px-4 py-2 rounded-2xl border text-sm focus:outline-none focus:ring-2 resize-none ${
-              isFeedbackMode ? "border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 focus:ring-amber-400/30" : "bg-secondary/50 focus:ring-primary/30"
-            }`}
-            style={{ height: "auto", overflow: "hidden" }}
-            onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 100) + "px"; }}
-          />
-          <Button size="icon" className={`rounded-full shrink-0 ${isFeedbackMode ? "bg-amber-500 hover:bg-amber-600" : ""}`} onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
-            <Send className="h-4 w-4" />
+          <Button size="sm" variant={showFileDrawer ? "secondary" : "ghost"} className="text-xs h-7 px-2"
+            onClick={() => { setShowFileDrawer(!showFileDrawer); setShowInfoPanel(false); }}>
+            <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
+          </Button>
+          <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7 px-2"
+            onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
+            <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
           </Button>
         </div>
+      </div>
+
+      {/* Main content: chat + optional side panel */}
+      <div className="flex-1 flex min-h-0">
+        {/* Chat area */}
+        <div
+          className={`flex-1 flex flex-col relative overflow-hidden ${isDragging ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+        >
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {groupedMessages.map((group) => (
+                <div key={group.date}>
+                  <div className="flex justify-center mb-3">
+                    <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">{group.date}</span>
+                  </div>
+                  <div className="space-y-3">
+                    {group.items.map((item) =>
+                      item.type === "image_group" ? (
+                        <ImageGroupBubble key={item.messages[0].id} messages={item.messages} isMine={item.messages[0].sender_id === user?.id} onReply={(m) => setReplyTo(m)} />
+                      ) : (
+                        <MessageBubble key={item.msg.id} msg={item.msg} isMine={item.msg.sender_id === user?.id} onReply={(m) => setReplyTo(m)} roomId={selectedRoomId || undefined} />
+                      )
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Input area */}
+          <div className="p-3 border-t bg-card space-y-2 shrink-0">
+            {pendingFiles.length > 0 && (
+              <>
+                <div className="flex flex-wrap gap-2 px-1">
+                  {pendingFiles.map((file, idx) => (
+                    <div key={idx} className="relative group/file">
+                      {file.type.startsWith("image/") ? (
+                        <img src={URL.createObjectURL(file)} alt={file.name} className="h-14 w-14 object-cover rounded-lg border" />
+                      ) : file.type.startsWith("video/") ? (
+                        <div className="h-14 w-14 rounded-lg border bg-secondary flex items-center justify-center">
+                          <FilmIcon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <div className="h-14 w-14 rounded-lg border bg-secondary flex flex-col items-center justify-center p-1">
+                          <Paperclip className="h-4 w-4 text-muted-foreground mb-0.5" />
+                          <span className="text-[9px] text-muted-foreground truncate w-full text-center">{file.name.split(".").pop()}</span>
+                        </div>
+                      )}
+                      <button onClick={() => removePendingFile(idx)}
+                        className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {pendingFiles.length < MAX_FILES && (
+                    <button onClick={() => fileInputRef.current?.click()}
+                      className="h-14 w-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors">
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+                  <input type="checkbox" checked={isFeedbackMode} onChange={(e) => setIsFeedbackMode(e.target.checked)} className="accent-amber-500 w-4 h-4" />
+                  <span className={`text-xs font-medium ${isFeedbackMode ? "text-amber-600" : "text-muted-foreground"}`}>📝 피드백 요청으로 전송</span>
+                </label>
+              </>
+            )}
+            {replyTo && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs">
+                <span className="text-muted-foreground">↩️ 답장:</span>
+                <span className="truncate flex-1">{replyTo.message?.slice(0, 50) || "파일"}</span>
+                <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" multiple />
+              <button onClick={() => fileInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
+                <Paperclip className="h-5 w-5" />
+              </button>
+              {user && <QuickPhrases userId={user.id} onSelect={(p) => setInput((prev) => prev + p)} />}
+              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                placeholder={isFeedbackMode ? "피드백 요청 메시지 (선택)" : pendingFiles.length > 0 ? "메시지를 함께 보내세요 (선택)" : "답변을 입력하세요..."}
+                rows={1}
+                className={`flex-1 min-h-[40px] max-h-[100px] px-4 py-2 rounded-2xl border text-sm focus:outline-none focus:ring-2 resize-none ${
+                  isFeedbackMode ? "border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 focus:ring-amber-400/30" : "bg-secondary/50 focus:ring-primary/30"
+                }`}
+                style={{ height: "auto", overflow: "hidden" }}
+                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 100) + "px"; }}
+              />
+              <Button size="icon" className={`rounded-full shrink-0 ${isFeedbackMode ? "bg-amber-500 hover:bg-amber-600" : ""}`} onClick={handleSend} disabled={!input.trim() && pendingFiles.length === 0}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Side panels */}
+        {selectedRoom && showFileDrawer && (
+          <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+        )}
+        {selectedRoom && showInfoPanel && user && (
+          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
+        )}
+        {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
+          <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
+            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+        )}
       </div>
 
       <Dialog open={showVideoTypeDialog} onOpenChange={setShowVideoTypeDialog}>
