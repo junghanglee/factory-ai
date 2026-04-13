@@ -91,6 +91,9 @@ const AdminDisplayGroups = () => {
   const [editGroup, setEditGroup] = useState<DisplayGroup | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formActive, setFormActive] = useState(true);
+  const [formFontSize, setFormFontSize] = useState(26);
+  const [formFontColor, setFormFontColor] = useState("");
+  const [formHighlightColor, setFormHighlightColor] = useState("");
 
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [filterGroupId, setFilterGroupId] = useState<string | null>(null);
@@ -154,11 +157,18 @@ const AdminDisplayGroups = () => {
 
   const saveGroup = useMutation({
     mutationFn: async () => {
+      const payload = {
+        title: formTitle,
+        active: formActive,
+        font_size: formFontSize || 26,
+        font_color: formFontColor || null,
+        highlight_color: formHighlightColor || null,
+      };
       if (editGroup) {
-        const { error } = await supabase.from("display_groups").update({ title: formTitle, active: formActive }).eq("id", editGroup.id);
+        const { error } = await supabase.from("display_groups").update(payload).eq("id", editGroup.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("display_groups").insert({ title: formTitle, active: formActive, sort_order: groups.length });
+        const { error } = await supabase.from("display_groups").insert({ ...payload, sort_order: groups.length });
         if (error) throw error;
       }
     },
@@ -231,8 +241,8 @@ const AdminDisplayGroups = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const openNewGroup = () => { setEditGroup(null); setFormTitle(""); setFormActive(true); setEditOpen(true); };
-  const openEditGroup = (g: DisplayGroup) => { setEditGroup(g); setFormTitle(g.title); setFormActive(g.active); setEditOpen(true); };
+  const openNewGroup = () => { setEditGroup(null); setFormTitle(""); setFormActive(true); setFormFontSize(26); setFormFontColor(""); setFormHighlightColor(""); setEditOpen(true); };
+  const openEditGroup = (g: DisplayGroup) => { setEditGroup(g); setFormTitle(g.title); setFormActive(g.active); setFormFontSize(g.font_size || 26); setFormFontColor(g.font_color || ""); setFormHighlightColor(g.highlight_color || ""); setEditOpen(true); };
   const openNewFilter = (groupId: string) => { setFilterGroupId(groupId); setEditingFilter(null); setFilterName(""); setFilterDialogOpen(true); };
   const openEditFilter = (f: DisplayFilter) => { setFilterGroupId(f.group_id); setEditingFilter(f); setFilterName(f.name); setFilterDialogOpen(true); };
 
