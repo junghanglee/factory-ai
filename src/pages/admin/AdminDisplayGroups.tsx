@@ -387,14 +387,49 @@ const AdminDisplayGroups = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>그룹 타이틀 (줄바꿈 가능)</Label>
+              <Label>그룹 타이틀 (줄바꿈 가능, **강조텍스트** 지원)</Label>
               <Textarea
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
-                placeholder={"예: 쇼핑몰 사장님이\n많이 찾아요"}
+                placeholder={"예: 쇼핑몰 사장님이\n**많이** 찾아요"}
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground mt-1">**텍스트** 로 감싸면 강조색상이 적용됩니다</p>
             </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>폰트 크기 (px)</Label>
+                <Input type="number" min={12} max={60} value={formFontSize} onChange={e => setFormFontSize(Number(e.target.value))} />
+              </div>
+              <div>
+                <Label>폰트 색상</Label>
+                <div className="flex gap-2">
+                  <Input type="color" value={formFontColor || "#000000"} onChange={e => setFormFontColor(e.target.value)} className="w-10 h-9 p-0.5 cursor-pointer" />
+                  <Input value={formFontColor} onChange={e => setFormFontColor(e.target.value)} placeholder="기본값" className="flex-1" />
+                </div>
+              </div>
+              <div>
+                <Label>강조 색상</Label>
+                <div className="flex gap-2">
+                  <Input type="color" value={formHighlightColor || "#6C5CE7"} onChange={e => setFormHighlightColor(e.target.value)} className="w-10 h-9 p-0.5 cursor-pointer" />
+                  <Input value={formHighlightColor} onChange={e => setFormHighlightColor(e.target.value)} placeholder="기본값" className="flex-1" />
+                </div>
+              </div>
+            </div>
+            {/* Preview */}
+            {formTitle && (
+              <div className="p-3 border rounded-lg bg-secondary/30">
+                <Label className="text-xs mb-1 block">미리보기</Label>
+                <h2 className="font-bold leading-tight whitespace-pre-line" style={{ fontSize: `${formFontSize}px`, color: formFontColor || undefined }}>
+                  {formTitle.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+                    if (part.startsWith("**") && part.endsWith("**")) {
+                      return <span key={i} style={{ color: formHighlightColor || "#6C5CE7" }}>{part.slice(2, -2)}</span>;
+                    }
+                    return <span key={i}>{part}</span>;
+                  })}
+                </h2>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Switch checked={formActive} onCheckedChange={setFormActive} />
               <Label>활성화</Label>
