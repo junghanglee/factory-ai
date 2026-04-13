@@ -44,7 +44,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-background">
+    <section className="relative overflow-hidden bg-black">
       {/* Background video */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <video
@@ -52,10 +52,9 @@ const HeroSection = () => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-15"
+          className="absolute inset-0 w-full h-full object-cover"
           src="/hero-bg.mp4"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/60" />
       </div>
 
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
