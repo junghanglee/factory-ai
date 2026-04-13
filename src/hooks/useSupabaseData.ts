@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { getBannerDisplayImageUrl } from "@/lib/heroBanners";
 
 export type DbCategory = Tables<"categories">;
 export type DbService = Tables<"services">;
@@ -19,11 +18,7 @@ export const useBanners = () =>
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-
-      return (data ?? []).map((banner) => ({
-        ...banner,
-        image_url: getBannerDisplayImageUrl(banner.image_url),
-      })) as DbBanner[];
+      return (data ?? []) as DbBanner[];
     },
     retry: 2,
     staleTime: 30_000,
