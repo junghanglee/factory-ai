@@ -21,6 +21,9 @@ interface DisplayGroup {
   title: string;
   sort_order: number;
   active: boolean;
+  font_size?: number;
+  font_color?: string;
+  highlight_color?: string;
 }
 
 interface DisplayFilter {

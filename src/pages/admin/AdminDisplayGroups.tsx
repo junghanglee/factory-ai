@@ -36,6 +36,9 @@ interface DisplayGroup {
   title: string;
   sort_order: number;
   active: boolean;
+  font_size: number;
+  font_color: string | null;
+  highlight_color: string | null;
 }
 
 interface DisplayFilter {
