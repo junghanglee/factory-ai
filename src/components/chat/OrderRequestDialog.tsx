@@ -140,6 +140,7 @@ export default function OrderRequestDialog({
               <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                 <span>패키지: <strong className="text-foreground">{pkg.name}</strong></span>
                 <span>금액: <strong className="text-foreground">{formatPrice(pkg.price)}원</strong></span>
+                {/* displays price_text when available */}
                 <span>납기: <strong className="text-foreground">{pkg.delivery_days}일</strong></span>
                 <span>수정: <strong className="text-foreground">{pkg.revisions}회</strong></span>
               </div>
