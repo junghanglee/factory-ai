@@ -830,6 +830,7 @@ export type Database = {
           id: string
           name: string
           price: number
+          price_text: string | null
           revisions: number
           service_id: string
           sort_order: number
@@ -841,6 +842,7 @@ export type Database = {
           id?: string
           name: string
           price?: number
+          price_text?: string | null
           revisions?: number
           service_id: string
           sort_order?: number
@@ -852,6 +854,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          price_text?: string | null
           revisions?: number
           service_id?: string
           sort_order?: number

@@ -11,6 +11,10 @@ import { useAuth } from "@/hooks/useAuth";
 import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderRequestDialog";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+const displayPrice = (pkg: any) => {
+  if (pkg.price_text) return pkg.price_text;
+  return `${formatPrice(pkg.price)}원`;
+};
 
 const ServiceDetailPage = () => {
   const { id } = useParams();
@@ -107,8 +111,8 @@ const ServiceDetailPage = () => {
             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{pkg.name}</span>
           </div>
           <div>
-            <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
-            {service.original_price > pkg.price && (
+            <span className="text-3xl font-bold text-foreground">{displayPrice(pkg)}</span>
+            {!(pkg as any).price_text && service.original_price > pkg.price && (
               <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
             )}
           </div>
@@ -143,8 +147,8 @@ const ServiceDetailPage = () => {
         {packages.map((pkg) => (
           <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
             <div>
-              <span className="text-3xl font-bold text-foreground">{formatPrice(pkg.price)}원</span>
-              {service.original_price > pkg.price && (
+              <span className="text-3xl font-bold text-foreground">{displayPrice(pkg)}</span>
+              {!(pkg as any).price_text && service.original_price > pkg.price && (
                 <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
               )}
             </div>

@@ -1,0 +1,1 @@
+ALTER TABLE public.service_packages ADD COLUMN price_text text DEFAULT NULL;
