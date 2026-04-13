@@ -45,25 +45,17 @@ const HeroSection = () => {
 
   return (
     <section className="relative overflow-hidden bg-background">
-      {/* Decorative patterns */}
+      {/* Background video */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Top-right circles */}
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-primary/5" />
-        <div className="absolute -top-10 -right-10 w-60 h-60 rounded-full bg-primary/3" />
-        {/* Bottom-left circles */}
-        <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-accent/30" />
-        {/* Dot grid pattern */}
-        <svg className="absolute top-8 left-1/3 opacity-[0.06]" width="120" height="120">
-          {Array.from({ length: 36 }).map((_, i) => (
-            <circle key={i} cx={(i % 6) * 20 + 10} cy={Math.floor(i / 6) * 20 + 10} r="2" fill="currentColor" className="text-foreground" />
-          ))}
-        </svg>
-        {/* Diagonal lines */}
-        <svg className="absolute bottom-4 right-1/4 opacity-[0.04]" width="100" height="100">
-          <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="1" className="text-primary" />
-          <line x1="20" y1="100" x2="100" y2="20" stroke="currentColor" strokeWidth="1" className="text-primary" />
-          <line x1="40" y1="100" x2="100" y2="40" stroke="currentColor" strokeWidth="1" className="text-primary" />
-        </svg>
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-15"
+          src="/hero-bg.mp4"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/60" />
       </div>
 
       <div className="relative z-10 max-w-[1200px] mx-auto px-5 py-12 md:py-16">
