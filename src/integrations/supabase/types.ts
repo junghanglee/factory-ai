@@ -433,6 +433,9 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          font_color: string | null
+          font_size: number | null
+          highlight_color: string | null
           id: string
           sort_order: number
           title: string
@@ -441,6 +444,9 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          font_color?: string | null
+          font_size?: number | null
+          highlight_color?: string | null
           id?: string
           sort_order?: number
           title: string
@@ -449,6 +455,9 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          font_color?: string | null
+          font_size?: number | null
+          highlight_color?: string | null
           id?: string
           sort_order?: number
           title?: string

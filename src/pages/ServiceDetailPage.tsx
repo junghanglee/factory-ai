@@ -217,11 +217,28 @@ const ServiceDetailPage = () => {
 
             <div>
               <h2 className="text-lg font-semibold mb-3">서비스 설명</h2>
-              <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+              {service.description && (
+                <div className="text-[15px] text-muted-foreground leading-[1.8] whitespace-pre-line">
+                  {service.description}
+                </div>
+              )}
               {service.detailed_description && (
-                <div className="mt-4 p-4 rounded-lg bg-accent/50">
+                <div className="mt-5 rounded-xl border bg-card p-6">
                   <div
-                    className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none [&_h3]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_strong]:text-foreground"
+                    className="prose prose-sm max-w-none
+                      text-foreground/80 leading-[1.9]
+                      [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mb-3 [&_h1]:mt-6
+                      [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-2 [&_h2]:mt-5
+                      [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_h3]:mt-4
+                      [&_p]:mb-3 [&_p]:text-[14px]
+                      [&_strong]:text-foreground [&_strong]:font-semibold
+                      [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:list-disc [&_ul]:marker:text-primary
+                      [&_ol]:space-y-1.5 [&_ol]:pl-5
+                      [&_li]:text-[14px]
+                      [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+                      [&_a]:text-primary [&_a]:underline
+                      [&_img]:rounded-lg [&_img]:my-4
+                      [&_hr]:my-6 [&_hr]:border-border"
                     dangerouslySetInnerHTML={{ __html: service.detailed_description }}
                   />
                 </div>

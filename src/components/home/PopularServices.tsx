@@ -21,6 +21,9 @@ interface DisplayGroup {
   title: string;
   sort_order: number;
   active: boolean;
+  font_size?: number;
+  font_color?: string;
+  highlight_color?: string;
 }
 
 interface DisplayFilter {
@@ -66,19 +69,50 @@ const ServiceCard = ({ service }: { service: Service }) => (
   </Link>
 );
 
+function renderStyledTitle(title: string, fontSize?: number, fontColor?: string, highlightColor?: string) {
+  const size = fontSize || 26;
+  const style: React.CSSProperties = { fontSize: `${size}px` };
+  if (fontColor) style.color = fontColor;
+
+  // Support **highlighted** syntax
+  if (highlightColor && title.includes("**")) {
+    const parts = title.split(/(\*\*[^*]+\*\*)/g);
+    return (
+      <h2 className="font-bold leading-tight whitespace-pre-line" style={style}>
+        {parts.map((part, i) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            return <span key={i} style={{ color: highlightColor }}>{part.slice(2, -2)}</span>;
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </h2>
+    );
+  }
+
+  return (
+    <h2 className="font-bold leading-tight whitespace-pre-line" style={style}>
+      {title}
+    </h2>
+  );
+}
+
 function DisplayGroupSection({ group, filters, groupServices, allServices }: {
   group: DisplayGroup;
   filters: DisplayFilter[];
   groupServices: DisplayGroupService[];
   allServices: Service[];
 }) {
-  const [activeFilter, setActiveFilter] = useState<string | null>(filters[0]?.id || null);
+  // null = "전체" (show all services in the group)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const visibleServiceIds = activeFilter
     ? groupServices.filter(gs => gs.filter_id === activeFilter).sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id)
     : groupServices.sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id);
 
-  const services = visibleServiceIds
+  // Deduplicate for "전체"
+  const uniqueServiceIds = activeFilter ? visibleServiceIds : [...new Set(visibleServiceIds)];
+
+  const services = uniqueServiceIds
     .map(id => allServices.find(s => s.id === id))
     .filter(Boolean) as Service[];
 
@@ -90,9 +124,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Left title */}
           <div className="md:w-[200px] shrink-0">
-            <h2 className="text-[22px] md:text-[26px] font-bold text-foreground leading-tight whitespace-pre-line">
-              {group.title}
-            </h2>
+            {renderStyledTitle(group.title, (group as any).font_size, (group as any).font_color, (group as any).highlight_color)}
           </div>
 
           {/* Right content */}
@@ -100,6 +132,17 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
             {/* Filter tabs */}
             {filters.length > 0 && (
               <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
+                <button
+                  onClick={() => setActiveFilter(null)}
+                  className={`flex items-center justify-between gap-4 px-5 py-2.5 rounded-lg border text-[14px] whitespace-nowrap transition-colors min-w-[120px] ${
+                    activeFilter === null
+                      ? "border-foreground text-foreground font-medium"
+                      : "border-border text-muted-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  <span>전체</span>
+                  <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
                 {filters.map((f) => (
                   <button
                     key={f.id}
