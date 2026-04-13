@@ -27,10 +27,12 @@ export default function ImageUploader({
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
+  const uploadingRef = useRef(false);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   const upload = useCallback(async (file: File) => {
-    if (uploading) return;
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
     setUploading(true);
     try {
       const compressed = await compressImage(file, sizePreset);
@@ -43,9 +45,10 @@ export default function ImageUploader({
     } catch (err: any) {
       console.error("Upload failed:", err.message);
     } finally {
+      uploadingRef.current = false;
       setUploading(false);
     }
-  }, [bucket, folder, sizePreset, uploading]);
+  }, [bucket, folder, sizePreset]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -54,11 +57,11 @@ export default function ImageUploader({
     if (file?.type.startsWith("image/")) upload(file);
   }, [upload]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) upload(file);
     e.target.value = "";
-  };
+  }, [upload]);
 
   return (
     <div className={cn("relative", className)}>
