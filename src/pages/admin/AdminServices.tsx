@@ -77,7 +77,7 @@ const AdminServices = () => {
     setPkgForms(
       svc.packages.length > 0
         ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features?.length ? p.features : [""], sort_order: p.sort_order }))
-            .map((p: any) => ({ ...p, price_text: (svc.packages.find((sp: any) => sp.id === p.id) as any)?.price_text || "" }))
+            .map((p: any) => ({ ...p, price_text: (svc.packages.find((sp: any) => sp.id === p.id) as any)?.price_text ?? "" }))
         : [emptyPackage("Basic", 1)]
     );
     setEditOpen(true);
