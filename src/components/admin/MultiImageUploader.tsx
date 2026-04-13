@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage, type ImageSizePreset } from "@/utils/imageCompression";
@@ -13,26 +13,32 @@ interface MultiImageUploaderProps {
   sizePreset?: ImageSizePreset;
 }
 
+const EMPTY_ARRAY: string[] = [];
+
 export default function MultiImageUploader({
-  value = [],
+  value,
   onChange,
   bucket = "portfolio-files",
   folder = "services/portfolio",
   maxFiles = 10,
   sizePreset = "detail",
 }: MultiImageUploaderProps) {
+  const stableValue = useMemo(() => (value && value.length > 0 ? value : EMPTY_ARRAY), [JSON.stringify(value)]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
-  const valueRef = useRef(value);
+  const valueRef = useRef(stableValue);
+  const uploadingRef = useRef(false);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
-  useEffect(() => { valueRef.current = value; }, [value]);
+  useEffect(() => { valueRef.current = stableValue; }, [stableValue]);
 
   const uploadFiles = useCallback(async (files: FileList | File[]) => {
+    if (uploadingRef.current) return;
     const currentValue = valueRef.current;
     const fileArr = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, maxFiles - currentValue.length);
     if (fileArr.length === 0) return;
+    uploadingRef.current = true;
     setUploading(true);
     try {
       const urls: string[] = [];
@@ -49,6 +55,7 @@ export default function MultiImageUploader({
     } catch (err: any) {
       console.error("Upload failed:", err.message);
     } finally {
+      uploadingRef.current = false;
       setUploading(false);
     }
   }, [bucket, folder, maxFiles, sizePreset]);
@@ -59,17 +66,22 @@ export default function MultiImageUploader({
     uploadFiles(e.dataTransfer.files);
   }, [uploadFiles]);
 
-  const removeImage = (idx: number) => {
-    onChangeRef.current(value.filter((_, i) => i !== idx));
-  };
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) uploadFiles(e.target.files);
+    e.target.value = "";
+  }, [uploadFiles]);
+
+  const removeImage = useCallback((idx: number) => {
+    onChangeRef.current(valueRef.current.filter((_, i) => i !== idx));
+  }, []);
 
   return (
     <div className="space-y-3">
-      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) uploadFiles(e.target.files); e.target.value = ""; }} />
-      {value.length > 0 && (
+      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+      {stableValue.length > 0 && (
         <div className="grid grid-cols-4 gap-2">
-          {value.map((url, idx) => (
-            <div key={idx} className="relative group aspect-video rounded overflow-hidden border">
+          {stableValue.map((url, idx) => (
+            <div key={url} className="relative group aspect-video rounded overflow-hidden border">
               <img src={url} alt="" className="w-full h-full object-cover" />
               <button
                 type="button"
@@ -82,7 +94,7 @@ export default function MultiImageUploader({
           ))}
         </div>
       )}
-      {value.length < maxFiles && (
+      {stableValue.length < maxFiles && (
         <div
           className={cn(
             "border-2 border-dashed rounded-lg p-4 flex flex-col items-center gap-1.5 cursor-pointer transition-colors",
