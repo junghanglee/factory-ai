@@ -62,12 +62,12 @@ const HeroSection = () => {
           {/* Left side - text + search */}
           <div className="flex-1 flex flex-col justify-between">
             <div>
-              <h1 className="text-[32px] md:text-[40px] font-bold text-foreground leading-[1.3] mb-8 tracking-tight">
+              <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
                 최고의 AI콘텐츠 전문가와,
                 <br />
                 대량생산 자동화공정을 통해
                 <br />
-                <span className="text-primary">압도적인 품질과 가격</span>으로 제작
+                <span className="text-primary drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">압도적인 품질과 가격</span>으로 제작
               </h1>
 
               {/* Search */}
@@ -78,7 +78,7 @@ const HeroSection = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-border bg-secondary/50 text-foreground text-[16px] placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-colors shadow-sm"
+                  className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-black/40 backdrop-blur-sm text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-colors shadow-lg"
                 />
                 <button
                   onClick={handleSearch}
@@ -95,7 +95,7 @@ const HeroSection = () => {
                 <Link
                   key={keyword}
                   to={`/search?q=${encodeURIComponent(keyword)}`}
-                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors bg-secondary/50"
+                  className="px-3.5 py-1.5 text-[13px] rounded-full border border-white/30 text-white/80 hover:border-primary hover:text-primary transition-colors bg-black/30 backdrop-blur-sm"
                 >
                   {keyword}
                 </Link>
