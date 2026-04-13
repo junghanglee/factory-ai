@@ -24,6 +24,7 @@ interface PackageForm {
   id?: string;
   name: string;
   price: number;
+  price_text: string;
   delivery_days: number;
   revisions: number;
   features: string[];
@@ -31,7 +32,7 @@ interface PackageForm {
 }
 
 const emptyPackage = (name: string, order: number): PackageForm => ({
-  name, price: 0, delivery_days: 1, revisions: 1, features: [""], sort_order: order,
+  name, price: 0, price_text: "", delivery_days: 1, revisions: 1, features: [""], sort_order: order,
 });
 
 const AdminServices = () => {
@@ -76,6 +77,7 @@ const AdminServices = () => {
     setPkgForms(
       svc.packages.length > 0
         ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features?.length ? p.features : [""], sort_order: p.sort_order }))
+            .map((p: any) => ({ ...p, price_text: (svc.packages.find((sp: any) => sp.id === p.id) as any)?.price_text || "" }))
         : [emptyPackage("Basic", 1)]
     );
     setEditOpen(true);
@@ -106,6 +108,7 @@ const AdminServices = () => {
           service_id: serviceId!,
           name: p.name,
           price: p.price,
+          price_text: p.price_text || null,
           delivery_days: p.delivery_days,
           revisions: p.revisions,
           features: p.features.filter(Boolean),
@@ -344,7 +347,21 @@ const AdminServices = () => {
                       </div>
                       <div>
                         <Label>가격</Label>
-                        <Input type="number" value={pkg.price} onChange={(e) => updatePkg(pkgIdx, "price", Number(e.target.value))} />
+                        <Input
+                          value={pkg.price_text || (pkg.price === 0 ? "" : String(pkg.price))}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            const num = Number(v);
+                            if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                              updatePkg(pkgIdx, "price", v === "" ? 0 : num);
+                              updatePkg(pkgIdx, "price_text", "");
+                            } else {
+                              updatePkg(pkgIdx, "price_text", v);
+                              updatePkg(pkgIdx, "price", 0);
+                            }
+                          }}
+                          placeholder="숫자 또는 텍스트 (예: 협의)"
+                        />
                       </div>
                       <div>
                         <Label>납기(일)</Label>
