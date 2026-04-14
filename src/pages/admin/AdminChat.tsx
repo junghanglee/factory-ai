@@ -231,19 +231,9 @@ const AdminChat = () => {
                   <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
                     <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
-                  {!project && (
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
-                      const meta = selectedRoom?.metadata as any;
-                      if (meta?.serviceTitle) {
-                        setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7, notes: "" });
-                      } else {
-                        setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
-                      }
-                      setShowCreateProject(true);
-                    }}>
-                      <Plus className="h-3.5 w-3.5 mr-1" /> 프로젝트 생성
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowRequestType(true)}>
+                    <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청하기
+                  </Button>
                 </div>
               </div>
               <ScrollArea className="flex-1 p-4">
