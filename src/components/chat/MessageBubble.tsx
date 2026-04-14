@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/hooks/useChat";
 import VideoReviewDialog from "./VideoReviewDialog";
 import FeedbackRequestBubble from "./FeedbackRequestBubble";
+import FeedbackResponseBubble from "./FeedbackResponseBubble";
 import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(dateStr: string) {
@@ -108,6 +109,10 @@ export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageB
   // Delegate feedback_request messages to FeedbackRequestBubble
   if (msg.message_type === "feedback_request") {
     return <FeedbackRequestBubble msg={msg} isMine={isMine} roomId={roomId} />;
+  }
+  // Delegate feedback_response messages to FeedbackResponseBubble
+  if (msg.message_type === "feedback_response") {
+    return <FeedbackResponseBubble msg={msg} isMine={isMine} />;
   }
 
   const isSystem = msg.sender_id === SYSTEM_USER_ID || msg.message_type === "system";
