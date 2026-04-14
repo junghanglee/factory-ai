@@ -453,6 +453,14 @@ const AdminChat = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Request type selection dialog */}
+      <RequestTypeDialog
+        open={showRequestType}
+        onOpenChange={setShowRequestType}
+        onSelectFeedback={handleFeedbackRequest}
+        onSelectProduction={handleProductionRequest}
+      />
     </AdminLayout>
   );
 };
