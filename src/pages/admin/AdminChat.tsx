@@ -156,17 +156,43 @@ const AdminChat = () => {
 
   const handleCreateProject = async () => {
     if (!selectedRoom || !newProject.serviceTitle.trim()) return;
-    await createProjectFromChat({
-      serviceTitle: newProject.serviceTitle,
-      packageName: newProject.packageName || undefined,
-      price: newProject.price,
-      deliveryDays: newProject.deliveryDays,
-      customerName: selectedRoom.title,
-      customerId: selectedRoom.customer_id,
-      notes: newProject.notes || undefined,
-    });
-    setShowCreateProject(false);
-    setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    try {
+      const result = await createProjectFromChat({
+        serviceTitle: newProject.serviceTitle,
+        packageName: newProject.packageName || undefined,
+        price: newProject.price,
+        deliveryDays: newProject.deliveryDays,
+        customerName: selectedRoom.title,
+        customerId: selectedRoom.customer_id,
+        notes: newProject.notes || undefined,
+      });
+      if (result) {
+        toast.success("제작 요청이 전송되었습니다.", { description: "프로젝트 관리에서 확인할 수 있습니다." });
+      } else {
+        toast.error("프로젝트 생성에 실패했습니다.");
+      }
+      setShowCreateProject(false);
+      setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error("프로젝트 생성 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleFeedbackRequest = () => {
+    setIsFeedbackMode(true);
+    toast.info("피드백 요청 모드가 활성화되었습니다.", { description: "파일을 첨부하고 메시지를 입력한 후 전송하세요." });
+  };
+
+  const handleProductionRequest = () => {
+    if (!selectedRoom) return;
+    const meta = selectedRoom?.metadata as any;
+    if (meta?.serviceTitle) {
+      setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7, notes: "" });
+    } else {
+      setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    }
+    setShowCreateProject(true);
   };
 
   return (
