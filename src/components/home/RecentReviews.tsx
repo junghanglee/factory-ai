@@ -1,4 +1,4 @@
-import { Star, Shield, User } from "lucide-react";
+import { Star, User } from "lucide-react";
 import { useRecentReviews } from "@/hooks/useServiceReviews";
 import { Link } from "react-router-dom";
 

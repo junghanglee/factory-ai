@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, Shield, User } from "lucide-react";
+import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
