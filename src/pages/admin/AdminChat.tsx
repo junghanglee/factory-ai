@@ -62,30 +62,35 @@ const AdminChat = () => {
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
-    if (pendingFiles.length > 0) {
-      if (isFeedbackMode) {
-        // Send files as feedback request
-        await sendFeedbackRequest(input.trim() || "", pendingFiles);
+    try {
+      if (pendingFiles.length > 0) {
+        if (isFeedbackMode) {
+          await sendFeedbackRequest(input.trim() || "", pendingFiles);
+          setPendingFiles([]);
+          setInput("");
+          setIsFeedbackMode(false);
+          toast.success("피드백 요청이 전송되었습니다.");
+          return;
+        }
+        for (const file of pendingFiles) {
+          await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
+        }
+        if (pendingFiles.length > 1 && input.trim()) {
+          await sendMessage(input.trim());
+        }
         setPendingFiles([]);
         setInput("");
-        setIsFeedbackMode(false);
         return;
       }
-      for (const file of pendingFiles) {
-        await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
-      }
-      if (pendingFiles.length > 1 && input.trim()) {
-        await sendMessage(input.trim());
-      }
-      setPendingFiles([]);
+      if (!input.trim()) return;
+      const prefix = replyTo ? `↩️ ${replyTo.message?.slice(0, 30) || "파일"}...\n\n` : "";
+      await sendMessage(prefix + input);
       setInput("");
-      return;
+      setReplyTo(null);
+    } catch (err) {
+      console.error("Send error:", err);
+      toast.error("메시지 전송에 실패했습니다.", { description: "네트워크 상태를 확인해주세요." });
     }
-    if (!input.trim()) return;
-    const prefix = replyTo ? `↩️ ${replyTo.message?.slice(0, 30) || "파일"}...\n\n` : "";
-    await sendMessage(prefix + input);
-    setInput("");
-    setReplyTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
