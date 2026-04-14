@@ -243,6 +243,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                         >
                           <item.icon className="h-3.5 w-3.5" />
                           {item.label}
+                          {group.label === "채팅관리" && item.label === "채팅 관리" && unreadCount > 0 && (
+                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}

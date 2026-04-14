@@ -78,12 +78,12 @@ const Header = () => {
                           onClick={() => setMyPageMenuOpen(false)}
                         >
                           <item.icon className="h-4 w-4 text-muted-foreground" />
+                          <span>{item.label}</span>
                           {item.id === "chat" && unreadCount > 0 && (
-                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
                               {unreadCount > 99 ? "99+" : unreadCount}
                             </span>
                           )}
-                          <span>{item.label}</span>
                         </Link>
                       ))}
                     </div>
