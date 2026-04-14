@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { smartCompress } from "@/utils/imageCompression";
+import { toast } from "sonner";
 
 export interface ChatRoom {
   id: string;
