@@ -1,9 +1,11 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { toast } from "sonner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
@@ -33,9 +35,34 @@ import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 30 * 1000,
+      refetchOnWindowFocus: true,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      console.error("Query error:", error);
+      toast.error("데이터를 불러오는 중 오류가 발생했습니다.", {
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      console.error("Mutation error:", error);
+      toast.error("처리 중 오류가 발생했습니다.", {
+        description: "네트워크 상태를 확인하고 다시 시도해주세요.",
+      });
+    },
+  }),
+});
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
@@ -77,6 +104,7 @@ const App = () => (
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

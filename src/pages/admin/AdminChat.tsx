@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -17,6 +17,8 @@ import { useChatNotification } from "@/hooks/useChatNotification";
 import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ChatRoomList from "@/components/chat/ChatRoomList";
 import { groupMessages } from "@/utils/messageGrouping";
+import RequestTypeDialog from "@/components/chat/RequestTypeDialog";
+import { toast } from "sonner";
 
 const MAX_FILES = 10;
 
@@ -34,6 +36,7 @@ const AdminChat = () => {
   } = useChat();
 
   const [isFeedbackMode, setIsFeedbackMode] = useState(false);
+  const [showRequestType, setShowRequestType] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -59,30 +62,35 @@ const AdminChat = () => {
   }, [messages, selectedRoomId, user?.id, notifyNewMessage]);
 
   const handleSend = async () => {
-    if (pendingFiles.length > 0) {
-      if (isFeedbackMode) {
-        // Send files as feedback request
-        await sendFeedbackRequest(input.trim() || "", pendingFiles);
+    try {
+      if (pendingFiles.length > 0) {
+        if (isFeedbackMode) {
+          await sendFeedbackRequest(input.trim() || "", pendingFiles);
+          setPendingFiles([]);
+          setInput("");
+          setIsFeedbackMode(false);
+          toast.success("피드백 요청이 전송되었습니다.");
+          return;
+        }
+        for (const file of pendingFiles) {
+          await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
+        }
+        if (pendingFiles.length > 1 && input.trim()) {
+          await sendMessage(input.trim());
+        }
         setPendingFiles([]);
         setInput("");
-        setIsFeedbackMode(false);
         return;
       }
-      for (const file of pendingFiles) {
-        await sendFile(file, 0, pendingFiles.length === 1 ? (input.trim() || undefined) : undefined);
-      }
-      if (pendingFiles.length > 1 && input.trim()) {
-        await sendMessage(input.trim());
-      }
-      setPendingFiles([]);
+      if (!input.trim()) return;
+      const prefix = replyTo ? `↩️ ${replyTo.message?.slice(0, 30) || "파일"}...\n\n` : "";
+      await sendMessage(prefix + input);
       setInput("");
-      return;
+      setReplyTo(null);
+    } catch (err) {
+      console.error("Send error:", err);
+      toast.error("메시지 전송에 실패했습니다.", { description: "네트워크 상태를 확인해주세요." });
     }
-    if (!input.trim()) return;
-    const prefix = replyTo ? `↩️ ${replyTo.message?.slice(0, 30) || "파일"}...\n\n` : "";
-    await sendMessage(prefix + input);
-    setInput("");
-    setReplyTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -148,17 +156,43 @@ const AdminChat = () => {
 
   const handleCreateProject = async () => {
     if (!selectedRoom || !newProject.serviceTitle.trim()) return;
-    await createProjectFromChat({
-      serviceTitle: newProject.serviceTitle,
-      packageName: newProject.packageName || undefined,
-      price: newProject.price,
-      deliveryDays: newProject.deliveryDays,
-      customerName: selectedRoom.title,
-      customerId: selectedRoom.customer_id,
-      notes: newProject.notes || undefined,
-    });
-    setShowCreateProject(false);
-    setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    try {
+      const result = await createProjectFromChat({
+        serviceTitle: newProject.serviceTitle,
+        packageName: newProject.packageName || undefined,
+        price: newProject.price,
+        deliveryDays: newProject.deliveryDays,
+        customerName: selectedRoom.title,
+        customerId: selectedRoom.customer_id,
+        notes: newProject.notes || undefined,
+      });
+      if (result) {
+        toast.success("제작 요청이 전송되었습니다.", { description: "프로젝트 관리에서 확인할 수 있습니다." });
+      } else {
+        toast.error("프로젝트 생성에 실패했습니다.");
+      }
+      setShowCreateProject(false);
+      setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error("프로젝트 생성 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleFeedbackRequest = () => {
+    setIsFeedbackMode(true);
+    toast.info("피드백 요청 모드가 활성화되었습니다.", { description: "파일을 첨부하고 메시지를 입력한 후 전송하세요." });
+  };
+
+  const handleProductionRequest = () => {
+    if (!selectedRoom) return;
+    const meta = selectedRoom?.metadata as any;
+    if (meta?.serviceTitle) {
+      setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7, notes: "" });
+    } else {
+      setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
+    }
+    setShowCreateProject(true);
   };
 
   return (
@@ -197,19 +231,9 @@ const AdminChat = () => {
                   <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
                     <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
-                  {!project && (
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
-                      const meta = selectedRoom?.metadata as any;
-                      if (meta?.serviceTitle) {
-                        setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7, notes: "" });
-                      } else {
-                        setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
-                      }
-                      setShowCreateProject(true);
-                    }}>
-                      <Plus className="h-3.5 w-3.5 mr-1" /> 프로젝트 생성
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowRequestType(true)}>
+                    <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청하기
+                  </Button>
                 </div>
               </div>
               <ScrollArea className="flex-1 p-4">
@@ -429,6 +453,14 @@ const AdminChat = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Request type selection dialog */}
+      <RequestTypeDialog
+        open={showRequestType}
+        onOpenChange={setShowRequestType}
+        onSelectFeedback={handleFeedbackRequest}
+        onSelectProduction={handleProductionRequest}
+      />
     </AdminLayout>
   );
 };

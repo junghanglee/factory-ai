@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link2, FileText, Clock, Package, DollarSign, Hash, Monitor, Bot, Film, MessageSquareText, CheckCircle2 } from "lucide-react";
+import { Link2, FileText, Clock, Package, DollarSign, Hash, Monitor, Bot, Film, MessageSquareText, CheckCircle2, FolderKanban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface OrderRequestTabProps {
@@ -15,6 +15,17 @@ interface FeedbackItem {
   status: string;
   created_at: string;
   responded_at: string | null;
+}
+
+interface ProjectItem {
+  id: string;
+  order_number: string;
+  service_title: string;
+  status: string;
+  price: number;
+  due_date: string;
+  created_at: string;
+  notes: string | null;
 }
 
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
@@ -35,9 +46,12 @@ function formatTime(d: string) {
 
 export default function OrderRequestTab({ metadata, roomId }: OrderRequestTabProps) {
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
 
   useEffect(() => {
     if (!roomId) return;
+
+    // Fetch feedback requests
     (async () => {
       const { data } = await supabase
         .from("feedback_requests")
@@ -45,6 +59,22 @@ export default function OrderRequestTab({ metadata, roomId }: OrderRequestTabPro
         .eq("room_id", roomId)
         .order("created_at", { ascending: true });
       if (data) setFeedbacks(data as FeedbackItem[]);
+    })();
+
+    // Fetch linked projects via chat_rooms.project_id
+    (async () => {
+      const { data: room } = await supabase
+        .from("chat_rooms")
+        .select("project_id")
+        .eq("id", roomId)
+        .maybeSingle();
+      if (room?.project_id) {
+        const { data } = await supabase
+          .from("projects")
+          .select("id, order_number, service_title, status, price, due_date, created_at, notes")
+          .eq("id", room.project_id);
+        if (data) setProjects(data as ProjectItem[]);
+      }
     })();
 
     // Realtime subscription for feedback updates
@@ -136,6 +166,38 @@ export default function OrderRequestTab({ metadata, roomId }: OrderRequestTabPro
           </>
         ) : (
           <div className="text-sm text-muted-foreground text-center py-4">요청사항이 없습니다</div>
+        )}
+
+        {/* Production request history */}
+        {projects.length > 0 && (
+          <div className="space-y-2 pt-2 border-t">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <FolderKanban className="h-3.5 w-3.5" /> 제작 요청 이력 ({projects.length})
+            </h4>
+            <div className="space-y-3">
+              {projects.map((proj) => (
+                <div key={proj.id} className="rounded-lg border overflow-hidden">
+                  <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-blue-700 dark:text-blue-400">{proj.order_number}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">{proj.status}</span>
+                    </div>
+                    <p className="text-sm font-medium mt-1">{proj.service_title}</p>
+                    <div className="flex gap-3 text-[10px] text-muted-foreground mt-1">
+                      <span>{proj.price.toLocaleString()}원</span>
+                      <span>납기: {new Date(proj.due_date).toLocaleDateString("ko-KR")}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{formatTime(proj.created_at)}</p>
+                  </div>
+                  {proj.notes && (
+                    <div className="px-3 py-2 bg-secondary/50">
+                      <p className="text-xs text-muted-foreground">📝 메모: {proj.notes}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Feedback history */}
