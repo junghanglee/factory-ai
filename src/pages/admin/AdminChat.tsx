@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -17,6 +17,8 @@ import { useChatNotification } from "@/hooks/useChatNotification";
 import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ChatRoomList from "@/components/chat/ChatRoomList";
 import { groupMessages } from "@/utils/messageGrouping";
+import RequestTypeDialog from "@/components/chat/RequestTypeDialog";
+import { toast } from "sonner";
 
 const MAX_FILES = 10;
 
