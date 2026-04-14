@@ -8,10 +8,50 @@ export type DbService = Tables<"services">;
 export type DbServicePackage = Tables<"service_packages">;
 export type DbBanner = Tables<"banners">;
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const HERO_CONTENT_ENDPOINT = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/hero-content` : "";
+
+const normalizeBannerImages = (banners: DbBanner[]) =>
+  banners.map((banner) => ({
+    ...banner,
+    image_url: getBannerDisplayImageUrl(banner.image_url),
+  })) as DbBanner[];
+
 export const useBanners = () =>
   useQuery({
     queryKey: ["banners"],
     queryFn: async () => {
+      if (HERO_CONTENT_ENDPOINT) {
+        try {
+          const response = await fetch(HERO_CONTENT_ENDPOINT, {
+            method: "GET",
+            cache: "no-store",
+          });
+
+          if (!response.ok) {
+            throw new Error(`hero-content request failed with status ${response.status}`);
+          }
+
+          const payload = (await response.json()) as {
+            banners?: DbBanner[];
+            fallback?: boolean;
+            error?: string;
+          };
+
+          if (Array.isArray(payload.banners) && !payload.fallback) {
+            return normalizeBannerImages(payload.banners);
+          }
+
+          if (Array.isArray(payload.banners) && payload.banners.length > 0) {
+            return normalizeBannerImages(payload.banners);
+          }
+
+          throw new Error(payload.error || "hero-content returned fallback data");
+        } catch (heroContentError) {
+          console.warn("Falling back to direct banner query", heroContentError);
+        }
+      }
+
       const { data, error } = await supabase
         .from("banners")
         .select("*")
@@ -19,10 +59,7 @@ export const useBanners = () =>
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return (data ?? []).map((b) => ({
-        ...b,
-        image_url: getBannerDisplayImageUrl(b.image_url),
-      })) as DbBanner[];
+      return normalizeBannerImages((data ?? []) as DbBanner[]);
     },
     retry: 2,
     staleTime: 30_000,
