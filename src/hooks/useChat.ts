@@ -250,6 +250,7 @@ export function useChat() {
     deliveryDays: number;
     customerName: string;
     customerId: string;
+    notes?: string;
   }) => {
     if (!user || !selectedRoomId) return null;
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
@@ -265,6 +266,7 @@ export function useChat() {
       price: params.price,
       status: "작업중",
       due_date: dueDate.toISOString().split("T")[0],
+      notes: params.notes || null,
     }).select().single();
 
     if (error) { console.error(error); return null; }
