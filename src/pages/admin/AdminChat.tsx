@@ -365,33 +365,65 @@ const AdminChat = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Create project dialog */}
+      {/* Create project dialog - enhanced with customer requirements */}
       <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>프로젝트 생성</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">서비스명 *</label>
-              <Input value={newProject.serviceTitle} onChange={(e) => setNewProject(p => ({ ...p, serviceTitle: e.target.value }))} placeholder="예: AI 이미지 제작" />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">패키지명</label>
-              <Input value={newProject.packageName} onChange={(e) => setNewProject(p => ({ ...p, packageName: e.target.value }))} placeholder="예: 프리미엄" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        <DialogContent className="max-w-lg max-h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="p-6 pb-0"><DialogTitle>제작 시작 (프로젝트 생성)</DialogTitle></DialogHeader>
+          <ScrollArea className="flex-1 px-6">
+            <div className="space-y-4 py-4">
+              {/* Customer order request info */}
+              {(() => {
+                const meta = selectedRoom?.metadata as any;
+                const req = meta?.orderRequest;
+                if (!req && !meta?.serviceTitle) return null;
+                return (
+                  <div className="rounded-lg border bg-accent/30 p-3 space-y-1.5">
+                    <h4 className="text-xs font-semibold text-muted-foreground">📋 고객 의뢰 요청사항</h4>
+                    {req?.subject && <p className="text-xs">주제: {req.subject}</p>}
+                    {req?.refUrl && <p className="text-xs">참고 URL: <a href={req.refUrl} target="_blank" className="text-primary underline">{req.refUrl}</a></p>}
+                    {req?.productionTime && <p className="text-xs">제작시간(편당): {req.productionTime}</p>}
+                    {req?.videoTime && <p className="text-xs">영상시간: {req.videoTime}</p>}
+                    {req?.quantity && <p className="text-xs">제작 수량: {req.quantity}</p>}
+                    {req?.llmOwned && <p className="text-xs">LLM 보유: {req.llmOwned}</p>}
+                    {req?.pcMemory && <p className="text-xs">PC 메모리: {req.pcMemory}</p>}
+                    {req?.aiAgentExp && <p className="text-xs">AI에이전트 경험: {req.aiAgentExp}</p>}
+                    {req?.description && <p className="text-xs border-t pt-1.5 mt-1.5">상세: {req.description}</p>}
+                  </div>
+                );
+              })()}
+
               <div>
-                <label className="text-sm font-medium mb-1 block">금액 (원)</label>
-                <Input type="number" value={newProject.price} onChange={(e) => setNewProject(p => ({ ...p, price: Number(e.target.value) }))} />
+                <label className="text-sm font-medium mb-1 block">서비스명 *</label>
+                <Input value={newProject.serviceTitle} onChange={(e) => setNewProject(p => ({ ...p, serviceTitle: e.target.value }))} placeholder="예: AI 이미지 제작" />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">납기 (일)</label>
-                <Input type="number" value={newProject.deliveryDays} onChange={(e) => setNewProject(p => ({ ...p, deliveryDays: Number(e.target.value) }))} />
+                <label className="text-sm font-medium mb-1 block">패키지명</label>
+                <Input value={newProject.packageName} onChange={(e) => setNewProject(p => ({ ...p, packageName: e.target.value }))} placeholder="예: 프리미엄" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">금액 (원)</label>
+                  <Input type="number" value={newProject.price} onChange={(e) => setNewProject(p => ({ ...p, price: Number(e.target.value) }))} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">납기 (일)</label>
+                  <Input type="number" value={newProject.deliveryDays} onChange={(e) => setNewProject(p => ({ ...p, deliveryDays: Number(e.target.value) }))} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">관리자 메모 (제작팀 전달사항)</label>
+                <Textarea
+                  value={newProject.notes || ""}
+                  onChange={(e) => setNewProject(p => ({ ...p, notes: e.target.value }))}
+                  placeholder="제작 시 유의사항이나 특이사항을 입력하세요..."
+                  className="min-h-[80px]"
+                />
               </div>
             </div>
-          </div>
-          <DialogFooter>
+          </ScrollArea>
+          <DialogFooter className="p-6 pt-4 border-t">
             <Button variant="outline" onClick={() => setShowCreateProject(false)}>취소</Button>
-            <Button onClick={handleCreateProject} disabled={!newProject.serviceTitle.trim()}>생성하기</Button>
+            <Button onClick={handleCreateProject} disabled={!newProject.serviceTitle.trim()}>🚀 제작 시작</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
