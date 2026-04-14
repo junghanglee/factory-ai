@@ -35,7 +35,7 @@ const AdminChat = () => {
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
   } = useChat();
 
-  const [isFeedbackMode, setIsFeedbackMode] = useState(false);
+  const [showRequestType, setShowRequestType] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
