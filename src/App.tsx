@@ -35,9 +35,34 @@ import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 30 * 1000,
+      refetchOnWindowFocus: true,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      console.error("Query error:", error);
+      toast.error("데이터를 불러오는 중 오류가 발생했습니다.", {
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      console.error("Mutation error:", error);
+      toast.error("처리 중 오류가 발생했습니다.", {
+        description: "네트워크 상태를 확인하고 다시 시도해주세요.",
+      });
+    },
+  }),
+});
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
