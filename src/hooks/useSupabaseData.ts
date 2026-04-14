@@ -19,7 +19,10 @@ export const useBanners = () =>
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return (data ?? []) as DbBanner[];
+      return (data ?? []).map((b) => ({
+        ...b,
+        image_url: getBannerDisplayImageUrl(b.image_url),
+      })) as DbBanner[];
     },
     retry: 2,
     staleTime: 30_000,
