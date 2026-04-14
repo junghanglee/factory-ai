@@ -155,6 +155,7 @@ const AdminChat = () => {
       deliveryDays: newProject.deliveryDays,
       customerName: selectedRoom.title,
       customerId: selectedRoom.customer_id,
+      notes: newProject.notes || undefined,
     });
     setShowCreateProject(false);
     setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
