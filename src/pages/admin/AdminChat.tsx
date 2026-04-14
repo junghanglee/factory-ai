@@ -45,7 +45,7 @@ const AdminChat = () => {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [newProject, setNewProject] = useState({
-    serviceTitle: "", packageName: "", price: 0, deliveryDays: 7,
+    serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "",
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
