@@ -317,25 +317,14 @@ const ServiceDetailPage = () => {
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span title={review.is_admin_entry ? "관리자 등록" : "실사용자"}>
-                            {review.is_admin_entry ? (
-                              <Shield className="h-3.5 w-3.5 text-primary" />
-                            ) : (
-                              <User className="h-3.5 w-3.5 text-emerald-600" />
-                            )}
-                          </span>
+                      <div className="flex items-center gap-2 mb-2">
+                          <User className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="font-medium text-sm">{review.nickname}</span>
                           <div className="flex">
                             {Array.from({ length: review.rating }).map((_, i) => (
                               <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                             ))}
                           </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(review.created_at).toLocaleDateString("ko-KR")}
-                        </span>
                       </div>
                       {review.review_text && (
                         <p className="text-sm text-muted-foreground">{review.review_text}</p>
