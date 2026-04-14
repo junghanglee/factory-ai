@@ -157,7 +157,7 @@ const AdminChat = () => {
       customerId: selectedRoom.customer_id,
     });
     setShowCreateProject(false);
-    setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7 });
+    setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
   };
 
   return (
@@ -200,9 +200,9 @@ const AdminChat = () => {
                     <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
                       const meta = selectedRoom?.metadata as any;
                       if (meta?.serviceTitle) {
-                        setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7 });
+                        setNewProject({ serviceTitle: meta.serviceTitle || "", packageName: meta.packageName || "", price: meta.price || 0, deliveryDays: meta.deliveryDays || 7, notes: "" });
                       } else {
-                        setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7 });
+                        setNewProject({ serviceTitle: "", packageName: "", price: 0, deliveryDays: 7, notes: "" });
                       }
                       setShowCreateProject(true);
                     }}>
