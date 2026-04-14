@@ -157,6 +157,7 @@ export function useChat() {
       .select()
       .single();
     if (error) { console.error(error); return null; }
+    toast.success("채팅방이 생성되었습니다.");
     await fetchRooms();
     return data as ChatRoom;
   }, [user, fetchRooms]);
@@ -171,7 +172,7 @@ export function useChat() {
       message: text.trim(),
       message_type: "text",
     });
-    if (error) { console.error(error); return; }
+    if (error) { console.error(error); toast.error("메시지 전송에 실패했습니다."); return; }
     await supabase.from("chat_rooms").update({
       last_message: text.trim(),
       last_message_at: new Date().toISOString(),
@@ -190,7 +191,7 @@ export function useChat() {
     const ext = compressed.name.split(".").pop();
     const path = `${roomId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: uploadError } = await supabase.storage.from("chat-files").upload(path, compressed);
-    if (uploadError) { console.error(uploadError); return; }
+    if (uploadError) { console.error(uploadError); toast.error("파일 업로드에 실패했습니다."); return; }
     const { data: urlData } = supabase.storage.from("chat-files").getPublicUrl(path);
 
     let msgType = "file";
@@ -209,7 +210,7 @@ export function useChat() {
       file_type: file.type,
       file_size: file.size,
     });
-    if (error) { console.error(error); return; }
+    if (error) { console.error(error); toast.error("파일 메시지 저장에 실패했습니다."); return; }
     await supabase.from("chat_rooms").update({
       last_message: `📎 ${displayName}`,
       last_message_at: new Date().toISOString(),
@@ -270,7 +271,7 @@ export function useChat() {
       notes: params.notes || null,
     }).select().single();
 
-    if (error) { console.error(error); return null; }
+    if (error) { console.error(error); toast.error("프로젝트 생성에 실패했습니다."); return null; }
 
     // Link project to chat room
     await supabase.from("chat_rooms").update({
