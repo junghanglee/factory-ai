@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useUnreadChat } from "@/hooks/useUnreadChat";
 
 interface NavItem {
   to: string;
@@ -84,6 +85,7 @@ const navGroups: NavGroup[] = [
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const { unreadCount } = useUnreadChat();
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [profileName, setProfileName] = useState("");
@@ -212,6 +214,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   <div className="flex items-center gap-3">
                     <group.icon className="h-4 w-4" />
                     <span className="font-medium">{group.label}</span>
+                    {group.label === "채팅관리" && unreadCount > 0 && (
+                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold leading-none animate-pulse">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                   </div>
                   {isOpen ? (
                     <ChevronDown className="h-3.5 w-3.5" />
