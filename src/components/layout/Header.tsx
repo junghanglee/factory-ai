@@ -6,6 +6,7 @@ import { useCategories } from "@/hooks/useSupabaseData";
 import { getCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadChat } from "@/hooks/useUnreadChat";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -16,6 +17,7 @@ const Header = () => {
   const categories = dbCategories.filter((c) => shouldShowInHeroGrid(c.slug));
   const navigate = useNavigate();
   const myPageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { unreadCount } = useUnreadChat();
 
   const myPageMenuItems = [
     { id: "projects", label: "신청내역", icon: Package },
@@ -57,20 +59,30 @@ const Header = () => {
                   onMouseEnter={handleMyPageEnter}
                   onMouseLeave={handleMyPageLeave}
                 >
-                  <Link to="/mypage" className="flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
+                  <Link to="/mypage" className="relative flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
                     마이페이지
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-4 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                     <ChevronDown className="h-3 w-3" />
                   </Link>
                   {myPageMenuOpen && (
                     <div className="absolute top-full right-0 w-48 bg-background border rounded-lg shadow-lg py-1.5 z-50">
                       {myPageMenuItems.map((item) => (
-                        <Link
+                         <Link
                           key={item.id}
                           to={`/mypage?tab=${item.id}`}
                           className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
                           onClick={() => setMyPageMenuOpen(false)}
                         >
                           <item.icon className="h-4 w-4 text-muted-foreground" />
+                          {item.id === "chat" && unreadCount > 0 && (
+                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
                           <span>{item.label}</span>
                         </Link>
                       ))}
