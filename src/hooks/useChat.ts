@@ -121,10 +121,19 @@ export function useChat() {
   }, [rooms]);
 
   // Select room
-  const selectRoom = useCallback((roomId: string) => {
+  const selectRoom = useCallback(async (roomId: string) => {
     setSelectedRoomId(roomId);
     fetchMessages(roomId);
-  }, [fetchMessages]);
+
+    // Reset unread count for current user
+    if (user) {
+      if (isAdmin) {
+        await supabase.from("chat_rooms").update({ unread_admin: 0 }).eq("id", roomId);
+      } else {
+        await supabase.from("chat_rooms").update({ unread_customer: 0 }).eq("id", roomId);
+      }
+    }
+  }, [fetchMessages, user, isAdmin]);
 
   // Fetch project when room or rooms change
   useEffect(() => {
