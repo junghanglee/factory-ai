@@ -371,55 +371,7 @@ const SellerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="settlements">
-              <Card>
-                <CardHeader>
-                  <CardTitle>정산 내역</CardTitle>
-                  <CardDescription>주문별 정산 현황을 확인하세요 (수수료율: {sellerProfile.commission_rate}%)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {settlementsLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
-                  ) : settlements.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">정산 내역이 없습니다</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>주문번호</TableHead>
-                          <TableHead>서비스</TableHead>
-                          <TableHead className="text-right">주문금액</TableHead>
-                          <TableHead className="text-right">수수료</TableHead>
-                          <TableHead className="text-right">정산금액</TableHead>
-                          <TableHead>상태</TableHead>
-                          <TableHead>정산일</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {settlements.map((s: any) => (
-                          <TableRow key={s.id}>
-                            <TableCell className="font-mono text-xs">{s.projects?.order_number || "-"}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">{s.projects?.service_title || "-"}</TableCell>
-                            <TableCell className="text-right">{formatPrice(s.order_amount)}원</TableCell>
-                            <TableCell className="text-right text-muted-foreground">{formatPrice(s.commission_amount)}원</TableCell>
-                            <TableCell className="text-right font-medium">{formatPrice(s.seller_amount)}원</TableCell>
-                            <TableCell>
-                              <Badge variant={s.status === "완료" ? "default" : s.status === "취소" ? "destructive" : "secondary"}>
-                                {s.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {s.settled_at ? new Date(s.settled_at).toLocaleDateString("ko-KR") : "-"}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
+              <SellerSettlementTab sellerProfile={sellerProfile} />
             </TabsContent>
           </Tabs>
         </div>
