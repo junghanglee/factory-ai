@@ -72,7 +72,7 @@ const HeroSection = () => {
               <div className="relative max-w-[520px] mb-5">
                 <input
                   type="text"
-                  placeholder="어떤 서비스가 필요하세요?"
+                  placeholder="어떤 서비스 찾으시나요?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
