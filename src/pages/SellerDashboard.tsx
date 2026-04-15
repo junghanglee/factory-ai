@@ -91,6 +91,8 @@ const SellerDashboard = () => {
 
   // Stats computed from settlements in SellerSettlementTab; keep simple stats here
   const totalRevenue = sellerProfile?.total_revenue || 0;
+
+  if (loading || profileLoading) {
     return (
       <MainLayout>
         <div className="min-h-screen flex items-center justify-center">
