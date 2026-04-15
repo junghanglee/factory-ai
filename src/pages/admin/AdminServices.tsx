@@ -28,13 +28,15 @@ interface PackageForm {
   price: number;
   price_text: string;
   delivery_days: number;
+  delivery_days_text: string;
   revisions: number;
+  revisions_text: string;
   features: string[];
   sort_order: number;
 }
 
 const emptyPackage = (name: string, order: number): PackageForm => ({
-  name, price: 0, price_text: "", delivery_days: 1, revisions: 1, features: [""], sort_order: order,
+  name, price: 0, price_text: "", delivery_days: 1, delivery_days_text: "", revisions: 1, revisions_text: "", features: [""], sort_order: order,
 });
 
 const AdminServices = () => {
