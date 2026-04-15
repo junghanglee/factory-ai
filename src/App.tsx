@@ -39,6 +39,7 @@ import SellerProfilePage from "./pages/SellerProfilePage";
 import AdminSellers from "./pages/admin/AdminSellers";
 import AdminSettlements from "./pages/admin/AdminSettlements";
 import NotFound from "./pages/NotFound";
+import SellerLoginNotifications from "./components/seller/SellerLoginNotifications";
 
 const queryClient = new QueryClient({
   defaultOptions: {
