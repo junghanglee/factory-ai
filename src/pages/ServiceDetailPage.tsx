@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SellerBadge from "@/components/SellerBadge";
+import { localize } from "@/utils/localize";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
@@ -202,14 +203,14 @@ const ServiceDetailPage = () => {
 
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category ? localize(category, "name") : ""}</span>
                 {discountRate > 0 && (
                   <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive/10 text-destructive">
                     {t("serviceDetail.agencyDiscount", { rate: discountRate })}
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-3">{service.title}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-3">{localize(service, "title")}</h1>
               <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                 <span className="font-medium text-foreground">{service.seller}</span>
                 <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
@@ -253,7 +254,7 @@ const ServiceDetailPage = () => {
               <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.serviceDesc")}</h2>
               {service.description && (
                 <div className="text-[15px] text-muted-foreground leading-[1.8] whitespace-pre-line">
-                  {service.description}
+                  {localize(service, "description")}
                 </div>
               )}
               {service.detailed_description && (
@@ -273,7 +274,7 @@ const ServiceDetailPage = () => {
                       [&_a]:text-primary [&_a]:underline
                       [&_img]:rounded-lg [&_img]:my-4
                       [&_hr]:my-6 [&_hr]:border-border"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(service.detailed_description) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(localize(service, "detailed_description")) }}
                   />
                 </div>
               )}

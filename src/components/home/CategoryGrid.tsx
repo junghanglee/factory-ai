@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { getCategoryIcon, getAllCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 const CategoryGrid = () => {
   const { t } = useTranslation();
@@ -15,9 +16,9 @@ const CategoryGrid = () => {
           {visibleCategories.map((cat) => (
             <Link key={cat.id} to={`/category/${cat.id}`} className="group flex flex-col items-center gap-2 min-w-[100px] py-2">
               <div className="w-[72px] h-[72px] flex items-center justify-center transition-transform group-hover:scale-110">
-                <img src={getCategoryIcon(cat.slug)} alt={cat.name} className="w-full h-full object-contain" loading="lazy" width={72} height={72} />
+                <img src={getCategoryIcon(cat.slug)} alt={localize(cat, "name")} className="w-full h-full object-contain" loading="lazy" width={72} height={72} />
               </div>
-              <span className="text-[13px] text-muted-foreground group-hover:text-foreground whitespace-nowrap transition-colors font-medium">{cat.name}</span>
+              <span className="text-[13px] text-muted-foreground group-hover:text-foreground whitespace-nowrap transition-colors font-medium">{localize(cat, "name")}</span>
             </Link>
           ))}
           <Link to="/category/all" className="group flex flex-col items-center gap-2 min-w-[100px] py-2">
