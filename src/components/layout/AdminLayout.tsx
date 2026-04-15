@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useUnreadChat } from "@/hooks/useUnreadChat";
+import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 interface NavItem {
   to: string;
@@ -88,6 +90,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const { unreadCount } = useUnreadChat();
+  const { unreadCount: adminNotifCount } = useAdminNotifications();
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [profileName, setProfileName] = useState("");
