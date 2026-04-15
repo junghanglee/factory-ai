@@ -2,6 +2,7 @@ import { useState } from "react";
 import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SellerBadge from "@/components/SellerBadge";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
@@ -22,6 +23,7 @@ const ServiceDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data: service, isLoading } = useService(id);
   const { data: packages = [] } = useServicePackages(id);
   const { data: categories = [] } = useCategories();
@@ -32,7 +34,7 @@ const ServiceDetailPage = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">로딩 중...</div>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">{t("common.loading")}</div>
       </MainLayout>
     );
   }
@@ -40,7 +42,7 @@ const ServiceDetailPage = () => {
   if (!service) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">서비스를 찾을 수 없습니다.</div>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">{t("serviceDetail.notFound")}</div>
       </MainLayout>
     );
   }
@@ -98,7 +100,7 @@ const ServiceDetailPage = () => {
           <span className="text-3xl font-bold text-foreground">{formatPrice(service.price)}원</span>
           <div className="space-y-2">
             <Button className="w-full gap-2" onClick={handleInquiry}>
-              <MessageCircle className="h-4 w-4" /> 채팅하기
+              <MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}
             </Button>
           </div>
         </div>
@@ -119,8 +121,8 @@ const ServiceDetailPage = () => {
             )}
           </div>
           <div className="text-sm text-muted-foreground space-y-1">
-            <p>납기: {pkg.delivery_days}일</p>
-            <p>수정: {pkg.revisions}회</p>
+            <p>{t("serviceDetail.delivery")}: {pkg.delivery_days}{t("serviceDetail.days")}</p>
+              <p>{t("serviceDetail.revisions")}: {pkg.revisions}{t("serviceDetail.times")}</p>
           </div>
           {pkg.features && pkg.features.length > 0 && (
             <ul className="space-y-2">
@@ -130,8 +132,8 @@ const ServiceDetailPage = () => {
             </ul>
           )}
           <div className="space-y-2 pt-2">
-            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> 의뢰하기</Button>
-            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 채팅하기</Button>
+            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
+            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
           </div>
         </div>
       );
@@ -155,8 +157,8 @@ const ServiceDetailPage = () => {
               )}
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>납기: {pkg.delivery_days}일</p>
-              <p>수정: {pkg.revisions}회</p>
+              <p>{t("serviceDetail.delivery")}: {pkg.delivery_days}{t("serviceDetail.days")}</p>
+              <p>{t("serviceDetail.revisions")}: {pkg.revisions}{t("serviceDetail.times")}</p>
             </div>
             {pkg.features && pkg.features.length > 0 && (
               <ul className="space-y-2">
@@ -166,8 +168,8 @@ const ServiceDetailPage = () => {
               </ul>
             )}
             <div className="space-y-2 pt-2">
-              <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> 의뢰하기</Button>
-              <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 채팅하기</Button>
+              <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
+              <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
             </div>
           </TabsContent>
         ))}
@@ -184,7 +186,7 @@ const ServiceDetailPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link to="/" className="hover:text-foreground">홈</Link>
+          <Link to="/" className="hover:text-foreground">{t("common.home")}</Link>
           <ChevronRight className="h-3 w-3" />
           <Link to={`/category/${category?.id}`} className="hover:text-foreground">{category?.name}</Link>
           <ChevronRight className="h-3 w-3" />
@@ -203,7 +205,7 @@ const ServiceDetailPage = () => {
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
                 {discountRate > 0 && (
                   <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive/10 text-destructive">
-                    AGENCY 대비 {discountRate}% 절감
+                    {t("serviceDetail.agencyDiscount", { rate: discountRate })}
                   </span>
                 )}
               </div>
@@ -217,7 +219,7 @@ const ServiceDetailPage = () => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  평균 {service.delivery_days}일 제작
+                  {t("serviceDetail.avgDays", { days: service.delivery_days })}
                 </span>
               </div>
 
@@ -234,21 +236,21 @@ const ServiceDetailPage = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{(service as any).seller_profiles.business_name}</span>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">AI팩토리 인증</span>
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{t("serviceDetail.verified")}</span>
                     </div>
                     {(service as any).seller_profiles.bio && (
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{(service as any).seller_profiles.bio}</p>
                     )}
                   </div>
                   <Link to={`/seller/${(service as any).seller_profiles.id}`} className="text-sm text-primary hover:underline shrink-0">
-                    프로필 보기
+                    {t("serviceDetail.viewProfile")}
                   </Link>
                 </div>
               )}
             </div>
 
             <div>
-              <h2 className="text-lg font-semibold mb-3">서비스 설명</h2>
+              <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.serviceDesc")}</h2>
               {service.description && (
                 <div className="text-[15px] text-muted-foreground leading-[1.8] whitespace-pre-line">
                   {service.description}
@@ -279,7 +281,7 @@ const ServiceDetailPage = () => {
 
             {service.portfolio_images && service.portfolio_images.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold mb-3">포트폴리오</h2>
+                <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.portfolio")}</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {service.portfolio_images.map((img, idx) => (
                     <div key={idx} className="aspect-video rounded-lg overflow-hidden border">
@@ -303,32 +305,32 @@ const ServiceDetailPage = () => {
               <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <TrendingDown className="h-5 w-5 text-primary" />
-                  AI팩토리 vs AGENCY 비교
+                  {t("serviceDetail.vsAgency")}
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg bg-background p-4 text-center border">
-                    <div className="text-xs text-muted-foreground mb-1">AI팩토리 평균가격</div>
+                    <div className="text-xs text-muted-foreground mb-1">{t("serviceDetail.avgPrice")}</div>
                     <div className="text-xl font-bold text-primary">{formatPrice(service.price)}원</div>
                     <div className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
-                      <Zap className="h-3 w-3" /> 평균 {service.delivery_days}일 제작
+                      <Zap className="h-3 w-3" /> {t("serviceDetail.avgDays", { days: service.delivery_days })}
                     </div>
                   </div>
                   <div className="rounded-lg bg-background p-4 text-center border">
-                    <div className="text-xs text-muted-foreground mb-1">AGENCY 평균가격</div>
+                    <div className="text-xs text-muted-foreground mb-1">{t("serviceDetail.agencyPrice")}</div>
                     <div className="text-xl font-bold text-muted-foreground line-through">{formatPrice(service.original_price)}원</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      평균 {Math.ceil(service.delivery_days * 2.5)}일 이상 소요
-                    </div>
+                     <div className="text-xs text-muted-foreground mt-1">
+                       {t("serviceDetail.agencyDays", { days: Math.ceil(service.delivery_days * 2.5) })}
+                     </div>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-center gap-6 text-sm">
                   <div className="flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-full bg-destructive" />
-                    <span className="font-medium text-destructive">{discountRate}% 비용 절감</span>
+                    <span className="font-medium text-destructive">{t("serviceDetail.costSaving", { rate: discountRate })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary" />
-                    <span className="font-medium text-primary">{Math.round((1 - 1 / 2.5) * 100)}% 빠른 납기</span>
+                    <span className="font-medium text-primary">{t("serviceDetail.fasterDelivery", { rate: Math.round((1 - 1 / 2.5) * 100) })}</span>
                   </div>
                 </div>
               </div>
@@ -336,10 +338,10 @@ const ServiceDetailPage = () => {
 
             {/* Reviews section */}
             <div>
-              <h2 className="text-lg font-semibold mb-4">리뷰 ({reviews.length})</h2>
+              <h2 className="text-lg font-semibold mb-4">{t("serviceDetail.reviews")} ({reviews.length})</h2>
               {reviews.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8 border rounded-lg border-dashed">
-                  아직 리뷰가 없습니다.
+                 <p className="text-sm text-muted-foreground text-center py-8 border rounded-lg border-dashed">
+                  {t("serviceDetail.noReviews")}
                 </p>
               ) : (
                 <div className="space-y-4">
