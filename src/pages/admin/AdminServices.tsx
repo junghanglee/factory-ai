@@ -406,6 +406,7 @@ const AdminServices = () => {
                   placeholder="Enter detailed description in English..."
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>판매자</Label>
                   <Input value={form.seller || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, seller: v })); }} />
