@@ -113,7 +113,7 @@ const ServiceDetailPage = () => {
       return (
         <div className="p-5 space-y-4">
           <div className="text-center">
-            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{pkg.name}</span>
+            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{localize(pkg, "name")}</span>
           </div>
           <div>
             <span className="text-3xl font-bold text-foreground">{displayPrice(pkg)}</span>
@@ -145,7 +145,7 @@ const ServiceDetailPage = () => {
         <TabsList className={`w-full rounded-none border-b ${packages.length > 3 ? 'flex-wrap h-auto' : ''}`}>
           {packages.map((pkg) => (
             <TabsTrigger key={pkg.id} value={pkg.name} className={`text-xs sm:text-sm ${packages.length > 3 ? 'flex-1 min-w-0 px-2' : 'flex-1'}`}>
-              {pkg.name}
+              {localize(pkg, "name")}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -189,9 +189,9 @@ const ServiceDetailPage = () => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-foreground">{t("common.home")}</Link>
           <ChevronRight className="h-3 w-3" />
-          <Link to={`/category/${category?.id}`} className="hover:text-foreground">{category?.name}</Link>
+          <Link to={`/category/${category?.id}`} className="hover:text-foreground">{category ? localize(category, "name") : ""}</Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-foreground truncate max-w-[200px]">{service.title}</span>
+          <span className="text-foreground truncate max-w-[200px]">{localize(service, "title")}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
