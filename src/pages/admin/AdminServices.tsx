@@ -398,7 +398,14 @@ const AdminServices = () => {
                   placeholder="서비스 상세 설명을 입력하세요..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2 block">Detailed Description (EN)</Label>
+                <SimpleRichEditor
+                  value={form.detailed_description_en || ""}
+                  onChange={(html) => setForm((prev: any) => ({ ...prev, detailed_description_en: html }))}
+                  placeholder="Enter detailed description in English..."
+                />
+              </div>
                 <div>
                   <Label>판매자</Label>
                   <Input value={form.seller || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, seller: v })); }} />

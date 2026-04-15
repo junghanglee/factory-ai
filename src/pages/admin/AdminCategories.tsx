@@ -18,17 +18,17 @@ const AdminCategories = () => {
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", color: "hsl(246, 65%, 56%)", slug: "", icon_name: "Image", sort_order: 0 });
+  const [form, setForm] = useState({ name: "", name_en: "", description: "", description_en: "", color: "hsl(246, 65%, 56%)", slug: "", icon_name: "Image", sort_order: 0 });
 
   const openNew = () => {
     setEditId(null);
-    setForm({ name: "", description: "", color: "hsl(246, 65%, 56%)", slug: "", icon_name: "Image", sort_order: cats.length + 1 });
+    setForm({ name: "", name_en: "", description: "", description_en: "", color: "hsl(246, 65%, 56%)", slug: "", icon_name: "Image", sort_order: cats.length + 1 });
     setEditOpen(true);
   };
 
   const openEdit = (cat: typeof cats[0]) => {
     setEditId(cat.id);
-    setForm({ name: cat.name, description: cat.description || "", color: cat.color, slug: cat.slug, icon_name: cat.icon_name, sort_order: cat.sort_order });
+    setForm({ name: cat.name, name_en: (cat as any).name_en || "", description: cat.description || "", description_en: (cat as any).description_en || "", color: cat.color, slug: cat.slug, icon_name: cat.icon_name, sort_order: cat.sort_order });
     setEditOpen(true);
   };
 
@@ -40,7 +40,7 @@ const AdminCategories = () => {
     try {
       if (editId) {
         const { error, data } = await supabase.from("categories").update({
-          name: form.name, description: form.description, color: form.color, icon_name: form.icon_name, sort_order: form.sort_order,
+          name: form.name, name_en: form.name_en || null, description: form.description, description_en: form.description_en || null, color: form.color, icon_name: form.icon_name, sort_order: form.sort_order,
         }).eq("id", editId).select();
         if (error) throw error;
         if (!data || data.length === 0) throw new Error("저장 권한이 없거나 해당 카테고리를 찾을 수 없습니다.");
@@ -48,7 +48,7 @@ const AdminCategories = () => {
       } else {
         const slug = form.slug.trim() || form.name.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-|-$/g, "");
         const { error } = await supabase.from("categories").insert({
-          name: form.name, description: form.description, color: form.color, slug, icon_name: form.icon_name, sort_order: form.sort_order,
+          name: form.name, name_en: form.name_en || null, description: form.description, description_en: form.description_en || null, color: form.color, slug, icon_name: form.icon_name, sort_order: form.sort_order,
         });
         if (error) throw error;
         toast.success("카테고리가 추가되었습니다.");
