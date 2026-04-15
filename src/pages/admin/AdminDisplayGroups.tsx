@@ -30,6 +30,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 
 interface DisplayGroup {
   id: string;
@@ -87,6 +88,7 @@ function SortableServiceItem({ id, service, onRemove }: { id: string; service: S
 
 const AdminDisplayGroups = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
   const [editGroup, setEditGroup] = useState<DisplayGroup | null>(null);
   const [formTitle, setFormTitle] = useState("");

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, Trash2, Mail, Phone, Building2 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 const statusColors: Record<string, string> = {
   "신규": "bg-blue-100 text-blue-700",
@@ -20,6 +21,7 @@ const statusColors: Record<string, string> = {
 
 const AdminInquiries = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<any>(null);
   const [memo, setMemo] = useState("");
   const [reply, setReply] = useState("");

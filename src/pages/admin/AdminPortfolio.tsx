@@ -22,6 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { compressFiles } from "@/utils/imageCompression";
+import { useTranslation } from "react-i18next";
 
 interface PortfolioItem {
   id: string;
@@ -106,6 +107,7 @@ function SortableCard({ item, onEdit, onDelete, onToggle }: {
 
 const AdminPortfolio = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);

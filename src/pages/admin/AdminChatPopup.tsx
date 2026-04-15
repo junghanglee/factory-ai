@@ -16,6 +16,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Film as FilmIcon, Video as VideoIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MAX_FILES = 10;
 
@@ -25,6 +26,7 @@ function formatDate(dateStr: string) {
 }
 
 const AdminChatPopup = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("roomId");
   const { loading, isAdmin } = useAuth();

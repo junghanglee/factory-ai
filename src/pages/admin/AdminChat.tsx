@@ -20,6 +20,7 @@ import { groupMessages } from "@/utils/messageGrouping";
 import RequestTypeDialog from "@/components/chat/RequestTypeDialog";
 import QuoteDialog from "@/components/chat/QuoteDialog";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const MAX_FILES = 10;
 
@@ -37,6 +38,7 @@ const AdminChat = () => {
     sendQuote, confirmPayment, sendPurchaseConfirmRequest,
   } = useChat();
 
+  const { t } = useTranslation();
   const [isFeedbackMode, setIsFeedbackMode] = useState(false);
   const [showRequestType, setShowRequestType] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);

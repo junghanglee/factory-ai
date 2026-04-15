@@ -19,6 +19,7 @@ import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
 import ReviewManager from "@/components/admin/ReviewManager";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -41,6 +42,7 @@ const emptyPackage = (name: string, order: number): PackageForm => ({
 });
 
 const AdminServices = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: servicesData = [], isLoading } = useAllServicesWithPackages();
   const { data: categories = [] } = useCategories();
