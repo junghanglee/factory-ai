@@ -270,6 +270,11 @@ const AdminChat = () => {
                               isMine={item.msg.sender_id === user?.id}
                               onReply={(m) => setReplyTo(m)}
                               roomId={selectedRoomId || undefined}
+                              isAdmin={true}
+                              paymentStatus={project?.payment_status}
+                              onConfirmPayment={confirmPayment}
+                              currentUserId={user?.id}
+                              serviceId={selectedRoom?.service_id || undefined}
                             />
                           )
                         )}
