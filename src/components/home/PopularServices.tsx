@@ -6,6 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
+interface ServicePackage {
+  id: string;
+  service_id: string;
+  price: number;
+  price_text: string | null;
+  sort_order: number;
+}
+
 interface Service {
   id: string;
   title: string;
@@ -15,6 +23,7 @@ interface Service {
   review_count: number;
   seller: string | null;
   seller_id?: string | null;
+  first_package?: ServicePackage | null;
 }
 
 interface DisplayGroup {
@@ -73,7 +82,13 @@ const ServiceCard = ({ service }: { service: Service }) => (
       <span className="text-[13px] font-medium text-foreground">{service.rating}</span>
       <span className="text-[13px] text-muted-foreground">({service.review_count})</span>
     </div>
-    <p className="text-[15px] font-medium text-foreground">{formatPrice(service.price)}원~</p>
+    <p className="text-[15px] font-medium text-foreground">
+      {service.first_package?.price_text
+        ? service.first_package.price_text
+        : service.first_package
+          ? `${formatPrice(service.first_package.price)}원~`
+          : `${formatPrice(service.price)}원~`}
+    </p>
     <div className="flex items-center gap-1.5 mt-2">
       <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground">
         {service.seller?.[0] || "A"}
@@ -221,9 +236,14 @@ const PopularServices = () => {
   const { data: allServices = [] } = useQuery({
     queryKey: ["services_for_display"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller, seller_id");
+      const { data: svcs, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller, seller_id");
       if (error) throw error;
-      return data as Service[];
+      const { data: pkgs, error: pErr } = await supabase.from("service_packages").select("id, service_id, price, price_text, sort_order").order("sort_order");
+      if (pErr) throw pErr;
+      return (svcs as Service[]).map(s => ({
+        ...s,
+        first_package: (pkgs as ServicePackage[]).find(p => p.service_id === s.id) || null,
+      }));
     },
   });
 
