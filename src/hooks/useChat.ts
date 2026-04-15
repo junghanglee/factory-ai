@@ -391,7 +391,7 @@ export function useChat() {
     await fetchProject(selectedRoomId!);
   }, [project, user, selectedRoomId, fetchProject]);
 
-  // Customer: Confirm project completion
+  // Customer: Confirm project completion (legacy)
   const confirmProject = useCallback(async () => {
     if (!project || !selectedRoomId || !user) return;
     await supabase.from("projects").update({
@@ -399,42 +399,161 @@ export function useChat() {
       status: "완료",
       completed_date: new Date().toISOString().split("T")[0],
     }).eq("id", project.id);
-
     await supabase.from("chat_messages").insert({
-      room_id: selectedRoomId,
-      sender_id: user.id,
+      room_id: selectedRoomId, sender_id: user.id,
       message: "✅ 고객이 결과물을 확인하고 프로젝트를 완료 처리했습니다.",
       message_type: "text",
     });
-
     await fetchProject(selectedRoomId);
     await supabase.from("chat_rooms").update({
-      last_message: "프로젝트 완료 확인",
-      last_message_at: new Date().toISOString(),
+      last_message: "프로젝트 완료 확인", last_message_at: new Date().toISOString(),
     }).eq("id", selectedRoomId);
   }, [project, selectedRoomId, user, fetchProject]);
 
   // Customer: Request revision
   const requestRevision = useCallback(async (reason: string) => {
     if (!project || !selectedRoomId || !user) return;
-    await supabase.from("projects").update({
-      confirm_status: "수정요청",
-      status: "수정중",
-    }).eq("id", project.id);
-
+    await supabase.from("projects").update({ confirm_status: "수정요청", status: "수정중" }).eq("id", project.id);
     await supabase.from("chat_messages").insert({
-      room_id: selectedRoomId,
-      sender_id: user.id,
-      message: `🔄 수정 요청\n\n사유: ${reason}`,
-      message_type: "text",
+      room_id: selectedRoomId, sender_id: user.id,
+      message: `🔄 수정 요청\n\n사유: ${reason}`, message_type: "text",
     });
-
     await fetchProject(selectedRoomId);
     await supabase.from("chat_rooms").update({
-      last_message: "수정 요청",
-      last_message_at: new Date().toISOString(),
+      last_message: "수정 요청", last_message_at: new Date().toISOString(),
     }).eq("id", selectedRoomId);
   }, [project, selectedRoomId, user, fetchProject]);
+
+  // Admin/Seller: Send quote
+  const sendQuote = useCallback(async (params: {
+    serviceTitle: string; packageName: string; price: number; deliveryDays: number; memo: string;
+  }) => {
+    if (!user || !selectedRoomId) return null;
+    const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + params.deliveryDays);
+    let sellerId: string | null = null;
+    const room = rooms.find(r => r.id === selectedRoomId);
+    if (room?.service_id) {
+      const { data: svc } = await supabase.from("services").select("seller_id").eq("id", room.service_id).maybeSingle();
+      if (svc?.seller_id) sellerId = svc.seller_id;
+    }
+    const quoteDetails = { serviceTitle: params.serviceTitle, packageName: params.packageName || undefined, price: params.price, deliveryDays: params.deliveryDays, memo: params.memo || undefined, orderNumber };
+    const { data: proj, error } = await supabase.from("projects").insert({
+      order_number: orderNumber, service_title: params.serviceTitle, package_name: params.packageName || null,
+      customer: room?.title || "고객", customer_id: room?.customer_id || null, price: params.price,
+      status: "대기", payment_status: "견적발송", quote_details: quoteDetails,
+      due_date: dueDate.toISOString().split("T")[0], notes: params.memo || null, seller_id: sellerId,
+    }).select().single();
+    if (error || !proj) { console.error(error); toast.error("견적서 발송에 실패했습니다."); return null; }
+    await supabase.from("chat_rooms").update({ project_id: proj.id }).eq("id", selectedRoomId);
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId, sender_id: user.id,
+      message: `📋 견적서가 발송되었습니다.\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원`,
+      message_type: "quote", file_name: JSON.stringify(quoteDetails),
+    });
+    await supabase.from("chat_rooms").update({
+      last_message: `📋 견적서: ${params.price.toLocaleString()}원`, last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+    if (sellerId) {
+      await supabase.from("seller_notifications").insert({
+        seller_id: sellerId, type: "quote_sent", title: "견적서가 발송되었습니다",
+        message: `서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원`,
+        metadata: { project_id: proj.id, order_number: orderNumber },
+      });
+    }
+    toast.success("견적서가 발송되었습니다.");
+    await fetchRooms();
+    return proj as Project;
+  }, [user, selectedRoomId, rooms, fetchRooms]);
+
+  // Admin/Seller: Confirm payment
+  const confirmPayment = useCallback(async () => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("projects").update({ payment_status: "입금완료", status: "작업중" }).eq("id", project.id);
+    if (project.seller_id) {
+      const { data: seller } = await supabase.from("seller_profiles").select("commission_rate").eq("id", project.seller_id).maybeSingle();
+      const rate = seller?.commission_rate || 10;
+      const commissionAmount = Math.round(project.price * rate / 100);
+      await supabase.from("settlements").insert({
+        seller_id: project.seller_id, project_id: project.id, order_amount: project.price,
+        commission_rate: rate, commission_amount: commissionAmount,
+        seller_amount: project.price - commissionAmount, status: "대기",
+      });
+    }
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId, sender_id: user.id,
+      message: "💰 입금이 확인되었습니다. 제작을 시작합니다.", message_type: "text",
+    });
+    await fetchProject(selectedRoomId);
+    await supabase.from("chat_rooms").update({
+      last_message: "입금 확인 완료", last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+    toast.success("입금 확인 처리되었습니다.");
+  }, [project, selectedRoomId, user, fetchProject]);
+
+  // Admin/Seller: Send purchase confirmation request
+  const sendPurchaseConfirmRequest = useCallback(async () => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId, sender_id: user.id,
+      message: "결과물 확인 후 구매를 확정해주세요. 구매확정 후에는 수정 요청이 불가합니다.",
+      message_type: "purchase_confirm", file_name: JSON.stringify({ confirmed: false }),
+    });
+    await supabase.from("chat_rooms").update({
+      last_message: "구매확정 요청", last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+    toast.success("구매확정 요청이 전송되었습니다.");
+  }, [project, selectedRoomId, user]);
+
+  // Customer: Confirm purchase (irreversible)
+  const confirmPurchase = useCallback(async (messageId: string) => {
+    if (!project || !selectedRoomId || !user) return;
+    await supabase.from("projects").update({
+      confirm_status: "확인완료", payment_status: "구매확정", status: "완료",
+      completed_date: new Date().toISOString().split("T")[0],
+    }).eq("id", project.id);
+    await supabase.from("chat_messages").update({
+      file_name: JSON.stringify({ confirmed: true, confirmedAt: new Date().toISOString() }),
+    }).eq("id", messageId);
+    if (project.seller_id) {
+      await supabase.from("settlements").update({
+        status: "정산완료", settled_at: new Date().toISOString(),
+      }).eq("project_id", project.id);
+    }
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId, sender_id: user.id,
+      message: "✅ 구매가 확정되었습니다. 이용해주셔서 감사합니다!", message_type: "text",
+    });
+    const room = rooms.find(r => r.id === selectedRoomId);
+    await supabase.from("chat_messages").insert({
+      room_id: selectedRoomId, sender_id: user.id,
+      message: "서비스는 만족스러우셨나요? 리뷰를 작성해주세요!",
+      message_type: "review_prompt",
+      file_name: JSON.stringify({ serviceId: room?.service_id, projectId: project.id }),
+    });
+    await fetchProject(selectedRoomId);
+    await supabase.from("chat_rooms").update({
+      last_message: "구매 확정 완료", last_message_at: new Date().toISOString(),
+    }).eq("id", selectedRoomId);
+    if (project.customer_id) {
+      const { data: member } = await supabase.from("members").select("order_count, total_spent").eq("id", project.customer_id).maybeSingle();
+      if (member) {
+        await supabase.from("members").update({
+          order_count: (member.order_count || 0) + 1, total_spent: (member.total_spent || 0) + project.price,
+        }).eq("id", project.customer_id);
+      }
+    }
+    if (project.seller_id) {
+      const { data: seller } = await supabase.from("seller_profiles").select("total_sales, total_revenue").eq("id", project.seller_id).maybeSingle();
+      if (seller) {
+        await supabase.from("seller_profiles").update({
+          total_sales: (seller.total_sales || 0) + 1, total_revenue: (seller.total_revenue || 0) + project.price,
+        }).eq("id", project.seller_id);
+      }
+    }
+    toast.success("구매가 확정되었습니다!");
+  }, [project, selectedRoomId, user, rooms, fetchProject]);
 
   // Admin: Send feedback request with files
   const sendFeedbackRequest = useCallback(async (requestText: string, files?: File[]) => {
