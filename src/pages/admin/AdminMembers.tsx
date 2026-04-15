@@ -65,6 +65,13 @@ const AdminMembers = () => {
 
   useEffect(() => { fetchData(); }, []);
 
+  const statusFilterMap: Record<string, string> = {
+    [t("admin.all")]: "전체",
+    [t("admin.active")]: "활성",
+    [t("admin.dormant")]: "휴면",
+    [t("admin.withdrawn")]: "탈퇴",
+  };
+
   const filtered = members.filter((m) => {
     const matchSearch = m.name.includes(search) || m.email.includes(search);
     const matchStatus = statusFilter === "전체" || m.status === statusFilter;
@@ -91,16 +98,15 @@ const AdminMembers = () => {
     const value = adminId === "none" ? null : adminId;
     const { error } = await supabase.from("members").update({ assigned_admin_id: value }).eq("id", memberId);
     if (error) {
-      toast({ title: "변경 실패", variant: "destructive" });
+      toast({ title: t("admin.changeFailed"), variant: "destructive" });
       return;
     }
     setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, assigned_admin_id: value } : m)));
     if (selectedMember?.id === memberId) setSelectedMember({ ...selectedMember, assigned_admin_id: value });
-    toast({ title: "담당자가 변경되었습니다" });
+    toast({ title: t("admin.adminChanged") });
   };
 
   const openChatWithMember = (member: MemberRow) => {
-    // Open admin chat in new window with member info
     const chatUrl = `/admin/chat?member=${encodeURIComponent(member.name)}&email=${encodeURIComponent(member.email)}`;
     window.open(chatUrl, "_blank", "width=800,height=600");
   };
@@ -112,31 +118,30 @@ const AdminMembers = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold mb-4">회원 관리</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("admin.memberManage")}</h1>
 
-      {/* Summary stats */}
       <div className="grid grid-cols-4 gap-4 mb-4">
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">총 회원수</p>
+            <p className="text-xs text-muted-foreground">{t("admin.totalMemberCount")}</p>
             <p className="text-xl font-bold">{totalMembers}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">활성 회원</p>
+            <p className="text-xs text-muted-foreground">{t("admin.activeMembers")}</p>
             <p className="text-xl font-bold text-green-600">{activeMembers}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">휴면 회원</p>
+            <p className="text-xs text-muted-foreground">{t("admin.dormantMembers")}</p>
             <p className="text-xl font-bold text-amber-600">{dormantMembers}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">판매자 회원</p>
+            <p className="text-xs text-muted-foreground">{t("admin.sellerMembers")}</p>
             <p className="text-xl font-bold text-primary">{sellerMembers}</p>
           </CardContent>
         </Card>
@@ -145,12 +150,12 @@ const AdminMembers = () => {
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="이름 또는 이메일 검색" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder={t("admin.searchNameEmail")} value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-1">
-          {["전체", "활성", "휴면", "탈퇴"].map((s) => (
-            <Button key={s} variant={statusFilter === s ? "default" : "outline"} size="sm" onClick={() => setStatusFilter(s)}>
-              {s}
+          {[{ label: t("admin.all"), value: "전체" }, { label: t("admin.active"), value: "활성" }, { label: t("admin.dormant"), value: "휴면" }, { label: t("admin.withdrawn"), value: "탈퇴" }].map((s) => (
+            <Button key={s.value} variant={statusFilter === s.value ? "default" : "outline"} size="sm" onClick={() => setStatusFilter(s.value)}>
+              {s.label}
             </Button>
           ))}
         </div>
@@ -161,24 +166,24 @@ const AdminMembers = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-secondary/50">
-                <th className="text-left p-4 font-medium text-muted-foreground w-12">No.</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">이름</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">이메일</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">연락처</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">가입일</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">주문</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">총 결제</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">판매자</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">담당자</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">상태</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
+                <th className="text-left p-4 font-medium text-muted-foreground w-12">{t("admin.no")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("common.name")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("common.email")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.contact")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.joinDate")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.orders")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.totalPayment")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.sellerLabel")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.assignedAdmin")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.status")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.manage")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">로딩 중...</td></tr>
+                <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">{t("common.loading")}</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">검색 결과가 없습니다</td></tr>
+                <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">{t("admin.searchNoResults")}</td></tr>
               ) : (
                 filtered.map((member, idx) => {
                   const isSeller = sellerUserIds.has(member.id);
@@ -189,12 +194,12 @@ const AdminMembers = () => {
                       <td className="p-4 text-muted-foreground">{member.email}</td>
                       <td className="p-4">{member.phone || "-"}</td>
                       <td className="p-4">{new Date(member.created_at).toLocaleDateString("ko-KR")}</td>
-                      <td className="p-4">{member.order_count}건</td>
+                      <td className="p-4">{t("admin.count", { count: member.order_count })}</td>
                       <td className="p-4">₩{formatPrice(member.total_spent)}</td>
                       <td className="p-4">
                         {isSeller ? (
                           <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 gap-0.5">
-                            <Store className="h-3 w-3" /> 판매자
+                            <Store className="h-3 w-3" /> {t("admin.sellerLabel")}
                           </Badge>
                         ) : (
                           <span className="text-xs text-muted-foreground">-</span>
@@ -210,7 +215,7 @@ const AdminMembers = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none">미배정</SelectItem>
+                              <SelectItem value="none">{t("admin.unassigned")}</SelectItem>
                               {admins.map((a) => (
                                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                               ))}
@@ -230,7 +235,7 @@ const AdminMembers = () => {
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openChatWithMember(member)} title="채팅">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openChatWithMember(member)} title={t("admin.sendChat")}>
                             <MessageSquare className="h-4 w-4" />
                           </Button>
                         </div>
@@ -247,25 +252,25 @@ const AdminMembers = () => {
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>회원 상세 정보</DialogTitle>
+            <DialogTitle>{t("admin.memberDetail")}</DialogTitle>
           </DialogHeader>
           {selectedMember && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground">이름:</span> <span className="font-medium">{selectedMember.name}</span></div>
-                <div><span className="text-muted-foreground">이메일:</span> {selectedMember.email}</div>
-                <div><span className="text-muted-foreground">연락처:</span> {selectedMember.phone || "-"}</div>
-                <div><span className="text-muted-foreground">가입일:</span> {new Date(selectedMember.created_at).toLocaleDateString("ko-KR")}</div>
-                <div><span className="text-muted-foreground">주문 수:</span> {selectedMember.order_count}건</div>
-                <div><span className="text-muted-foreground">총 결제:</span> ₩{formatPrice(selectedMember.total_spent)}</div>
+                <div><span className="text-muted-foreground">{t("common.name")}:</span> <span className="font-medium">{selectedMember.name}</span></div>
+                <div><span className="text-muted-foreground">{t("common.email")}:</span> {selectedMember.email}</div>
+                <div><span className="text-muted-foreground">{t("admin.contact")}:</span> {selectedMember.phone || "-"}</div>
+                <div><span className="text-muted-foreground">{t("admin.joinDate")}:</span> {new Date(selectedMember.created_at).toLocaleDateString("ko-KR")}</div>
+                <div><span className="text-muted-foreground">{t("admin.orderCount")}:</span> {t("admin.count", { count: selectedMember.order_count })}</div>
+                <div><span className="text-muted-foreground">{t("admin.totalPayment")}:</span> ₩{formatPrice(selectedMember.total_spent)}</div>
                 <div>
-                  <span className="text-muted-foreground">판매자 여부:</span>{" "}
+                  <span className="text-muted-foreground">{t("admin.sellerStatus")}:</span>{" "}
                   {sellerUserIds.has(selectedMember.id) ? (
-                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">승인됨</Badge>
-                  ) : "일반회원"}
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">{t("admin.approvedSeller")}</Badge>
+                  ) : t("admin.generalMember")}
                 </div>
                 <div>
-                  <span className="text-muted-foreground">담당자:</span>{" "}
+                  <span className="text-muted-foreground">{t("admin.assignedAdmin")}:</span>{" "}
                   {isSuperAdmin ? (
                     <Select
                       value={selectedMember.assigned_admin_id || "none"}
@@ -275,7 +280,7 @@ const AdminMembers = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">미배정</SelectItem>
+                        <SelectItem value="none">{t("admin.unassigned")}</SelectItem>
                         {admins.map((a) => (
                           <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                         ))}
@@ -287,7 +292,7 @@ const AdminMembers = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 pt-2 border-t">
-                <span className="text-sm text-muted-foreground">상태 변경:</span>
+                <span className="text-sm text-muted-foreground">{t("admin.changeStatus")}</span>
                 {(["활성", "휴면", "탈퇴"] as const).map((s) => (
                   <Button
                     key={s}
@@ -295,13 +300,13 @@ const AdminMembers = () => {
                     size="sm"
                     onClick={() => changeStatus(selectedMember.id, s)}
                   >
-                    {s}
+                    {s === "활성" ? t("admin.active") : s === "휴면" ? t("admin.dormant") : t("admin.withdrawn")}
                   </Button>
                 ))}
               </div>
               <div className="pt-2 border-t">
                 <Button variant="outline" size="sm" className="gap-1" onClick={() => openChatWithMember(selectedMember)}>
-                  <MessageSquare className="h-4 w-4" /> 채팅 보내기
+                  <MessageSquare className="h-4 w-4" /> {t("admin.sendChat")}
                 </Button>
               </div>
             </div>
