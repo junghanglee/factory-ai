@@ -288,7 +288,7 @@ const SellerDashboard = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
                 <Package className="h-8 w-8 text-primary" />
@@ -303,25 +303,7 @@ const SellerDashboard = () => {
                 <BarChart3 className="h-8 w-8 text-green-500" />
                 <div>
                   <p className="text-sm text-muted-foreground">총 매출</p>
-                  <p className="text-2xl font-bold">{formatPrice(sellerProfile.total_revenue || 0)}원</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Wallet className="h-8 w-8 text-emerald-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">정산 완료</p>
-                  <p className="text-2xl font-bold">{formatPrice(totalSettled)}원</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <DollarSign className="h-8 w-8 text-orange-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">정산 대기</p>
-                  <p className="text-2xl font-bold">{formatPrice(totalPending)}원</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalRevenue)}원</p>
                 </div>
               </CardContent>
             </Card>
@@ -332,7 +314,7 @@ const SellerDashboard = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="services">내 서비스</TabsTrigger>
               <TabsTrigger value="chat">고객 채팅</TabsTrigger>
-              <TabsTrigger value="settlements">정산 내역</TabsTrigger>
+              <TabsTrigger value="settlements">정산관리</TabsTrigger>
             </TabsList>
 
             <TabsContent value="services">
