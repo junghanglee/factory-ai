@@ -399,6 +399,10 @@ const SellerDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="chat">
+              <SellerChatTab sellerId={sellerProfile.id} />
+            </TabsContent>
+
             <TabsContent value="settlements">
               <Card>
                 <CardHeader>
