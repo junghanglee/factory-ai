@@ -360,12 +360,17 @@ const AdminServices = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>서비스명</Label>
+                  <Label>서비스명 (한국어)</Label>
                   <Input value={form.title || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, title: v })); }} />
                 </div>
                 <div>
-                  <Label>카테고리</Label>
-                  <select
+                  <Label>Service Name (EN)</Label>
+                  <Input value={form.title_en || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, title_en: v })); }} placeholder="English title" />
+                </div>
+              </div>
+              <div>
+                <Label>카테고리</Label>
+                <select
                     className="w-full h-10 border rounded-md px-3 text-sm bg-background"
                     value={form.category_id || ""}
                     onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, category_id: v })); }}
@@ -374,14 +379,19 @@ const AdminServices = () => {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>간단 설명 (한국어)</Label>
+                  <Input value={form.description || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, description: v })); }} />
+                </div>
+                <div>
+                  <Label>Short Description (EN)</Label>
+                  <Input value={form.description_en || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, description_en: v })); }} placeholder="English description" />
                 </div>
               </div>
               <div>
-                <Label>간단 설명</Label>
-                <Input value={form.description || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, description: v })); }} />
-              </div>
-              <div>
-                <Label className="mb-2 block">상세 설명</Label>
+                <Label className="mb-2 block">상세 설명 (한국어)</Label>
                 <SimpleRichEditor
                   value={form.detailed_description || ""}
                   onChange={(html) => setForm((prev: any) => ({ ...prev, detailed_description: html }))}
