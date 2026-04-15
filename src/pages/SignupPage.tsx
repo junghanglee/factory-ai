@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -24,6 +25,7 @@ const AppleIcon = () => (
 );
 
 const SignupPage = () => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,14 +37,14 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { toast.error("이메일과 비밀번호를 입력해주세요."); return; }
-    if (password !== confirmPassword) { toast.error("비밀번호가 일치하지 않습니다."); return; }
-    if (password.length < 6) { toast.error("비밀번호는 6자 이상이어야 합니다."); return; }
+    if (!email || !password) { toast.error(t("signup.enterBoth")); return; }
+    if (password !== confirmPassword) { toast.error(t("signup.passwordMismatch")); return; }
+    if (password.length < 6) { toast.error(t("signup.passwordTooShort")); return; }
     setLoading(true);
     const { error } = await signUp(email, password, name);
     setLoading(false);
-    if (error) { toast.error("회원가입 실패: " + error.message); }
-    else { toast.success("회원가입 완료! 로그인되었습니다."); navigate("/"); }
+    if (error) { toast.error(t("signup.signupFailed") + error.message); }
+    else { toast.success(t("signup.signupSuccess")); navigate("/"); }
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
@@ -50,15 +52,15 @@ const SignupPage = () => {
     try {
       const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
       if (result.error) {
-        toast.error(`${provider === "google" ? "Google" : "Apple"} 가입 실패`);
+        toast.error(provider === "google" ? t("signup.googleFailed") : t("signup.appleFailed"));
         setSocialLoading(null);
         return;
       }
       if (result.redirected) return;
-      toast.success("가입 성공!");
+      toast.success(t("signup.signupSuccess"));
       navigate("/");
     } catch {
-      toast.error("소셜 가입 중 오류가 발생했습니다.");
+      toast.error(t("signup.socialError"));
       setSocialLoading(null);
     }
   };
@@ -68,47 +70,47 @@ const SignupPage = () => {
       <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">회원가입</CardTitle>
-            <p className="text-sm text-muted-foreground">AI팩토리와 함께 시작하세요</p>
+            <CardTitle className="text-2xl">{t("signup.title")}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t("signup.subtitle")}</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 mb-4">
               <Button variant="outline" className="w-full h-11 gap-3 font-medium" onClick={() => handleOAuth("google")} disabled={!!socialLoading}>
-                <GoogleIcon /> Google로 가입
+                <GoogleIcon /> {t("signup.googleSignup")}
               </Button>
               <Button variant="outline" className="w-full h-11 gap-3 font-medium bg-black text-white hover:bg-black/90 border-black" onClick={() => handleOAuth("apple")} disabled={!!socialLoading}>
-                <AppleIcon /> Apple로 가입
+                <AppleIcon /> {t("signup.appleSignup")}
               </Button>
             </div>
 
             <div className="relative my-4">
               <Separator />
-              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">또는 이메일로 가입</span>
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">{t("signup.orEmail")}</span>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">이름</label>
-                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
+                <label className="text-sm font-medium mb-1.5 block">{t("signup.nameLabel")}</label>
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t("signup.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">이메일</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("signup.emailLabel")}</label>
                 <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="email@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">비밀번호</label>
-                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="비밀번호 (6자 이상)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <label className="text-sm font-medium mb-1.5 block">{t("signup.passwordLabel")}</label>
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t("signup.passwordPlaceholder")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">비밀번호 확인</label>
-                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="비밀번호 확인" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                <label className="text-sm font-medium mb-1.5 block">{t("signup.confirmPasswordLabel")}</label>
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t("signup.confirmPasswordPlaceholder")} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>{loading ? "가입 중..." : "가입하기"}</Button>
+              <Button className="w-full" type="submit" disabled={loading}>{loading ? t("signup.signingUp") : t("signup.signupButton")}</Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              이미 계정이 있으신가요?{" "}
-              <Link to="/login" className="text-primary hover:underline font-medium">로그인</Link>
+              {t("signup.hasAccount")}{" "}
+              <Link to="/login" className="text-primary hover:underline font-medium">{t("common.login")}</Link>
             </p>
           </CardContent>
         </Card>
