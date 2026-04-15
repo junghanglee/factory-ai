@@ -235,8 +235,7 @@ const AdminServices = () => {
                    <th className="text-left p-4 font-medium text-muted-foreground">서비스</th>
                    <th className="text-left p-4 font-medium text-muted-foreground">등록자</th>
                    <th className="text-left p-4 font-medium text-muted-foreground">카테고리</th>
-                   <th className="text-left p-4 font-medium text-muted-foreground">가격</th>
-                   <th className="text-left p-4 font-medium text-muted-foreground">패키지</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">패키지/가격</th>
                    <th className="text-left p-4 font-medium text-muted-foreground">평점</th>
                    <th className="text-left p-4 font-medium text-muted-foreground">피드백</th>
                    <th className="text-left p-4 font-medium text-muted-foreground">승인</th>
@@ -274,15 +273,17 @@ const AdminServices = () => {
                       <td className="p-4 text-muted-foreground">
                         {categories.find((c) => c.id === svc.category_id)?.name || "-"}
                       </td>
-                      <td className="p-4">{formatPrice(svc.price)}원</td>
                       <td className="p-4">
                         <button
-                          className="flex gap-1 hover:opacity-70 transition-opacity"
+                          className="flex flex-col gap-1 hover:opacity-70 transition-opacity"
                           onClick={() => openEdit(svc)}
                           title="패키지 수정"
                         >
                           {svc.packages.length > 0 ? svc.packages.map((pkg: any) => (
-                            <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs cursor-pointer">{pkg.name}</span>
+                            <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs cursor-pointer flex justify-between gap-2">
+                              <span>{pkg.name}</span>
+                              <span className="text-muted-foreground">{pkg.price_text || `${formatPrice(pkg.price)}원`}</span>
+                            </span>
                           )) : <span className="text-xs text-muted-foreground">없음</span>}
                         </button>
                       </td>
