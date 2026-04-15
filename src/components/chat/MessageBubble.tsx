@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { FileText, Download, Play, MessageCircle, Reply, User } from "lucide-react";
+import { FileText, Download, Play, MessageCircle, Reply, User, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/hooks/useChat";
 import VideoReviewDialog from "./VideoReviewDialog";
 import FeedbackRequestBubble from "./FeedbackRequestBubble";
 import FeedbackResponseBubble from "./FeedbackResponseBubble";
+import QuoteBubble from "./QuoteBubble";
+import PurchaseConfirmBubble from "./PurchaseConfirmBubble";
+import ReviewWriteDialog from "./ReviewWriteDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(dateStr: string) {
@@ -98,21 +101,86 @@ interface MessageBubbleProps {
   isMine: boolean;
   onReply?: (msg: ChatMessage) => void;
   roomId?: string;
+  isAdmin?: boolean;
+  paymentStatus?: string;
+  onConfirmPayment?: () => void;
+  onConfirmPurchase?: (messageId: string) => Promise<void>;
+  currentUserId?: string;
+  serviceId?: string;
 }
 
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
 
-export default function MessageBubble({ msg, isMine, onReply, roomId }: MessageBubbleProps) {
+export default function MessageBubble({ msg, isMine, onReply, roomId, isAdmin, paymentStatus, onConfirmPayment, onConfirmPurchase, currentUserId, serviceId }: MessageBubbleProps) {
   const [showReview, setShowReview] = useState(false);
+  const [showReviewWrite, setShowReviewWrite] = useState(false);
   const avatarUrl = useAvatar(msg.sender_id);
 
-  // Delegate feedback_request messages to FeedbackRequestBubble
+  // Delegate feedback messages
   if (msg.message_type === "feedback_request") {
     return <FeedbackRequestBubble msg={msg} isMine={isMine} roomId={roomId} />;
   }
-  // Delegate feedback_response messages to FeedbackResponseBubble
   if (msg.message_type === "feedback_response") {
     return <FeedbackResponseBubble msg={msg} isMine={isMine} />;
+  }
+
+  // Quote message
+  if (msg.message_type === "quote") {
+    return (
+      <QuoteBubble
+        msg={msg}
+        isMine={isMine}
+        paymentStatus={paymentStatus}
+        isAdmin={isAdmin}
+        onConfirmPayment={onConfirmPayment}
+      />
+    );
+  }
+
+  // Purchase confirm message
+  if (msg.message_type === "purchase_confirm") {
+    return (
+      <PurchaseConfirmBubble
+        msg={msg}
+        isMine={isMine}
+        canConfirm={!isAdmin && !isMine}
+        onConfirm={onConfirmPurchase ? () => onConfirmPurchase(msg.id) : undefined}
+      />
+    );
+  }
+
+  // Review prompt message
+  if (msg.message_type === "review_prompt") {
+    let meta: { serviceId?: string; projectId?: string } = {};
+    try { meta = JSON.parse(msg.file_name || "{}"); } catch {}
+    const targetServiceId = meta.serviceId || serviceId;
+
+    return (
+      <div className="flex justify-center">
+        <div className="max-w-[360px] w-full border rounded-xl overflow-hidden bg-card shadow-sm">
+          <div className="px-4 py-3 text-center">
+            <Star className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+            <p className="font-semibold text-sm">{msg.message}</p>
+            {currentUserId && targetServiceId && (
+              <Button size="sm" className="mt-3" onClick={() => setShowReviewWrite(true)}>
+                ⭐ 리뷰 작성하기
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground text-center pb-2">{formatTime(msg.created_at)}</p>
+        </div>
+        {showReviewWrite && targetServiceId && currentUserId && (
+          <ReviewWriteDialog
+            open={showReviewWrite}
+            onOpenChange={setShowReviewWrite}
+            serviceId={targetServiceId}
+            userId={currentUserId}
+            nickname="구매자"
+            onComplete={() => setShowReviewWrite(false)}
+          />
+        )}
+      </div>
+    );
   }
 
   const isSystem = msg.sender_id === SYSTEM_USER_ID || msg.message_type === "system";
