@@ -44,8 +44,6 @@ const SellerDashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<any>({});
