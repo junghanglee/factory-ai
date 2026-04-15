@@ -45,10 +45,13 @@ export interface Project {
   price: number;
   status: string;
   confirm_status: string;
+  payment_status: string;
+  quote_details: Record<string, any> | null;
   order_date: string;
   due_date: string;
   completed_date: string | null;
   notes: string | null;
+  seller_id: string | null;
   created_at: string;
 }
 
@@ -591,5 +594,9 @@ export function useChat() {
     uploadDeliverable,
     confirmProject,
     requestRevision,
+    sendQuote,
+    confirmPayment,
+    sendPurchaseConfirmRequest,
+    confirmPurchase,
   };
 }
