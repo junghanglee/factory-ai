@@ -43,11 +43,11 @@ const AboutPage = () => {
         <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-6">
           <p className="text-sm tracking-[0.3em] uppercase text-white/60 mb-4 font-medium">About AI Factory</p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
-            AI로 만드는<br />
+            진짜 AI로 만드는<br />
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">새로운 콘텐츠의 미래</span>
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-10">
-            호치민의 열정과 AI 기술의 만남,<br className="md:hidden" /> 당신의 콘텐츠 생산 기지
+            한국인 AI전문가가 베트남에 설립한 다국적 콘텐츠 생산팀
           </p>
           <button
             onClick={() => scrollToSection("brand")}
