@@ -251,6 +251,12 @@ const AdminServices = () => {
                           </Badge>
                         )}
                       </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <img src={svc.thumbnail || "/placeholder.svg"} alt="" className="w-12 h-9 rounded object-cover" />
+                          <span className="font-medium truncate max-w-[200px] block">{svc.title}</span>
+                        </div>
+                      </td>
                       <td className="p-4 text-sm text-muted-foreground">
                         {(svc as any).seller_profile_name || svc.seller || "AI팩토리"}
                       </td>
