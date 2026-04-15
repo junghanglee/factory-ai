@@ -21,6 +21,14 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
   "완료": { color: "bg-green-100 text-green-700", icon: <CheckCircle className="h-3.5 w-3.5" /> },
 };
 
+const paymentStatusConfig: Record<string, { label: string; color: string }> = {
+  "대기": { label: "대기", color: "text-muted-foreground" },
+  "견적발송": { label: "견적 발송", color: "text-blue-600" },
+  "입금대기": { label: "입금 대기", color: "text-amber-600" },
+  "입금완료": { label: "입금 완료", color: "text-green-600" },
+  "구매확정": { label: "구매 확정", color: "text-primary" },
+};
+
 interface ProjectPanelProps {
   project: Project;
   projectFiles: ProjectFile[];
@@ -123,6 +131,12 @@ export default function ProjectPanel({
               <span>{new Date(project.completed_date).toLocaleDateString("ko-KR")}</span>
             </div>
           )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">결제상태</span>
+            <span className={`font-medium ${paymentStatusConfig[(project as any).payment_status]?.color || "text-muted-foreground"}`}>
+              {paymentStatusConfig[(project as any).payment_status]?.label || (project as any).payment_status || "대기"}
+            </span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">확인상태</span>
             <span>{project.confirm_status}</span>
