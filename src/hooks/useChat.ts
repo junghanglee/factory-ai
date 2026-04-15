@@ -299,6 +299,17 @@ export function useChat() {
       message_type: "text",
     });
 
+    // Send notification to seller if applicable
+    if (sellerId) {
+      await supabase.from("seller_notifications").insert({
+        seller_id: sellerId,
+        type: "new_order",
+        title: "새 주문이 접수되었습니다",
+        message: `서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원\n납기일: ${dueDate.toLocaleDateString("ko-KR")}`,
+        metadata: { project_id: data.id, order_number: orderNumber },
+      });
+    }
+
     await fetchRooms();
     return data as Project;
   }, [user, selectedRoomId, fetchRooms]);
