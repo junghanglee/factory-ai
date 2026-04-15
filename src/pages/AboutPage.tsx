@@ -621,8 +621,7 @@ const AboutPage = () => {
                   <h4 className="font-bold">Location</h4>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  2nd Floor, District 1,<br />
-                  Ho Chi Minh City, Vietnam
+                  15 Đường số 21, Khu dân cư Phước Kiển A, Nhà Bè, Hồ Chí Minh
                 </p>
               </div>
               <div className="bg-card border border-border rounded-2xl p-6">
@@ -632,21 +631,27 @@ const AboutPage = () => {
                     <MessageCircle className="h-4 w-4 text-primary" />
                     <div>
                       <div className="font-medium text-foreground">카카오톡 문의</div>
-                      <div className="text-xs">seanvtn6620@kakao.com</div>
+                      <div className="text-sm">seanvtn6620@kakao.com</div>
                     </div>
                   </a>
                   <a href="mailto:junghanglee@gmail.com" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <Mail className="h-4 w-4 text-primary" />
                     <div>
                       <div className="font-medium text-foreground">이메일 접수</div>
-                      <div className="text-xs">junghanglee@gmail.com</div>
+                      <div className="text-sm">
+                        junghanglee@gmail.com(KR)<br />
+                        Contact@linkto.vn (VN)
+                      </div>
                     </div>
                   </a>
                   <a href="tel:+840777436620" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <Phone className="h-4 w-4 text-primary" />
                     <div>
                       <div className="font-medium text-foreground">오피스 유선 번호</div>
-                      <div className="text-xs">+84 077-743-6620 (한국어가능)</div>
+                      <div className="text-sm">
+                        +84 077-743-6620 (한국어상담)<br />
+                        +84 035-404-2660 (베트남어상담)
+                      </div>
                     </div>
                   </a>
                 </div>
