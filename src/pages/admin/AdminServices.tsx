@@ -76,13 +76,19 @@ const AdminServices = () => {
       category_id: svc.category_id || "", title: svc.title, description: svc.description || "",
       detailed_description: svc.detailed_description || "", thumbnail: svc.thumbnail || "",
       price: svc.price, original_price: svc.original_price, rating: svc.rating,
-      review_count: svc.review_count, delivery_days: svc.delivery_days, seller: svc.seller || "",
+      review_count: svc.review_count, delivery_days: svc.delivery_days,
+      delivery_days_text: (svc as any).delivery_days_text || "",
+      seller: svc.seller || "",
       tags: svc.tags || [], portfolio_images: svc.portfolio_images || [],
     });
     setPkgForms(
       svc.packages.length > 0
-        ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features?.length ? p.features : [""], sort_order: p.sort_order }))
-            .map((p: any) => ({ ...p, price_text: (svc.packages.find((sp: any) => sp.id === p.id) as any)?.price_text ?? "" }))
+        ? svc.packages.map((p: any) => ({
+            id: p.id, name: p.name, price: p.price, price_text: p.price_text ?? "",
+            delivery_days: p.delivery_days, delivery_days_text: p.delivery_days_text ?? "",
+            revisions: p.revisions, revisions_text: p.revisions_text ?? "",
+            features: p.features?.length ? p.features : [""], sort_order: p.sort_order,
+          }))
         : [emptyPackage("Basic", 1)]
     );
     setEditOpen(true);
