@@ -46,8 +46,8 @@ const AdminInquiries = () => {
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("contact_inquiries").update({ status }).eq("id", id);
-    if (error) { toast.error("상태 변경 실패"); return; }
-    toast.success("상태가 변경되었습니다.");
+    if (error) { toast.error(t("admin.statusChangeFailed")); return; }
+    toast.success(t("admin.statusChanged"));
     queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
     if (selected?.id === id) setSelected({ ...selected, status });
   };
@@ -55,8 +55,8 @@ const AdminInquiries = () => {
   const saveMemo = async () => {
     if (!selected) return;
     const { error } = await supabase.from("contact_inquiries").update({ admin_memo: memo }).eq("id", selected.id);
-    if (error) { toast.error("메모 저장 실패"); return; }
-    toast.success("메모가 저장되었습니다.");
+    if (error) { toast.error(t("admin.memoSaveFailed")); return; }
+    toast.success(t("admin.memoSaved"));
     queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
   };
 
@@ -70,17 +70,17 @@ const AdminInquiries = () => {
         status: reply.trim() ? "완료" : selected.status,
       } as any)
       .eq("id", selected.id);
-    if (error) { toast.error("답변 저장 실패"); return; }
-    toast.success("답변이 저장되었습니다.");
+    if (error) { toast.error(t("admin.replySaveFailed")); return; }
+    toast.success(t("admin.replySaved"));
     queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
     setSelected({ ...selected, admin_reply: reply, status: reply.trim() ? "완료" : selected.status });
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
+    if (!confirm(t("common.deleteConfirm"))) return;
     const { error } = await supabase.from("contact_inquiries").delete().eq("id", id);
-    if (error) { toast.error("삭제 실패"); return; }
-    toast.success("삭제되었습니다.");
+    if (error) { toast.error(t("common.deleteFailed")); return; }
+    toast.success(t("common.deleted"));
     queryClient.invalidateQueries({ queryKey: ["contact_inquiries"] });
     if (selected?.id === id) setSelected(null);
   };
@@ -91,9 +91,9 @@ const AdminInquiries = () => {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">문의 관리</h1>
+          <h1 className="text-2xl font-bold">{t("admin.inquiryManage")}</h1>
           {newCount > 0 && (
-            <Badge className="bg-red-500 text-white">{newCount}건 신규</Badge>
+            <Badge className="bg-red-500 text-white">{t("admin.newInquiryCount", { count: newCount })}</Badge>
           )}
         </div>
       </div>
@@ -103,12 +103,12 @@ const AdminInquiries = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-secondary/50">
-                <th className="text-left p-4 font-medium text-muted-foreground">상태</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">이름</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">이메일</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">문의유형</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">접수일</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.status")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("common.name")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("common.email")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.inquiryType")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.receivedDate")}</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">{t("admin.manage")}</th>
               </tr>
             </thead>
             <tbody>
@@ -136,18 +136,17 @@ const AdminInquiries = () => {
                 </tr>
               ))}
               {inquiries.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">접수된 문의가 없습니다.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">{t("admin.noInquiries")}</td></tr>
               )}
             </tbody>
           </table>
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>문의 상세</DialogTitle>
+            <DialogTitle>{t("admin.inquiryDetail")}</DialogTitle>
           </DialogHeader>
           {selected && (
             <div className="space-y-4">
@@ -155,9 +154,9 @@ const AdminInquiries = () => {
                 <Select value={selected.status} onValueChange={(v) => updateStatus(selected.id, v)}>
                   <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="신규">신규</SelectItem>
-                    <SelectItem value="확인">확인</SelectItem>
-                    <SelectItem value="완료">완료</SelectItem>
+                    <SelectItem value="신규">{t("admin.statusNew")}</SelectItem>
+                    <SelectItem value="확인">{t("admin.statusConfirmed")}</SelectItem>
+                    <SelectItem value="완료">{t("admin.statusCompleted")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Badge variant="outline">{selected.inquiry_type}</Badge>
@@ -188,22 +187,22 @@ const AdminInquiries = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">문의 내용</label>
+                <label className="text-sm font-medium mb-1 block">{t("admin.inquiryContent")}</label>
                 <div className="bg-background border rounded-lg p-4 text-sm whitespace-pre-wrap">
                   {selected.message}
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">💬 답변 작성</label>
-                <Textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} placeholder="사용자에게 보낼 답변을 작성하세요..." />
-                <Button size="sm" className="mt-2" onClick={saveReply}>답변 저장</Button>
+                <label className="text-sm font-medium mb-1 block">{t("admin.writeReply")}</label>
+                <Textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} placeholder={t("admin.replyPlaceholder")} />
+                <Button size="sm" className="mt-2" onClick={saveReply}>{t("admin.saveReply")}</Button>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">관리자 내부 메모</label>
-                <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} placeholder="내부 메모 (사용자에게 보이지 않음)..." />
-                <Button size="sm" variant="outline" className="mt-2" onClick={saveMemo}>메모 저장</Button>
+                <label className="text-sm font-medium mb-1 block">{t("admin.internalMemo")}</label>
+                <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} placeholder={t("admin.memoPlaceholder")} />
+                <Button size="sm" variant="outline" className="mt-2" onClick={saveMemo}>{t("admin.saveMemo")}</Button>
               </div>
             </div>
           )}
