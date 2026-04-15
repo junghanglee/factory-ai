@@ -74,21 +74,9 @@ export const useCategories = () =>
         .select("*")
         .order("sort_order");
       if (error) throw error;
-
-      // Compute live service counts
-      const { data: services } = await supabase
-        .from("services")
-        .select("category_id");
-      const countMap: Record<string, number> = {};
-      (services || []).forEach((s: any) => {
-        if (s.category_id) countMap[s.category_id] = (countMap[s.category_id] || 0) + 1;
-      });
-
-      return (data as DbCategory[]).map(c => ({
-        ...c,
-        service_count: countMap[c.id] || 0,
-      }));
+      return data as DbCategory[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
 export const useServices = (categoryId?: string) =>

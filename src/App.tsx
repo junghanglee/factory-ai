@@ -7,46 +7,53 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import Index from "./pages/Index";
-import AboutPage from "./pages/AboutPage";
-import CategoryPage from "./pages/CategoryPage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
-import ChatPage from "./pages/ChatPage";
-import OrderPage from "./pages/OrderPage";
-import MyProjectsPage from "./pages/MyProjectsPage";
-import MyPage from "./pages/MyPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminServices from "./pages/admin/AdminServices";
-import AdminProjects from "./pages/admin/AdminProjects";
-import AdminChat from "./pages/admin/AdminChat";
-import AdminCategories from "./pages/admin/AdminCategories";
-import AdminMembers from "./pages/admin/AdminMembers";
-import AdminBanners from "./pages/admin/AdminBanners";
-import AdminPortfolio from "./pages/admin/AdminPortfolio";
-import AdminAutoMessages from "./pages/admin/AdminAutoMessages";
-import AdminStaff from "./pages/admin/AdminStaff";
-import AdminInquiries from "./pages/admin/AdminInquiries";
-import AdminDisplayGroups from "./pages/admin/AdminDisplayGroups";
-import AdminChatPopup from "./pages/admin/AdminChatPopup";
-import AdminLoginPage from "./pages/admin/AdminLoginPage";
-import PortfolioDetailPage from "./pages/PortfolioDetailPage";
-import SearchPage from "./pages/SearchPage";
-import SellerApplyPage from "./pages/SellerApplyPage";
-import SellerDashboard from "./pages/SellerDashboard";
-import SellerProfilePage from "./pages/SellerProfilePage";
-import AdminSellers from "./pages/admin/AdminSellers";
-import AdminSettlements from "./pages/admin/AdminSettlements";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 import SellerLoginNotifications from "./components/seller/SellerLoginNotifications";
+
+// Eagerly loaded (landing page)
+import Index from "./pages/Index";
+
+// Lazy loaded pages
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const OrderPage = lazy(() => import("./pages/OrderPage"));
+const MyProjectsPage = lazy(() => import("./pages/MyProjectsPage"));
+const MyPage = lazy(() => import("./pages/MyPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const SellerApplyPage = lazy(() => import("./pages/SellerApplyPage"));
+const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
+const SellerProfilePage = lazy(() => import("./pages/SellerProfilePage"));
+const PortfolioDetailPage = lazy(() => import("./pages/PortfolioDetailPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminServices = lazy(() => import("./pages/admin/AdminServices"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
+const AdminChat = lazy(() => import("./pages/admin/AdminChat"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
+const AdminMembers = lazy(() => import("./pages/admin/AdminMembers"));
+const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
+const AdminPortfolio = lazy(() => import("./pages/admin/AdminPortfolio"));
+const AdminAutoMessages = lazy(() => import("./pages/admin/AdminAutoMessages"));
+const AdminStaff = lazy(() => import("./pages/admin/AdminStaff"));
+const AdminInquiries = lazy(() => import("./pages/admin/AdminInquiries"));
+const AdminDisplayGroups = lazy(() => import("./pages/admin/AdminDisplayGroups"));
+const AdminChatPopup = lazy(() => import("./pages/admin/AdminChatPopup"));
+const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage"));
+const AdminSellers = lazy(() => import("./pages/admin/AdminSellers"));
+const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      staleTime: 30 * 1000,
-      refetchOnWindowFocus: true,
+      retry: 1,
+      staleTime: 60 * 1000,
+      refetchOnWindowFocus: false,
     },
   },
   queryCache: new QueryCache({
@@ -67,6 +74,12 @@ const queryClient = new QueryClient({
   }),
 });
 
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
+
 const App = () => (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
@@ -76,6 +89,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <SellerLoginNotifications />
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutPage />} />
@@ -112,6 +126,7 @@ const App = () => (
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
