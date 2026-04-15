@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getCategoryIcon, getAllCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -41,11 +42,11 @@ const CategoryPage = () => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-foreground">{t("common.home")}</Link>
           <span>/</span>
-          <span className="text-foreground">{isAll ? t("common.viewAll") : category?.name}</span>
+           <span className="text-foreground">{isAll ? t("common.viewAll") : (category ? localize(category, "name") : "")}</span>
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          {isAll ? t("category.allServices") : category?.name}
+          {isAll ? t("category.allServices") : (category ? localize(category, "name") : "")}
         </h1>
         <p className="text-muted-foreground mb-8">
           {isAll ? t("category.allDesc") : category?.description}
