@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SellerBadge from "@/components/SellerBadge";
+import { localize } from "@/utils/localize";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
