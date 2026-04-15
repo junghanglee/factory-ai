@@ -1010,36 +1010,42 @@ export type Database = {
         Row: {
           created_at: string
           delivery_days: number
+          delivery_days_text: string | null
           features: string[] | null
           id: string
           name: string
           price: number
           price_text: string | null
           revisions: number
+          revisions_text: string | null
           service_id: string
           sort_order: number
         }
         Insert: {
           created_at?: string
           delivery_days?: number
+          delivery_days_text?: string | null
           features?: string[] | null
           id?: string
           name: string
           price?: number
           price_text?: string | null
           revisions?: number
+          revisions_text?: string | null
           service_id: string
           sort_order?: number
         }
         Update: {
           created_at?: string
           delivery_days?: number
+          delivery_days_text?: string | null
           features?: string[] | null
           id?: string
           name?: string
           price?: number
           price_text?: string | null
           revisions?: number
+          revisions_text?: string | null
           service_id?: string
           sort_order?: number
         }
@@ -1107,6 +1113,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           delivery_days: number
+          delivery_days_text: string | null
           description: string | null
           detailed_description: string | null
           id: string
@@ -1128,6 +1135,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           delivery_days?: number
+          delivery_days_text?: string | null
           description?: string | null
           detailed_description?: string | null
           id?: string
@@ -1149,6 +1157,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           delivery_days?: number
+          delivery_days_text?: string | null
           description?: string | null
           detailed_description?: string | null
           id?: string
