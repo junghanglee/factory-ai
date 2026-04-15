@@ -234,6 +234,14 @@ const AdminChat = () => {
                   <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
                     <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowQuoteDialog(true)}>
+                    <FileText className="h-3.5 w-3.5 mr-1" /> 견적서
+                  </Button>
+                  {project && (project.status === "검수중" || project.status === "완료") && project.confirm_status !== "확인완료" && (
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => sendPurchaseConfirmRequest()}>
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> 구매확정요청
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowRequestType(true)}>
                     <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청하기
                   </Button>
