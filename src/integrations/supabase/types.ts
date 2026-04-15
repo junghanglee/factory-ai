@@ -338,6 +338,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "chat_rooms_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "chat_rooms_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -852,6 +859,13 @@ export type Database = {
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quick_phrases: {
@@ -915,6 +929,13 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_notifications_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1158,6 +1179,13 @@ export type Database = {
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "services_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       settlements: {
@@ -1213,6 +1241,13 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlements_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1348,11 +1383,50 @@ export type Database = {
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "withdrawal_requests_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      seller_profiles_public: {
+        Row: {
+          bio: string | null
+          business_name: string | null
+          id: string | null
+          profile_image: string | null
+          status: string | null
+          total_revenue: number | null
+          total_sales: number | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          business_name?: string | null
+          id?: string | null
+          profile_image?: string | null
+          status?: string | null
+          total_revenue?: number | null
+          total_sales?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          business_name?: string | null
+          id?: string | null
+          profile_image?: string | null
+          status?: string | null
+          total_revenue?: number | null
+          total_sales?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

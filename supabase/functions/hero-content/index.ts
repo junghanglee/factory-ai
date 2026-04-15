@@ -64,7 +64,7 @@ serve(async (req) => {
       JSON.stringify({
         banners: [],
         fallback: true,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to load hero content",
       }),
       {
         status: 200,

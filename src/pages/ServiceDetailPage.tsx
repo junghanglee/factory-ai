@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
 import SellerBadge from "@/components/SellerBadge";
@@ -270,7 +271,7 @@ const ServiceDetailPage = () => {
                       [&_a]:text-primary [&_a]:underline
                       [&_img]:rounded-lg [&_img]:my-4
                       [&_hr]:my-6 [&_hr]:border-border"
-                    dangerouslySetInnerHTML={{ __html: service.detailed_description }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(service.detailed_description) }}
                   />
                 </div>
               )}
