@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
 import SellerBadge from "@/components/SellerBadge";
