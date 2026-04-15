@@ -6,12 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useSupabaseData";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
 const SellerProfilePage = () => {
   const { id } = useParams();
   const { data: categories = [] } = useCategories();
+  const { t } = useTranslation();
 
   const { data: seller, isLoading } = useQuery({
     queryKey: ["seller-public", id],
@@ -47,7 +49,7 @@ const SellerProfilePage = () => {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">로딩 중...</div>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">{t("common.loading")}</div>
       </MainLayout>
     );
   }
@@ -55,7 +57,7 @@ const SellerProfilePage = () => {
   if (!seller) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">판매자를 찾을 수 없습니다.</div>
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">{t("seller.sellerNotFound")}</div>
       </MainLayout>
     );
   }
@@ -75,7 +77,7 @@ const SellerProfilePage = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold">{seller.business_name}</h1>
-              <Badge className="bg-green-100 text-green-700 border-green-200">AI팩토리 인증</Badge>
+              <Badge className="bg-green-100 text-green-700 border-green-200">{t("seller.verified")}</Badge>
             </div>
             {seller.bio && (
               <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{seller.bio}</p>
@@ -83,20 +85,20 @@ const SellerProfilePage = () => {
             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Package className="h-4 w-4" />
-                서비스 {services.length}개
+                {t("seller.services")} {services.length}
               </span>
               <span className="flex items-center gap-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                판매 {seller.total_sales || 0}건
+                {t("seller.sales")} {seller.total_sales || 0}
               </span>
             </div>
           </div>
         </div>
 
         {/* Services */}
-        <h2 className="text-lg font-semibold mb-4">등록 서비스</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("seller.registeredServicesList")}</h2>
         {services.length === 0 ? (
-          <p className="text-center py-12 text-muted-foreground">등록된 서비스가 없습니다.</p>
+          <p className="text-center py-12 text-muted-foreground">{t("seller.noServices")}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service: any) => {
