@@ -377,8 +377,16 @@ const AdminServices = () => {
                   <Input value={form.seller || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, seller: v })); }} />
                 </div>
                 <div>
-                  <Label>납기일(일) - 제작 평균기간</Label>
-                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => { const v = Number(e.target.value); setForm((prev: any) => ({ ...prev, delivery_days: v })); }} />
+                  <Label>납기일 - 제작 평균기간</Label>
+                  <Input value={form.delivery_days_text || (form.delivery_days === 0 ? "" : String(form.delivery_days))} onChange={(e) => {
+                    const v = e.target.value;
+                    const num = Number(v);
+                    if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                      setForm((prev: any) => ({ ...prev, delivery_days: v === "" ? 0 : num, delivery_days_text: "" }));
+                    } else {
+                      setForm((prev: any) => ({ ...prev, delivery_days_text: v, delivery_days: 0 }));
+                    }
+                  }} placeholder="숫자 또는 텍스트 (예: 3~5일)" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -449,11 +457,31 @@ const AdminServices = () => {
                       </div>
                       <div>
                         <Label>납기(일)</Label>
-                        <Input type="number" value={pkg.delivery_days} onChange={(e) => updatePkg(pkgIdx, "delivery_days", Number(e.target.value))} />
+                        <Input value={pkg.delivery_days_text || (pkg.delivery_days === 0 ? "" : String(pkg.delivery_days))} onChange={(e) => {
+                          const v = e.target.value;
+                          const num = Number(v);
+                          if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                            updatePkg(pkgIdx, "delivery_days", v === "" ? 0 : num);
+                            updatePkg(pkgIdx, "delivery_days_text", "");
+                          } else {
+                            updatePkg(pkgIdx, "delivery_days_text", v);
+                            updatePkg(pkgIdx, "delivery_days", 0);
+                          }
+                        }} placeholder="숫자 또는 텍스트" />
                       </div>
                       <div>
                         <Label>수정횟수</Label>
-                        <Input type="number" value={pkg.revisions} onChange={(e) => updatePkg(pkgIdx, "revisions", Number(e.target.value))} />
+                        <Input value={pkg.revisions_text || (pkg.revisions === 0 ? "" : String(pkg.revisions))} onChange={(e) => {
+                          const v = e.target.value;
+                          const num = Number(v);
+                          if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                            updatePkg(pkgIdx, "revisions", v === "" ? 0 : num);
+                            updatePkg(pkgIdx, "revisions_text", "");
+                          } else {
+                            updatePkg(pkgIdx, "revisions_text", v);
+                            updatePkg(pkgIdx, "revisions", 0);
+                          }
+                        }} placeholder="숫자 또는 텍스트" />
                       </div>
                     </div>
                     <div>
