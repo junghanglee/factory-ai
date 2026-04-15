@@ -47,7 +47,7 @@ const statusConfig: Record<string, { color: string; key: string }> = {
 };
 
 const MyPage = () => {
-  const { user, loading, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "chat";
