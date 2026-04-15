@@ -137,10 +137,10 @@ const CategoryPage = () => {
                   <Link key={service.id} to={`/service/${service.id}`} className="group shrink-0 w-[calc(25%-15px)] min-w-[220px]">
                     <Card className="overflow-hidden hover:shadow-lg transition-all border-transparent hover:border-primary/20">
                       <div className="aspect-[4/3] overflow-hidden relative">
-                        <img src={service.thumbnail || "/placeholder.svg"} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                        <img src={service.thumbnail || "/placeholder.svg"} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                         {serviceCat && (
                           <span className="absolute top-2 left-2 px-2 py-0.5 text-[11px] font-medium rounded-full bg-background/80 backdrop-blur-sm text-foreground border">
-                            {serviceCat.name}
+                            {localize(serviceCat, "name")}
                           </span>
                         )}
                       </div>
@@ -149,7 +149,7 @@ const CategoryPage = () => {
                           <p className="text-xs text-muted-foreground">{service.seller}</p>
                           <SellerBadge sellerId={(service as any).seller_id} sellerName={service.seller} />
                         </div>
-                        <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{service.title}</h3>
+                        <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
                         <div className="flex items-center gap-1 mb-2">
                           <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm font-medium">{service.rating}</span>
