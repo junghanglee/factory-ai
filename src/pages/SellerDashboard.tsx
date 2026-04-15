@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
+import SellerNotificationBell from "@/components/seller/SellerNotificationBell";
 
 interface PackageForm {
   id?: string;
@@ -292,9 +293,12 @@ const SellerDashboard = () => {
               </h1>
               <p className="text-muted-foreground mt-1">{sellerProfile.business_name}님, 환영합니다</p>
             </div>
-            <Button onClick={openNew} className="gap-2">
-              <Plus className="h-4 w-4" /> 새 서비스 등록
-            </Button>
+            <div className="flex items-center gap-2">
+              <SellerNotificationBell sellerId={sellerProfile.id} />
+              <Button onClick={openNew} className="gap-2">
+                <Plus className="h-4 w-4" /> 새 서비스 등록
+              </Button>
+            </div>
           </div>
 
           {/* Stats */}
