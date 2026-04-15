@@ -131,17 +131,29 @@ const AdminCategories = () => {
               <TabsTrigger value="feedback" className="flex-1">피드백 기본값</TabsTrigger>
             </TabsList>
             <TabsContent value="basic" className="space-y-4 mt-4">
-              <div>
-                <Label>카테고리명</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="AI 이미지/디자인" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>카테고리명 (한국어)</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="AI 이미지/디자인" />
+                </div>
+                <div>
+                  <Label>Category Name (EN)</Label>
+                  <Input value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} placeholder="AI Image/Design" />
+                </div>
               </div>
               <div>
                 <Label>슬러그</Label>
                 <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="ai-image" disabled={!!editId} />
               </div>
-              <div>
-                <Label>설명</Label>
-                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="로고, 배너, 상세페이지..." />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>설명 (한국어)</Label>
+                  <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="로고, 배너, 상세페이지..." />
+                </div>
+                <div>
+                  <Label>Description (EN)</Label>
+                  <Input value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} placeholder="Logo, Banner, Detail page..." />
+                </div>
               </div>
               <div>
                 <Label>색상 (HSL)</Label>
