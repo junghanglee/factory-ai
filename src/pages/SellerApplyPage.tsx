@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Upload, X, FileText, Image, CheckCircle2, Store } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -23,6 +24,7 @@ const SellerApplyPage = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -39,9 +41,9 @@ const SellerApplyPage = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 신청</h1>
-          <p className="text-muted-foreground">판매자 신청을 위해 먼저 로그인해주세요.</p>
-          <Button onClick={() => navigate("/login")}>로그인하기</Button>
+          <h1 className="text-2xl font-bold">{t("seller.apply")}</h1>
+          <p className="text-muted-foreground">{t("seller.loginRequired")}</p>
+          <Button onClick={() => navigate("/login")}>{t("common.goLogin")}</Button>
         </div>
       </MainLayout>
     );
@@ -51,7 +53,7 @@ const SellerApplyPage = () => {
     const newFiles = Array.from(e.target.files || []);
     const valid = newFiles.filter(f => {
       if (f.size > MAX_FILE_SIZE) {
-        toast.error(`${f.name}: 파일 크기가 10MB를 초과합니다.`);
+        toast.error(t("seller.fileSizeError", { name: f.name }));
         return false;
       }
       return true;
@@ -64,11 +66,11 @@ const SellerApplyPage = () => {
 
   const handleSubmit = async () => {
     if (!businessName.trim()) {
-      toast.error("상호명/활동명을 입력해주세요.");
+      toast.error(t("seller.enterBusinessName"));
       return;
     }
     if (!bio.trim()) {
-      toast.error("자기소개를 입력해주세요.");
+      toast.error(t("seller.enterBio"));
       return;
     }
 
@@ -101,7 +103,7 @@ const SellerApplyPage = () => {
 
       if (error) {
         if (error.code === "23505") {
-          toast.error("이미 판매자 신청을 하셨습니다.");
+          toast.error(t("seller.alreadyApplied"));
         } else {
           throw error;
         }
@@ -109,9 +111,9 @@ const SellerApplyPage = () => {
       }
 
       setSubmitted(true);
-      toast.success("판매자 신청이 완료되었습니다!");
+      toast.success(t("seller.applySuccess"));
     } catch (err: any) {
-      toast.error("신청 중 오류가 발생했습니다: " + err.message);
+      toast.error(t("seller.applyError") + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -122,12 +124,11 @@ const SellerApplyPage = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
           <CheckCircle2 className="h-20 w-20 text-green-500" />
-          <h1 className="text-2xl font-bold">신청이 완료되었습니다!</h1>
+          <h1 className="text-2xl font-bold">{t("seller.submitted")}</h1>
           <p className="text-muted-foreground text-center max-w-md">
-            관리자가 신청 내용을 검토한 후 승인 여부를 알려드리겠습니다.
-            승인 후 서비스 등록이 가능합니다.
+            {t("seller.submittedDesc")}
           </p>
-          <Button onClick={() => navigate("/")} variant="outline">홈으로 돌아가기</Button>
+          <Button onClick={() => navigate("/")} variant="outline">{t("common.goHome")}</Button>
         </div>
       </MainLayout>
     );
@@ -139,16 +140,16 @@ const SellerApplyPage = () => {
         <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-8">
             <Store className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h1 className="text-3xl font-bold">판매자 신청</h1>
+            <h1 className="text-3xl font-bold">{t("seller.apply")}</h1>
             <p className="text-muted-foreground mt-2">
-              AI 콘텐츠 전문가로서 AI 팩토리에서 서비스를 판매해보세요
+              {t("seller.applyDesc")}
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>기본 정보</CardTitle>
-              <CardDescription>판매자 프로필에 표시될 정보입니다</CardDescription>
+              <CardTitle>{t("seller.basicInfo")}</CardTitle>
+              <CardDescription>{t("seller.basicInfoDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div>
@@ -161,18 +162,18 @@ const SellerApplyPage = () => {
                 />
               </div>
               <div>
-                <Label>자기소개 / 전문 분야 <span className="text-red-500">*</span></Label>
+                <Label>{t("seller.bioLabel")} <span className="text-red-500">*</span></Label>
                 <Textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
-                  placeholder="전문 분야, 경력, 작업 스타일 등을 소개해주세요"
+                  placeholder={t("seller.bioPlaceholder")}
                   rows={4}
                   maxLength={1000}
                 />
                 <p className="text-xs text-muted-foreground mt-1">{bio.length}/1000</p>
               </div>
               <div>
-                <Label>연락처</Label>
+                <Label>{t("seller.contact")}</Label>
                 <Input
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
@@ -184,9 +185,9 @@ const SellerApplyPage = () => {
 
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>역량 증빙 자료</CardTitle>
+              <CardTitle>{t("seller.documents")}</CardTitle>
               <CardDescription>
-                포트폴리오, 자격증, 경력증명서 등 실력을 확인할 수 있는 자료를 첨부해주세요 (최대 {MAX_FILES}개, 각 10MB 이하)
+                {t("seller.documentsDesc", { max: MAX_FILES })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -214,10 +215,10 @@ const SellerApplyPage = () => {
                   <label className="flex flex-col items-center justify-center gap-2 p-8 border-2 border-dashed border-muted-foreground/30 rounded-lg cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
                     <Upload className="h-8 w-8 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      파일을 선택하거나 드래그하세요
+                      {t("seller.selectOrDrag")}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      PDF, 이미지, 문서 파일 지원
+                      {t("seller.supportedFiles")}
                     </span>
                     <input
                       type="file"
@@ -239,7 +240,7 @@ const SellerApplyPage = () => {
               onClick={handleSubmit}
               disabled={submitting}
             >
-              {submitting ? "신청 중..." : "판매자 신청하기"}
+              {submitting ? t("seller.submitting") : t("seller.submitApply")}
             </Button>
           </div>
         </div>
