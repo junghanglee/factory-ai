@@ -4,6 +4,7 @@ import { Star, Plus, ShieldCheck, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -59,7 +60,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
     <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary relative">
       <img
         src={service.thumbnail || "/placeholder.svg"}
-        alt={service.title}
+        alt={localize(service, "title")}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         loading="lazy"
       />
@@ -77,7 +78,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
       </div>
     </div>
     <h3 className="text-[14px] text-foreground leading-snug line-clamp-2 mb-2 min-h-[2.5rem] font-normal">
-      {service.title}
+      {localize(service, "title")}
     </h3>
     <div className="flex items-center gap-1 mb-1.5">
       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -234,7 +235,7 @@ const PopularServices = () => {
   const { data: allServices = [] } = useQuery({
     queryKey: ["services_for_display"],
     queryFn: async () => {
-      const { data: svcs, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller, seller_id");
+      const { data: svcs, error } = await supabase.from("services").select("id, title, title_en, thumbnail, price, rating, review_count, seller, seller_id");
       if (error) throw error;
       const { data: pkgs, error: pErr } = await supabase.from("service_packages").select("id, service_id, price, price_text, sort_order").order("sort_order");
       if (pErr) throw pErr;
