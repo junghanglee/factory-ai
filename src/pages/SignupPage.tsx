@@ -17,9 +17,9 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const KakaoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24">
-    <path d="M12 3C6.48 3 2 6.58 2 10.94c0 2.8 1.86 5.27 4.66 6.67-.15.53-.96 3.41-1 3.57 0 0-.02.09.04.13.07.04.14.01.14.01.19-.03 2.19-1.44 3.13-2.1.65.09 1.33.14 2.03.14 5.52 0 10-3.58 10-7.94-.01-4.88-4.49-7.42-10-7.42z" fill="#3C1E1E"/>
+const AppleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
   </svg>
 );
 
@@ -29,52 +29,37 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("이메일과 비밀번호를 입력해주세요.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error("비밀번호가 일치하지 않습니다.");
-      return;
-    }
-    if (password.length < 6) {
-      toast.error("비밀번호는 6자 이상이어야 합니다.");
-      return;
-    }
+    if (!email || !password) { toast.error("이메일과 비밀번호를 입력해주세요."); return; }
+    if (password !== confirmPassword) { toast.error("비밀번호가 일치하지 않습니다."); return; }
+    if (password.length < 6) { toast.error("비밀번호는 6자 이상이어야 합니다."); return; }
     setLoading(true);
     const { error } = await signUp(email, password, name);
     setLoading(false);
-    if (error) {
-      toast.error("회원가입 실패: " + error.message);
-    } else {
-      toast.success("회원가입 완료! 로그인되었습니다.");
-      navigate("/");
-    }
+    if (error) { toast.error("회원가입 실패: " + error.message); }
+    else { toast.success("회원가입 완료! 로그인되었습니다."); navigate("/"); }
   };
 
-  const handleGoogleSignup = async () => {
-    setSocialLoading(true);
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setSocialLoading(provider);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
       if (result.error) {
-        toast.error("Google 가입 실패: " + (result.error instanceof Error ? result.error.message : String(result.error)));
-        setSocialLoading(false);
+        toast.error(`${provider === "google" ? "Google" : "Apple"} 가입 실패`);
+        setSocialLoading(null);
         return;
       }
       if (result.redirected) return;
-      toast.success("Google 가입 성공!");
+      toast.success("가입 성공!");
       navigate("/");
     } catch {
-      toast.error("Google 가입 중 오류가 발생했습니다.");
-      setSocialLoading(false);
+      toast.error("소셜 가입 중 오류가 발생했습니다.");
+      setSocialLoading(null);
     }
   };
 
@@ -88,24 +73,11 @@ const SignupPage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 mb-4">
-              <Button
-                variant="outline"
-                className="w-full h-11 gap-3 font-medium"
-                onClick={handleGoogleSignup}
-                disabled={socialLoading}
-              >
-                <GoogleIcon />
-                Google로 가입
+              <Button variant="outline" className="w-full h-11 gap-3 font-medium" onClick={() => handleOAuth("google")} disabled={!!socialLoading}>
+                <GoogleIcon /> Google로 가입
               </Button>
-              <Button
-                variant="outline"
-                className="w-full h-11 gap-3 font-medium"
-                style={{ backgroundColor: "#FEE500", color: "#3C1E1E", borderColor: "#FEE500" }}
-                disabled
-                title="카카오 로그인은 준비 중입니다"
-              >
-                <KakaoIcon />
-                카카오로 가입
+              <Button variant="outline" className="w-full h-11 gap-3 font-medium bg-black text-white hover:bg-black/90 border-black" onClick={() => handleOAuth("apple")} disabled={!!socialLoading}>
+                <AppleIcon /> Apple로 가입
               </Button>
             </div>
 
@@ -117,46 +89,21 @@ const SignupPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">이름</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="이름"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">이메일</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="email@example.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="email@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">비밀번호</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="비밀번호 (6자 이상)"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="비밀번호 (6자 이상)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">비밀번호 확인</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  placeholder="비밀번호 확인"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="비밀번호 확인" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "가입 중..." : "가입하기"}
-              </Button>
+              <Button className="w-full" type="submit" disabled={loading}>{loading ? "가입 중..." : "가입하기"}</Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
