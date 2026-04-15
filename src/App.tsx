@@ -33,6 +33,8 @@ import AdminChatPopup from "./pages/admin/AdminChatPopup";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import SearchPage from "./pages/SearchPage";
+import SellerApplyPage from "./pages/SellerApplyPage";
+import AdminSellers from "./pages/admin/AdminSellers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -81,6 +83,7 @@ const App = () => (
             <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/seller/apply" element={<SellerApplyPage />} />
             {/* Admin login */}
             <Route path="/admin" element={<AdminLoginPage />} />
             {/* Admin routes - require admin role */}
@@ -96,6 +99,7 @@ const App = () => (
             <Route path="/admin/staff" element={<ProtectedRoute requireAdmin><AdminStaff /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="/admin/display-groups" element={<ProtectedRoute requireAdmin><AdminDisplayGroups /></ProtectedRoute>} />
+            <Route path="/admin/sellers" element={<ProtectedRoute requireAdmin><AdminSellers /></ProtectedRoute>} />
             <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
