@@ -52,7 +52,9 @@ interface DisplayGroupService {
   sort_order: number;
 }
 
-const ServiceCard = ({ service }: { service: Service }) => (
+const ServiceCard = ({ service }: { service: Service }) => {
+  const { t } = useTranslation();
+  return (
   <Link to={`/service/${service.id}`} className="group block">
     <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary relative">
       <img
@@ -61,7 +63,6 @@ const ServiceCard = ({ service }: { service: Service }) => (
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         loading="lazy"
       />
-      {/* Seller badge overlay on image */}
       <div className="absolute top-2 left-2">
         {!service.seller_id ? (
           <span className="flex items-center gap-0.5 bg-primary/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
@@ -70,7 +71,7 @@ const ServiceCard = ({ service }: { service: Service }) => (
         ) : (
           <span className="flex items-center gap-0.5 bg-emerald-600/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
             <Store className="h-3 w-3" />
-            인증판매자
+            {t("serviceCard.verifiedSeller")}
           </span>
         )}
       </div>
@@ -97,7 +98,8 @@ const ServiceCard = ({ service }: { service: Service }) => (
       <span className="text-[12px] text-muted-foreground">{service.seller}</span>
     </div>
   </Link>
-);
+  );
+};
 
 function renderStyledTitle(title: string, fontSize?: number, fontColor?: string, highlightColor?: string) {
   const size = fontSize || 26;
