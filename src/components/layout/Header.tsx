@@ -7,8 +7,11 @@ import { getCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadChat } from "@/hooks/useUnreadChat";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [myPageMenuOpen, setMyPageMenuOpen] = useState(false);
@@ -21,12 +24,12 @@ const Header = () => {
   const { unreadCount } = useUnreadChat();
 
   const myPageMenuItems = [
-    { id: "projects", label: "신청내역", icon: Package },
-    { id: "payments", label: "결제내역", icon: Receipt },
-    { id: "invoice", label: "계산서 요청", icon: FileText },
-    { id: "inquiries", label: "1:1 문의", icon: HelpCircle },
-    { id: "chat", label: "채팅 상담", icon: MessageCircle },
-    { id: "profile", label: "내 정보", icon: User },
+    { id: "projects", label: t("headerMenu.projects"), icon: Package },
+    { id: "payments", label: t("headerMenu.payments"), icon: Receipt },
+    { id: "invoice", label: t("headerMenu.invoice"), icon: FileText },
+    { id: "inquiries", label: t("headerMenu.inquiries"), icon: HelpCircle },
+    { id: "chat", label: t("headerMenu.chat"), icon: MessageCircle },
+    { id: "profile", label: t("headerMenu.profile"), icon: User },
   ];
 
   const handleMyPageEnter = () => {
@@ -54,6 +57,7 @@ const Header = () => {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             {user ? (
               <>
                 <div className="relative"
@@ -61,7 +65,7 @@ const Header = () => {
                   onMouseLeave={handleMyPageLeave}
                 >
                   <Link to="/mypage" className="relative flex items-center gap-1 text-sm font-medium transition-colors py-2 text-primary">
-                    구매자센터
+                    {t("header.buyerCenter")}
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-4 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
                         {unreadCount > 99 ? "99+" : unreadCount}
@@ -93,29 +97,29 @@ const Header = () => {
                 <Link to="/seller/dashboard">
                   <Button variant="ghost" size="sm" className="gap-1.5">
                     <Store className="h-3.5 w-3.5" />
-                    판매자 센터
+                    {t("header.sellerCenter")}
                   </Button>
                 </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">
                       <Settings className="h-3.5 w-3.5" />
-                      관리자
+                      {t("header.admin")}
                     </Button>
                   </Link>
                 )}
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-1.5">
                   <LogOut className="h-3.5 w-3.5" />
-                  로그아웃
+                  {t("common.logout")}
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/login" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">
-                  로그인
+                  {t("common.login")}
                 </Link>
                 <Link to="/signup">
-                  <Button className="rounded-full h-9 px-5 text-[14px] font-medium">회원가입</Button>
+                  <Button className="rounded-full h-9 px-5 text-[14px] font-medium">{t("common.signup")}</Button>
                 </Link>
               </>
             )}
@@ -139,7 +143,7 @@ const Header = () => {
                 onMouseLeave={() => setCategoryMenuOpen(false)}
               >
                 <Menu className="h-4 w-4" />
-                전체 카테고리
+                {t("header.allCategories")}
                 <ChevronDown className="h-3 w-3" />
               </button>
               {categoryMenuOpen && (
@@ -166,7 +170,7 @@ const Header = () => {
               to="/about"
               className={`px-3 py-2 text-[14px] font-semibold whitespace-nowrap transition-colors ${location.pathname === "/about" ? "text-primary border-b-2 border-primary" : "text-primary hover:text-primary/80"}`}
             >
-              AI팩토리 소개
+              {t("header.aboutUs")}
             </Link>
             {categories.map((cat) => {
               const isActive = location.pathname === `/category/${cat.id}`;
@@ -178,7 +182,7 @@ const Header = () => {
                 >
                   {(cat.id === "ai-video" || cat.id === "ai-assistant") && (
                     <span className="absolute -top-1 left-1/2 -translate-x-1/2 px-1.5 py-px text-[9px] font-bold rounded-full bg-destructive text-destructive-foreground leading-tight">
-                      인기
+                      {t("header.popular")}
                     </span>
                   )}
                   {cat.name}
@@ -193,13 +197,16 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t bg-background">
           <div className="px-5 py-4">
+            <div className="flex items-center justify-end mb-3">
+              <LanguageSwitcher />
+            </div>
             <div className="space-y-0.5">
               <Link
                 to="/about"
                 className="flex items-center gap-3 px-3 py-3 text-[14px] font-semibold text-primary rounded-lg hover:bg-secondary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                AI팩토리 소개
+                {t("header.aboutUs")}
               </Link>
               {categories.map((cat) => (
                 <Link
@@ -217,24 +224,24 @@ const Header = () => {
               {user ? (
                 <>
                   <Link to="/mypage" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full rounded-full" size="sm">마이페이지</Button>
+                    <Button variant="outline" className="w-full rounded-full" size="sm">{t("header.mypage")}</Button>
                   </Link>
                   {isAdmin && (
                     <Link to="/admin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full rounded-full" size="sm">관리자</Button>
+                      <Button variant="outline" className="w-full rounded-full" size="sm">{t("header.admin")}</Button>
                     </Link>
                   )}
                   <Button variant="outline" className="flex-1 rounded-full" size="sm" onClick={handleSignOut}>
-                    로그아웃
+                    {t("common.logout")}
                   </Button>
                 </>
               ) : (
                 <>
                   <Link to="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full rounded-full" size="sm">로그인</Button>
+                    <Button variant="outline" className="w-full rounded-full" size="sm">{t("common.login")}</Button>
                   </Link>
                   <Link to="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full rounded-full" size="sm">회원가입</Button>
+                    <Button className="w-full rounded-full" size="sm">{t("common.signup")}</Button>
                   </Link>
                 </>
               )}
