@@ -477,6 +477,16 @@ const AdminChat = () => {
         onSelectFeedback={handleFeedbackRequest}
         onSelectProduction={handleProductionRequest}
       />
+
+      {/* Quote dialog */}
+      <QuoteDialog
+        open={showQuoteDialog}
+        onOpenChange={setShowQuoteDialog}
+        onSubmit={async (q) => { await sendQuote(q); }}
+        defaultServiceTitle={(() => { const meta = selectedRoom?.metadata as any; return meta?.serviceTitle || ""; })()}
+        defaultPrice={(() => { const meta = selectedRoom?.metadata as any; return meta?.price || 0; })()}
+        defaultDeliveryDays={(() => { const meta = selectedRoom?.metadata as any; return meta?.deliveryDays || 7; })()}
+      />
     </AdminLayout>
   );
 };
