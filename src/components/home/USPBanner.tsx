@@ -1,29 +1,16 @@
 import { Zap, Shield, Clock, Layers } from "lucide-react";
-
-const usps = [
-  {
-    icon: Zap,
-    title: "에이전시 반값수준의 비용",
-    description: "해외생산기지 설립으로 압도적가성비",
-  },
-  {
-    icon: Shield,
-    title: "높은 퀄리티",
-    description: "한국인 관리자가 높은 기준으로 QC",
-  },
-  {
-    icon: Clock,
-    title: "빠른 납기/수정",
-    description: "전담자 배정을 통해 빠른 업무처리",
-  },
-  {
-    icon: Layers,
-    title: "대량생산 가능",
-    description: "균일한 퀄리티로 대량생산(계약)가능",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const USPBanner = () => {
+  const { t } = useTranslation();
+
+  const usps = [
+    { icon: Zap, title: t("usp.cost"), description: t("usp.costDesc") },
+    { icon: Shield, title: t("usp.quality"), description: t("usp.qualityDesc") },
+    { icon: Clock, title: t("usp.speed"), description: t("usp.speedDesc") },
+    { icon: Layers, title: t("usp.mass"), description: t("usp.massDesc") },
+  ];
+
   return (
     <section className="bg-foreground">
       <div className="max-w-[1200px] mx-auto px-5 py-14">
