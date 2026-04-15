@@ -8,6 +8,7 @@ export interface ChatRoom {
   id: string;
   customer_id: string;
   admin_id: string | null;
+  seller_id: string | null;
   title: string;
   service_id: string | null;
   project_id: string | null;
@@ -146,12 +147,25 @@ export function useChat() {
   // Create a new chat room
   const createRoom = useCallback(async (title: string, serviceId?: string, metadata?: Record<string, any>) => {
     if (!user) return null;
+
+    // Auto-lookup seller_id from the service
+    let sellerId: string | null = null;
+    if (serviceId) {
+      const { data: svc } = await supabase
+        .from("services")
+        .select("seller_id")
+        .eq("id", serviceId)
+        .maybeSingle();
+      if (svc?.seller_id) sellerId = svc.seller_id;
+    }
+
     const { data, error } = await supabase
       .from("chat_rooms")
       .insert({
         customer_id: user.id,
         title,
         service_id: serviceId || null,
+        seller_id: sellerId,
         metadata: metadata || {},
       } as any)
       .select()

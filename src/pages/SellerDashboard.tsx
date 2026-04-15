@@ -18,6 +18,7 @@ import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import SellerNotificationBell from "@/components/seller/SellerNotificationBell";
+import SellerChatTab from "@/components/seller/SellerChatTab";
 
 interface PackageForm {
   id?: string;
@@ -345,6 +346,7 @@ const SellerDashboard = () => {
           <Tabs defaultValue="services">
             <TabsList className="mb-4">
               <TabsTrigger value="services">내 서비스</TabsTrigger>
+              <TabsTrigger value="chat">고객 채팅</TabsTrigger>
               <TabsTrigger value="settlements">정산 내역</TabsTrigger>
             </TabsList>
 
@@ -395,6 +397,10 @@ const SellerDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="chat">
+              <SellerChatTab sellerId={sellerProfile.id} />
             </TabsContent>
 
             <TabsContent value="settlements">
