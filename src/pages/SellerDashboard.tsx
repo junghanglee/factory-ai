@@ -18,6 +18,7 @@ import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import SellerNotificationBell from "@/components/seller/SellerNotificationBell";
+import SellerChatTab from "@/components/seller/SellerChatTab";
 
 interface PackageForm {
   id?: string;
