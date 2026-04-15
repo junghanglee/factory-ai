@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ImageUploader from "@/components/admin/ImageUploader";
+import { useTranslation } from "react-i18next";
 
 interface ProjectRow {
   id: string;
@@ -44,6 +45,7 @@ const MyProjectsPage = () => {
   const [reviewProject, setReviewProject] = useState<ProjectRow | null>(null);
   const [reviewForm, setReviewForm] = useState({ rating: 5, review_text: "", nickname: "", image_url: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!user) return;
@@ -100,17 +102,17 @@ const MyProjectsPage = () => {
   return (
     <MainLayout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold mb-8">내 프로젝트</h1>
+        <h1 className="text-2xl font-bold mb-8">{t("myProjects.title")}</h1>
 
         {loadingProjects ? (
-          <p className="text-center text-muted-foreground py-12">로딩 중...</p>
+          <p className="text-center text-muted-foreground py-12">{t("common.loading")}</p>
         ) : projects.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">진행 중인 프로젝트가 없습니다.</p>
+              <p className="text-muted-foreground">{t("myProjects.noProjects")}</p>
               <Link to="/">
-                <Button className="mt-4" size="sm">서비스 둘러보기</Button>
+                <Button className="mt-4" size="sm">{t("myProjects.browseServices")}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -137,16 +139,16 @@ const MyProjectsPage = () => {
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          주문번호: {project.order_number} · 금액: {project.price.toLocaleString()}원 · 납기: {new Date(project.due_date).toLocaleDateString("ko-KR")}
+                          {t("myProjects.orderNumber")}: {project.order_number} · {t("myProjects.amount")}: {project.price.toLocaleString()}{t("common.won")} · {t("myProjects.dueDate")}: {new Date(project.due_date).toLocaleDateString("ko-KR")}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {(project.status === "검수중" || project.status === "완료") && project.confirm_status !== "확인완료" && (
-                          <span className="text-xs text-amber-600 font-medium">확인 필요</span>
+                          <span className="text-xs text-amber-600 font-medium">{t("myProjects.needConfirm")}</span>
                         )}
                         {project.confirm_status === "확인완료" && (
                           <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> 완료
+                            <CheckCircle2 className="h-3.5 w-3.5" /> {t("myProjects.confirmed")}
                           </span>
                         )}
                         {project.status === "완료" && (
@@ -160,7 +162,7 @@ const MyProjectsPage = () => {
                               setReviewOpen(true);
                             }}
                           >
-                            <Star className="h-4 w-4 mr-1" /> 후기
+                            <Star className="h-4 w-4 mr-1" /> {t("myProjects.review")}
                           </Button>
                         )}
                         <Button
@@ -199,11 +201,11 @@ const MyProjectsPage = () => {
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>후기 작성 - {reviewProject?.service_title}</DialogTitle>
+            <DialogTitle>{t("myProjects.reviewTitle", { title: reviewProject?.service_title })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>평점</Label>
+              <Label>{t("myProjects.rating")}</Label>
               <div className="flex gap-1 mt-1">
                 {[1, 2, 3, 4, 5].map(v => (
                   <button key={v} onClick={() => setReviewForm(prev => ({ ...prev, rating: v }))}>
@@ -213,15 +215,15 @@ const MyProjectsPage = () => {
               </div>
             </div>
             <div>
-              <Label>닉네임</Label>
+              <Label>{t("myProjects.nickname")}</Label>
               <Input value={reviewForm.nickname} onChange={(e) => setReviewForm(prev => ({ ...prev, nickname: e.target.value }))} />
             </div>
             <div>
-              <Label>후기</Label>
-              <Textarea value={reviewForm.review_text} onChange={(e) => setReviewForm(prev => ({ ...prev, review_text: e.target.value }))} placeholder="서비스 이용 후기를 작성해주세요" />
+              <Label>{t("myProjects.reviewText")}</Label>
+              <Textarea value={reviewForm.review_text} onChange={(e) => setReviewForm(prev => ({ ...prev, review_text: e.target.value }))} placeholder={t("myProjects.reviewPlaceholder")} />
             </div>
             <div>
-              <Label>이미지 (선택)</Label>
+              <Label>{t("myProjects.reviewImage")}</Label>
               <ImageUploader
                 value={reviewForm.image_url}
                 onChange={(url) => setReviewForm(prev => ({ ...prev, image_url: url }))}
@@ -244,7 +246,7 @@ const MyProjectsPage = () => {
                   .maybeSingle();
 
                 if (!svc) {
-                  toast.error("서비스를 찾을 수 없습니다.");
+                  toast.error(t("myProjects.serviceNotFound"));
                   setSubmittingReview(false);
                   return;
                 }
@@ -260,15 +262,15 @@ const MyProjectsPage = () => {
                 });
 
                 if (error) {
-                  toast.error("후기 등록 실패: " + error.message);
+                  toast.error(t("myProjects.reviewFailed") + error.message);
                 } else {
-                  toast.success("후기가 등록되었습니다!");
+                  toast.success(t("myProjects.reviewSuccess"));
                   setReviewOpen(false);
                 }
                 setSubmittingReview(false);
               }}
             >
-              {submittingReview ? "등록 중..." : "후기 등록"}
+              {submittingReview ? t("myProjects.submittingReview") : t("myProjects.submitReview")}
             </Button>
           </div>
         </DialogContent>

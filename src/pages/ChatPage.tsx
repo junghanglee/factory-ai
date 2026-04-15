@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ function formatDate(dateStr: string) {
 
 const ChatPage = () => {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -245,9 +247,9 @@ const ChatPage = () => {
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">채팅하기</h1>
+          <h1 className="text-2xl font-bold">{t("chat.title")}</h1>
           <Button onClick={() => setShowServicePicker(true)} className="gap-1.5">
-            <MessageCirclePlus className="h-4 w-4" /> 새 문의
+            <MessageCirclePlus className="h-4 w-4" /> {t("chat.newInquiry")}
           </Button>
         </div>
 
@@ -267,9 +269,9 @@ const ChatPage = () => {
             {isDragging && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 pointer-events-none">
                 <div className="bg-card rounded-xl px-8 py-6 shadow-lg border text-center">
-                  <Paperclip className="h-10 w-10 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">파일을 여기에 놓으세요</p>
-                  <p className="text-xs text-muted-foreground mt-1">최대 {MAX_FILE_SIZE_MB}MB</p>
+                   <Paperclip className="h-10 w-10 mx-auto mb-2 text-primary" />
+                  <p className="text-sm font-medium">{t("chat.dropFiles")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("chat.maxSize", { size: MAX_FILE_SIZE_MB })}</p>
                 </div>
               </div>
             )}
@@ -277,19 +279,19 @@ const ChatPage = () => {
               <>
                 <div className="p-4 border-b flex items-center justify-between">
                   <span className="font-medium text-sm">{selectedRoom.title}</span>
-                  <div className="flex items-center gap-2">
+                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowFileDrawer(!showFileDrawer); setShowOrderInfo(false); }}>
-                      <FolderOpen className="h-3.5 w-3.5 mr-1" /> 파일함
+                      <FolderOpen className="h-3.5 w-3.5 mr-1" /> {t("chat.fileBox")}
                     </Button>
                     <Button size="sm" variant={showOrderInfo ? "secondary" : "ghost"} className="text-xs h-7 relative" onClick={() => { setShowOrderInfo(!showOrderInfo); setShowFileDrawer(false); }}>
-                      <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청사항
+                      <ClipboardList className="h-3.5 w-3.5 mr-1" /> {t("chat.requirements")}
                       {pendingFeedbackCount > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse">
                           {pendingFeedbackCount}
                         </span>
                       )}
                     </Button>
-                    {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">진행중</span>}
+                    {selectedRoom.status === "active" && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">{t("chat.inProgress")}</span>}
                   </div>
                 </div>
                 <ScrollArea className="flex-1 p-4">

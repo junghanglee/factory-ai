@@ -7,6 +7,7 @@ import { useCategories, useServices } from "@/hooks/useSupabaseData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getCategoryIcon, getAllCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -15,6 +16,7 @@ const CategoryPage = () => {
   const { data: categories = [] } = useCategories();
   const { data: allServices = [] } = useServices();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   const isAll = id === "all";
   const category = categories.find((c) => c.id === id);
@@ -37,27 +39,27 @@ const CategoryPage = () => {
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link to="/" className="hover:text-foreground">홈</Link>
+          <Link to="/" className="hover:text-foreground">{t("common.home")}</Link>
           <span>/</span>
-          <span className="text-foreground">{isAll ? "전체보기" : category?.name}</span>
+          <span className="text-foreground">{isAll ? t("common.viewAll") : category?.name}</span>
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          {isAll ? "전체 서비스" : category?.name}
+          {isAll ? t("category.allServices") : category?.name}
         </h1>
         <p className="text-muted-foreground mb-8">
-          {isAll ? "모든 AI 콘텐츠 서비스를 둘러보세요" : category?.description}
+          {isAll ? t("category.allDesc") : category?.description}
         </p>
 
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-60 shrink-0">
             <div className="space-y-6 p-4 border rounded-xl bg-card">
               <div>
-                <h3 className="text-sm font-semibold mb-3">카테고리</h3>
+                <h3 className="text-sm font-semibold mb-3">{t("common.category")}</h3>
                 <div className="space-y-1.5 text-sm">
                   <Link to="/category/all" className={`flex items-center gap-2 py-1 hover:text-foreground ${isAll ? "text-primary font-medium" : "text-muted-foreground"}`}>
                     <img src={getAllCategoryIcon()} alt="" className="w-5 h-5 object-contain" />
-                    전체
+                    {t("common.all")}
                   </Link>
                   {categories.filter((c) => shouldShowInHeroGrid(c.slug)).map((c) => (
                     <Link key={c.id} to={`/category/${c.id}`} className={`flex items-center gap-2 py-1 hover:text-foreground ${c.id === id ? "text-primary font-medium" : "text-muted-foreground"}`}>
@@ -72,9 +74,9 @@ const CategoryPage = () => {
 
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-sm text-muted-foreground">{displayServices.length}개 서비스</span>
+              <span className="text-sm text-muted-foreground">{t("category.servicesCount", { count: displayServices.length })}</span>
               <Button variant="outline" size="sm" className="gap-1">
-                추천순 <ChevronDown className="h-3 w-3" />
+                {t("category.recommended")} <ChevronDown className="h-3 w-3" />
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,8 +111,8 @@ const CategoryPage = () => {
           <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-primary">이런 서비스는 어떤가요?</h2>
-                <p className="text-sm text-muted-foreground mt-1">AI 팩토리의 다양한 서비스를 만나보세요</p>
+                <h2 className="text-xl font-bold text-primary">{t("category.otherServices")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{t("category.otherServicesDesc")}</p>
               </div>
               {otherServices.length > 4 && (
                 <div className="flex gap-2">

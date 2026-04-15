@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { Search, Star, Clock } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 interface ServiceResult {
   id: string;
@@ -23,6 +24,7 @@ const SearchPage = () => {
   const [searchInput, setSearchInput] = useState(query);
   const [results, setResults] = useState<ServiceResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setSearchInput(query);
@@ -59,7 +61,7 @@ const SearchPage = () => {
         <div className="relative max-w-[600px] mx-auto mb-8">
           <input
             type="text"
-            placeholder="어떤 서비스가 필요하세요?"
+            placeholder={t("search.placeholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -77,23 +79,23 @@ const SearchPage = () => {
         {query && (
           <div className="mb-6">
             <h1 className="text-xl font-bold text-foreground">
-              '<span className="text-primary">{query}</span>' 검색 결과
-              <span className="text-muted-foreground text-base font-normal ml-2">({results.length}건)</span>
+              {t("search.results", { query })}
+              <span className="text-muted-foreground text-base font-normal ml-2">({t("search.count", { count: results.length })})</span>
             </h1>
           </div>
         )}
 
         {/* Loading */}
         {loading && (
-          <div className="text-center py-16 text-muted-foreground">검색 중...</div>
+          <div className="text-center py-16 text-muted-foreground">{t("search.searching")}</div>
         )}
 
         {/* Empty state */}
         {!loading && query && results.length === 0 && (
           <div className="text-center py-16">
             <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/40" />
-            <p className="text-lg font-medium text-foreground mb-1">검색 결과가 없습니다</p>
-            <p className="text-sm text-muted-foreground">다른 키워드로 검색해 보세요</p>
+            <p className="text-lg font-medium text-foreground mb-1">{t("search.noResults")}</p>
+            <p className="text-sm text-muted-foreground">{t("search.tryOther")}</p>
           </div>
         )}
 
@@ -101,8 +103,8 @@ const SearchPage = () => {
         {!query && !loading && (
           <div className="text-center py-16">
             <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/40" />
-            <p className="text-lg font-medium text-foreground mb-1">검색어를 입력해 주세요</p>
-            <p className="text-sm text-muted-foreground">원하는 AI 콘텐츠 서비스를 찾아보세요</p>
+            <p className="text-lg font-medium text-foreground mb-1">{t("search.enterQuery")}</p>
+            <p className="text-sm text-muted-foreground">{t("search.findServices")}</p>
           </div>
         )}
 
@@ -118,7 +120,7 @@ const SearchPage = () => {
                       {service.thumbnail ? (
                         <img src={service.thumbnail} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">이미지 없음</div>
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">{t("search.noImage")}</div>
                       )}
                     </div>
                     <div className="p-3.5">
@@ -139,7 +141,7 @@ const SearchPage = () => {
                       )}
                       <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        <span>{service.delivery_days}일 이내 납품</span>
+                        <span>{t("search.deliveryWithin", { days: service.delivery_days })}</span>
                       </div>
                     </div>
                   </div>

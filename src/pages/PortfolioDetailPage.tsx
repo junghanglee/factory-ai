@@ -5,11 +5,13 @@ import MainLayout from "@/components/layout/MainLayout";
 import { ArrowLeft, Calendar, Building2, Banknote, FileText, Play, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const isVideoUrl = (url: string) => /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url);
 const isImageUrl = (url: string) => /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i.test(url) || url.includes("unsplash");
 
 function FinalOutputItem({ url, title }: { url: string; title: string }) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -70,7 +72,7 @@ function FinalOutputItem({ url, title }: { url: string; title: string }) {
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
               <h3 className="text-white font-bold text-lg md:text-xl drop-shadow-lg">{title}</h3>
               <div className="flex items-center gap-3 mt-1">
-                <span className="text-white/70 text-sm">영상 결과물</span>
+                <span className="text-white/70 text-sm">{t("portfolio.videoResult")}</span>
                 <span className="text-green-400 text-sm font-medium">HD</span>
               </div>
             </div>
@@ -94,6 +96,7 @@ function FinalOutputItem({ url, title }: { url: string; title: string }) {
 const PortfolioDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const { data: item, isLoading } = useQuery({
     queryKey: ["portfolio_detail", id],
@@ -113,7 +116,7 @@ const PortfolioDetailPage = () => {
     return (
       <MainLayout>
         <div className="max-w-[1000px] mx-auto px-5 py-10">
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </MainLayout>
     );
@@ -123,8 +126,8 @@ const PortfolioDetailPage = () => {
     return (
       <MainLayout>
         <div className="max-w-[1000px] mx-auto px-5 py-10 text-center">
-          <p className="text-muted-foreground mb-4">포트폴리오를 찾을 수 없습니다.</p>
-          <Link to="/" className="text-primary hover:underline">홈으로 돌아가기</Link>
+          <p className="text-muted-foreground mb-4">{t("portfolio.notFound")}</p>
+          <Link to="/" className="text-primary hover:underline">{t("common.goHome")}</Link>
         </div>
       </MainLayout>
     );
@@ -142,7 +145,7 @@ const PortfolioDetailPage = () => {
       <div className="max-w-[1000px] mx-auto px-5 py-8">
         {/* Back */}
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" /> 돌아가기
+          <ArrowLeft className="h-4 w-4" /> {t("portfolio.goBack")}
         </Link>
 
         {/* Header */}
@@ -167,7 +170,7 @@ const PortfolioDetailPage = () => {
             <div className="flex items-start gap-3 bg-muted/60 border border-border rounded-lg px-4 py-3">
               <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                고객의 정보보호를 위해 최종결과물보다 다운그레이드된 결과물을 제공합니다.
+                {t("portfolio.watermarkNotice")}
               </p>
             </div>
           </div>
@@ -187,7 +190,7 @@ const PortfolioDetailPage = () => {
               <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-4">
                 <Building2 className="h-5 w-5 text-primary shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">고객</p>
+                  <p className="text-xs text-muted-foreground">{t("portfolio.client")}</p>
                   <p className="font-medium text-sm">{item.client_name}</p>
                 </div>
               </div>
@@ -196,7 +199,7 @@ const PortfolioDetailPage = () => {
               <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-4">
                 <Calendar className="h-5 w-5 text-primary shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">제작기간</p>
+                  <p className="text-xs text-muted-foreground">{t("portfolio.duration")}</p>
                   <p className="font-medium text-sm">{item.duration}</p>
                 </div>
               </div>
@@ -205,7 +208,7 @@ const PortfolioDetailPage = () => {
               <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-4">
                 <Banknote className="h-5 w-5 text-primary shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">제작비용</p>
+                  <p className="text-xs text-muted-foreground">{t("portfolio.cost")}</p>
                   <p className="font-medium text-sm">{item.cost}</p>
                 </div>
               </div>
@@ -216,7 +219,7 @@ const PortfolioDetailPage = () => {
         {/* Detail images */}
         {detailImages.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">상세 이미지</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("portfolio.detailImages")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {detailImages.map((url, idx) => (
                 <div
@@ -234,7 +237,7 @@ const PortfolioDetailPage = () => {
         {/* Attached files */}
         {files.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">첨부 파일</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("portfolio.attachedFiles")}</h2>
             <div className="space-y-2">
               {files.map((url, idx) => (
                 <a
