@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit, Trash2, Save, X, Star } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Star, ShieldCheck, Store, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useCategories, useAllServicesWithPackages } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,6 +48,7 @@ const AdminServices = () => {
   const [pkgForms, setPkgForms] = useState<PackageForm[]>([]);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewService, setReviewService] = useState<{ id: string; title: string } | null>(null);
+  const [typeFilter, setTypeFilter] = useState<"all" | "admin" | "seller">("all");
 
   const openNew = () => {
     setEditId(null);
@@ -132,11 +135,9 @@ const AdminServices = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
-      // Clean up all FK references before deleting the service
       await supabase.from("display_group_services").delete().eq("service_id", id);
       await supabase.from("feedback_fields").delete().eq("service_id", id);
       await supabase.from("service_packages").delete().eq("service_id", id);
-      // Nullify service_id in chat_rooms
       await supabase.from("chat_rooms").update({ service_id: null }).eq("service_id", id);
       const { error } = await supabase.from("services").delete().eq("id", id);
       if (error) throw error;
@@ -146,6 +147,21 @@ const AdminServices = () => {
     } catch (err: any) {
       toast.error("삭제 실패: " + err.message);
     }
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    const { error } = await supabase.from("services").update({ active: !current } as any).eq("id", id);
+    if (error) { toast.error("변경 실패"); return; }
+    queryClient.invalidateQueries({ queryKey: ["services_with_packages"] });
+    toast.success(!current ? "노출 설정됨" : "비노출 설정됨");
+  };
+
+  const toggleApproval = async (id: string, current: string) => {
+    const next = current === "승인" ? "반려" : "승인";
+    const { error } = await supabase.from("services").update({ approval_status: next } as any).eq("id", id);
+    if (error) { toast.error("변경 실패"); return; }
+    queryClient.invalidateQueries({ queryKey: ["services_with_packages"] });
+    toast.success(next === "승인" ? "콘텐츠가 승인되었습니다" : "콘텐츠가 반려되었습니다");
   };
 
   const updatePkg = (idx: number, field: string, value: any) => {
@@ -175,11 +191,27 @@ const AdminServices = () => {
     setPkgForms((prev) => prev.filter((_, i) => i !== idx).map((p, i) => ({ ...p, sort_order: i + 1 })));
   };
 
+  const filteredServices = servicesData.filter((svc) => {
+    if (typeFilter === "admin") return !svc.seller_id;
+    if (typeFilter === "seller") return !!svc.seller_id;
+    return true;
+  });
+
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">서비스 관리</h1>
         <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> 새 서비스 등록</Button>
+      </div>
+
+      {/* Type filter */}
+      <div className="flex gap-2 mb-4">
+        {([["all", "전체"], ["admin", "AI팩토리"], ["seller", "인증판매자"]] as const).map(([key, label]) => (
+          <Button key={key} size="sm" variant={typeFilter === key ? "default" : "outline"} onClick={() => setTypeFilter(key)}>
+            {label}
+          </Button>
+        ))}
+        <span className="ml-auto text-sm text-muted-foreground self-center">총 {filteredServices.length}개</span>
       </div>
 
       <Card>
@@ -188,46 +220,89 @@ const AdminServices = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-secondary/50">
+                  <th className="text-left p-4 font-medium text-muted-foreground">구분</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">서비스</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">카테고리</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">AI팩토리 가격</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">가격</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">패키지</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">평점</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">승인</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">노출</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
                 </tr>
               </thead>
               <tbody>
-                {servicesData.map((svc) => (
-                  <tr key={svc.id} className="border-b last:border-0 hover:bg-secondary/30">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <img src={svc.thumbnail || "/placeholder.svg"} alt="" className="w-12 h-9 rounded object-cover" />
-                        <span className="font-medium truncate max-w-[200px]">{svc.title}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-muted-foreground">
-                      {categories.find((c) => c.id === svc.category_id)?.name || "-"}
-                    </td>
-                    <td className="p-4">{formatPrice(svc.price)}원</td>
-                    <td className="p-4">
-                      <div className="flex gap-1">
-                        {svc.packages.map((pkg) => (
-                          <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs">{pkg.name}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-4">{svc.rating} ({svc.review_count})</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReviewService({ id: svc.id, title: svc.title }); setReviewOpen(true); }}>
-                          <Star className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}><Edit className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filteredServices.map((svc) => {
+                  const isSellerService = !!svc.seller_id;
+                  const isActive = (svc as any).active !== false;
+                  const approvalStatus = (svc as any).approval_status || "승인";
+                  return (
+                    <tr key={svc.id} className="border-b last:border-0 hover:bg-secondary/30">
+                      <td className="p-4">
+                        {isSellerService ? (
+                          <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 gap-0.5">
+                            <Store className="h-3 w-3" /> 판매자
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-0.5">
+                            <ShieldCheck className="h-3 w-3" /> 팩토리
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <img src={svc.thumbnail || "/placeholder.svg"} alt="" className="w-12 h-9 rounded object-cover" />
+                          <div>
+                            <span className="font-medium truncate max-w-[200px] block">{svc.title}</span>
+                            {isSellerService && <span className="text-[11px] text-muted-foreground">{svc.seller}</span>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-muted-foreground">
+                        {categories.find((c) => c.id === svc.category_id)?.name || "-"}
+                      </td>
+                      <td className="p-4">{formatPrice(svc.price)}원</td>
+                      <td className="p-4">
+                        <div className="flex gap-1">
+                          {svc.packages.map((pkg) => (
+                            <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs">{pkg.name}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="p-4">{svc.rating} ({svc.review_count})</td>
+                      <td className="p-4">
+                        {isSellerService ? (
+                          <Button
+                            size="sm"
+                            variant={approvalStatus === "승인" ? "default" : "destructive"}
+                            className="h-7 text-xs gap-1"
+                            onClick={() => toggleApproval(svc.id, approvalStatus)}
+                          >
+                            {approvalStatus === "승인" ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                            {approvalStatus}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <Switch
+                          checked={isActive}
+                          onCheckedChange={() => toggleActive(svc.id, isActive)}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReviewService({ id: svc.id, title: svc.title }); setReviewOpen(true); }}>
+                            <Star className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -248,15 +323,13 @@ const AdminServices = () => {
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
-              {/* Thumbnail upload */}
               <div>
                 <Label className="mb-2 block">대표이미지</Label>
-              <ImageUploader
+                <ImageUploader
                   value={form.thumbnail || ""}
                   onChange={(url) => setForm((prev: any) => ({ ...prev, thumbnail: url }))}
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>서비스명</Label>

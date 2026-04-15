@@ -44,13 +44,26 @@ interface DisplayGroupService {
 
 const ServiceCard = ({ service }: { service: Service }) => (
   <Link to={`/service/${service.id}`} className="group block">
-    <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary">
+    <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary relative">
       <img
         src={service.thumbnail || "/placeholder.svg"}
         alt={service.title}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         loading="lazy"
       />
+      {/* Seller badge overlay on image */}
+      <div className="absolute top-2 left-2">
+        {!service.seller_id ? (
+          <span className="flex items-center gap-0.5 bg-primary/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+            <ShieldCheck className="h-3 w-3" />
+          </span>
+        ) : (
+          <span className="flex items-center gap-0.5 bg-emerald-600/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+            <Store className="h-3 w-3" />
+            인증판매자
+          </span>
+        )}
+      </div>
     </div>
     <h3 className="text-[14px] text-foreground leading-snug line-clamp-2 mb-2 min-h-[2.5rem] font-normal">
       {service.title}
@@ -66,11 +79,6 @@ const ServiceCard = ({ service }: { service: Service }) => (
         {service.seller?.[0] || "A"}
       </div>
       <span className="text-[12px] text-muted-foreground">{service.seller}</span>
-      {!service.seller_id ? (
-        <span className="ml-auto flex items-center gap-0.5 text-[10px] text-primary font-medium"><ShieldCheck className="h-3 w-3" />AI팩토리</span>
-      ) : (
-        <span className="ml-auto flex items-center gap-0.5 text-[10px] text-emerald-600 font-medium"><Store className="h-3 w-3" />인증</span>
-      )}
     </div>
   </Link>
 );

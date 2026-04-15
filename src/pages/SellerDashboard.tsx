@@ -19,6 +19,7 @@ import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import SellerNotificationBell from "@/components/seller/SellerNotificationBell";
 import SellerChatTab from "@/components/seller/SellerChatTab";
+import SellerSettlementTab from "@/components/seller/SellerSettlementTab";
 
 interface PackageForm {
   id?: string;
@@ -88,24 +89,8 @@ const SellerDashboard = () => {
     },
   });
 
-  // Fetch settlements
-  const { data: settlements = [], isLoading: settlementsLoading } = useQuery({
-    queryKey: ["seller-settlements", sellerProfile?.id],
-    queryFn: async () => {
-      if (!sellerProfile) return [];
-      const { data, error } = await supabase
-        .from("settlements")
-        .select("*, projects(order_number, service_title, customer)")
-        .eq("seller_id", sellerProfile.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!sellerProfile?.id,
-  });
-
-  const totalSettled = settlements.filter((s: any) => s.status === "완료").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
-  const totalPending = settlements.filter((s: any) => s.status === "대기").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
+  // Stats computed from settlements in SellerSettlementTab; keep simple stats here
+  const totalRevenue = sellerProfile?.total_revenue || 0;
 
   if (loading || profileLoading) {
     return (
@@ -303,7 +288,7 @@ const SellerDashboard = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
                 <Package className="h-8 w-8 text-primary" />
@@ -318,25 +303,7 @@ const SellerDashboard = () => {
                 <BarChart3 className="h-8 w-8 text-green-500" />
                 <div>
                   <p className="text-sm text-muted-foreground">총 매출</p>
-                  <p className="text-2xl font-bold">{formatPrice(sellerProfile.total_revenue || 0)}원</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Wallet className="h-8 w-8 text-emerald-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">정산 완료</p>
-                  <p className="text-2xl font-bold">{formatPrice(totalSettled)}원</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <DollarSign className="h-8 w-8 text-orange-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">정산 대기</p>
-                  <p className="text-2xl font-bold">{formatPrice(totalPending)}원</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalRevenue)}원</p>
                 </div>
               </CardContent>
             </Card>
@@ -347,7 +314,7 @@ const SellerDashboard = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="services">내 서비스</TabsTrigger>
               <TabsTrigger value="chat">고객 채팅</TabsTrigger>
-              <TabsTrigger value="settlements">정산 내역</TabsTrigger>
+              <TabsTrigger value="settlements">정산관리</TabsTrigger>
             </TabsList>
 
             <TabsContent value="services">
@@ -404,55 +371,7 @@ const SellerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="settlements">
-              <Card>
-                <CardHeader>
-                  <CardTitle>정산 내역</CardTitle>
-                  <CardDescription>주문별 정산 현황을 확인하세요 (수수료율: {sellerProfile.commission_rate}%)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {settlementsLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
-                  ) : settlements.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">정산 내역이 없습니다</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>주문번호</TableHead>
-                          <TableHead>서비스</TableHead>
-                          <TableHead className="text-right">주문금액</TableHead>
-                          <TableHead className="text-right">수수료</TableHead>
-                          <TableHead className="text-right">정산금액</TableHead>
-                          <TableHead>상태</TableHead>
-                          <TableHead>정산일</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {settlements.map((s: any) => (
-                          <TableRow key={s.id}>
-                            <TableCell className="font-mono text-xs">{s.projects?.order_number || "-"}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">{s.projects?.service_title || "-"}</TableCell>
-                            <TableCell className="text-right">{formatPrice(s.order_amount)}원</TableCell>
-                            <TableCell className="text-right text-muted-foreground">{formatPrice(s.commission_amount)}원</TableCell>
-                            <TableCell className="text-right font-medium">{formatPrice(s.seller_amount)}원</TableCell>
-                            <TableCell>
-                              <Badge variant={s.status === "완료" ? "default" : s.status === "취소" ? "destructive" : "secondary"}>
-                                {s.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {s.settled_at ? new Date(s.settled_at).toLocaleDateString("ko-KR") : "-"}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
+              <SellerSettlementTab sellerProfile={sellerProfile} />
             </TabsContent>
           </Tabs>
         </div>

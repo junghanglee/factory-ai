@@ -885,9 +885,15 @@ export type Database = {
       }
       seller_profiles: {
         Row: {
+          bank_account: string | null
+          bank_holder: string | null
           bank_info: string | null
+          bank_name: string | null
           bio: string | null
           business_name: string
+          business_number: string | null
+          business_owner: string | null
+          business_type: string | null
           commission_rate: number
           created_at: string
           id: string
@@ -900,9 +906,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bank_account?: string | null
+          bank_holder?: string | null
           bank_info?: string | null
+          bank_name?: string | null
           bio?: string | null
           business_name: string
+          business_number?: string | null
+          business_owner?: string | null
+          business_type?: string | null
           commission_rate?: number
           created_at?: string
           id?: string
@@ -915,9 +927,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bank_account?: string | null
+          bank_holder?: string | null
           bank_info?: string | null
+          bank_name?: string | null
           bio?: string | null
           business_name?: string
+          business_number?: string | null
+          business_owner?: string | null
+          business_type?: string | null
           commission_rate?: number
           created_at?: string
           id?: string
@@ -1027,6 +1045,8 @@ export type Database = {
       }
       services: {
         Row: {
+          active: boolean
+          approval_status: string
           category_id: string | null
           created_at: string
           delivery_days: number
@@ -1046,6 +1066,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean
+          approval_status?: string
           category_id?: string | null
           created_at?: string
           delivery_days?: number
@@ -1065,6 +1087,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean
+          approval_status?: string
           category_id?: string | null
           created_at?: string
           delivery_days?: number
@@ -1239,6 +1263,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          admin_memo: string | null
+          amount: number
+          bank_account: string | null
+          bank_holder: string | null
+          bank_name: string | null
+          created_at: string
+          id: string
+          processed_at: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_memo?: string | null
+          amount?: number
+          bank_account?: string | null
+          bank_holder?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_memo?: string | null
+          amount?: number
+          bank_account?: string | null
+          bank_holder?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

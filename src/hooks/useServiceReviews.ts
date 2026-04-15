@@ -32,16 +32,22 @@ export const useServiceReviews = (serviceId?: string) =>
 
 export const useRecentReviews = (limit = 6) =>
   useQuery({
-    queryKey: ["recent_reviews", limit],
+    queryKey: ["recent_reviews_random", limit],
     queryFn: async () => {
+      // Fetch more reviews and pick random ones
       const { data, error } = await supabase
         .from("service_reviews")
         .select("*, services(title, thumbnail)")
         .order("created_at", { ascending: false })
-        .limit(limit);
+        .limit(50);
       if (error) throw error;
-      return data as (ServiceReview & { services: { title: string; thumbnail: string | null } | null })[];
+      const all = data as (ServiceReview & { services: { title: string; thumbnail: string | null } | null })[];
+      // Shuffle and pick `limit`
+      const shuffled = [...all].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, limit);
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 
 export const useAllReviewsByService = (serviceId: string) =>
