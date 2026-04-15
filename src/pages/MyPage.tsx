@@ -30,12 +30,20 @@ interface ProjectRow {
   completed_date: string | null;
 }
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  "대기": { color: "bg-muted text-muted-foreground", label: "대기" },
-  "작업중": { color: "bg-blue-100 text-blue-700", label: "작업중" },
-  "검수중": { color: "bg-amber-100 text-amber-700", label: "검수중" },
-  "수정중": { color: "bg-orange-100 text-orange-700", label: "수정중" },
-  "완료": { color: "bg-green-100 text-green-700", label: "완료" },
+const statusLabelMap: Record<string, string> = {
+  "대기": "waiting",
+  "작업중": "inProgress",
+  "검수중": "reviewing",
+  "수정중": "revising",
+  "완료": "done",
+};
+
+const statusConfig: Record<string, { color: string; key: string }> = {
+  "대기": { color: "bg-muted text-muted-foreground", key: "waiting" },
+  "작업중": { color: "bg-blue-100 text-blue-700", key: "inProgress" },
+  "검수중": { color: "bg-amber-100 text-amber-700", key: "reviewing" },
+  "수정중": { color: "bg-orange-100 text-orange-700", key: "revising" },
+  "완료": { color: "bg-green-100 text-green-700", key: "done" },
 };
 
 const MyPage = () => {
