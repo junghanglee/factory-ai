@@ -5,6 +5,7 @@ import {
   CheckCircle2, ChevronRight, Send, Plus, Camera
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
