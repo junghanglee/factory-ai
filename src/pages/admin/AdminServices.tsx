@@ -55,7 +55,8 @@ const AdminServices = () => {
   const openNew = () => {
     setEditId(null);
     setForm({
-      category_id: categories[0]?.id || "", title: "", description: "", detailed_description: "",
+      category_id: categories[0]?.id || "", title: "", title_en: "", description: "", description_en: "",
+      detailed_description: "", detailed_description_en: "",
       thumbnail: "", price: 0, original_price: 0, rating: 5.0, review_count: 0, delivery_days: 1,
       seller: "", tags: [], portfolio_images: [],
     });
@@ -73,8 +74,10 @@ const AdminServices = () => {
   const openEdit = (svc: typeof servicesData[0]) => {
     setEditId(svc.id);
     setForm({
-      category_id: svc.category_id || "", title: svc.title, description: svc.description || "",
-      detailed_description: svc.detailed_description || "", thumbnail: svc.thumbnail || "",
+      category_id: svc.category_id || "", title: svc.title, title_en: (svc as any).title_en || "",
+      description: svc.description || "", description_en: (svc as any).description_en || "",
+      detailed_description: svc.detailed_description || "", detailed_description_en: (svc as any).detailed_description_en || "",
+      thumbnail: svc.thumbnail || "",
       price: svc.price, original_price: svc.original_price, rating: svc.rating,
       review_count: svc.review_count, delivery_days: svc.delivery_days,
       delivery_days_text: (svc as any).delivery_days_text || "",
@@ -98,8 +101,10 @@ const AdminServices = () => {
     try {
       let serviceId = editId;
       const serviceData: any = {
-        category_id: form.category_id, title: form.title, description: form.description,
-        detailed_description: form.detailed_description, thumbnail: form.thumbnail,
+        category_id: form.category_id, title: form.title, title_en: form.title_en || null,
+        description: form.description, description_en: form.description_en || null,
+        detailed_description: form.detailed_description, detailed_description_en: form.detailed_description_en || null,
+        thumbnail: form.thumbnail,
         price: form.price, original_price: form.original_price, delivery_days: form.delivery_days,
         delivery_days_text: form.delivery_days_text || null,
         seller: form.seller, tags: form.tags, portfolio_images: form.portfolio_images,

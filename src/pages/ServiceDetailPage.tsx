@@ -203,14 +203,14 @@ const ServiceDetailPage = () => {
 
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category?.name}</span>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-accent text-accent-foreground">{category ? localize(category, "name") : ""}</span>
                 {discountRate > 0 && (
                   <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive/10 text-destructive">
                     {t("serviceDetail.agencyDiscount", { rate: discountRate })}
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-3">{service.title}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-3">{localize(service, "title")}</h1>
               <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                 <span className="font-medium text-foreground">{service.seller}</span>
                 <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
