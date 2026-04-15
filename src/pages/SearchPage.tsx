@@ -25,8 +25,6 @@ const SearchPage = () => {
   const [results, setResults] = useState<ServiceResult[]>([]);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
-  const [results, setResults] = useState<ServiceResult[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setSearchInput(query);
