@@ -259,6 +259,18 @@ export function useChat() {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + params.deliveryDays);
 
+    // Auto-lookup seller_id from the chat room's linked service
+    let sellerId: string | null = null;
+    const room = rooms.find(r => r.id === selectedRoomId);
+    if (room?.service_id) {
+      const { data: svc } = await supabase
+        .from("services")
+        .select("seller_id")
+        .eq("id", room.service_id)
+        .maybeSingle();
+      if (svc?.seller_id) sellerId = svc.seller_id;
+    }
+
     const { data, error } = await supabase.from("projects").insert({
       order_number: orderNumber,
       service_title: params.serviceTitle,
@@ -269,6 +281,7 @@ export function useChat() {
       status: "작업중",
       due_date: dueDate.toISOString().split("T")[0],
       notes: params.notes || null,
+      seller_id: sellerId,
     }).select().single();
 
     if (error) { console.error(error); toast.error("프로젝트 생성에 실패했습니다."); return null; }
