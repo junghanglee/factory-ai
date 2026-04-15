@@ -822,6 +822,54 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_profiles: {
+        Row: {
+          bank_info: string | null
+          bio: string | null
+          business_name: string
+          commission_rate: number
+          created_at: string
+          id: string
+          phone: string | null
+          profile_image: string | null
+          status: string
+          total_revenue: number
+          total_sales: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_info?: string | null
+          bio?: string | null
+          business_name: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          phone?: string | null
+          profile_image?: string | null
+          status?: string
+          total_revenue?: number
+          total_sales?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_info?: string | null
+          bio?: string | null
+          business_name?: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          phone?: string | null
+          profile_image?: string | null
+          status?: string
+          total_revenue?: number
+          total_sales?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_packages: {
         Row: {
           created_at: string
@@ -930,6 +978,7 @@ export type Database = {
           rating: number
           review_count: number
           seller: string | null
+          seller_id: string | null
           tags: string[] | null
           thumbnail: string | null
           title: string
@@ -948,6 +997,7 @@ export type Database = {
           rating?: number
           review_count?: number
           seller?: string | null
+          seller_id?: string | null
           tags?: string[] | null
           thumbnail?: string | null
           title: string
@@ -966,6 +1016,7 @@ export type Database = {
           rating?: number
           review_count?: number
           seller?: string | null
+          seller_id?: string | null
           tags?: string[] | null
           thumbnail?: string | null
           title?: string
@@ -977,6 +1028,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1078,7 +1136,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "super_admin"
+      app_role: "admin" | "moderator" | "user" | "super_admin" | "seller"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1206,7 +1264,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "super_admin"],
+      app_role: ["admin", "moderator", "user", "super_admin", "seller"],
     },
   },
 } as const
