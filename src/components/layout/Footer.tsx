@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="max-w-[1200px] mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <img src={aiFactoryLogo} alt="AI Factory 로고" className="h-6 w-auto opacity-80" />
-          <span className="text-[11px] text-muted-foreground">© 2026 AI팩토리</span>
+          <span className="text-[11px] text-muted-foreground">© 2026 AI팩토리 All right reserved</span>
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
