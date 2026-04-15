@@ -346,6 +346,7 @@ const SellerDashboard = () => {
           <Tabs defaultValue="services">
             <TabsList className="mb-4">
               <TabsTrigger value="services">내 서비스</TabsTrigger>
+              <TabsTrigger value="chat">고객 채팅</TabsTrigger>
               <TabsTrigger value="settlements">정산 내역</TabsTrigger>
             </TabsList>
 
