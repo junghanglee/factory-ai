@@ -60,8 +60,8 @@ const Header = () => {
                   onMouseEnter={handleMyPageEnter}
                   onMouseLeave={handleMyPageLeave}
                 >
-                  <Link to="/mypage" className="relative flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors py-2">
-                    마이페이지
+                  <Link to="/mypage" className="relative flex items-center gap-1 text-sm font-medium transition-colors py-2 text-primary">
+                    구매자센터
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-4 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
                         {unreadCount > 99 ? "99+" : unreadCount}
