@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList, FileText, CheckCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -18,6 +18,7 @@ import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ChatRoomList from "@/components/chat/ChatRoomList";
 import { groupMessages } from "@/utils/messageGrouping";
 import RequestTypeDialog from "@/components/chat/RequestTypeDialog";
+import QuoteDialog from "@/components/chat/QuoteDialog";
 import { toast } from "sonner";
 
 const MAX_FILES = 10;
@@ -33,10 +34,12 @@ const AdminChat = () => {
     selectRoom, sendMessage, sendFile, sendConfirmVideo, sendFeedbackRequest, user,
     project, projectFiles,
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
+    sendQuote, confirmPayment, sendPurchaseConfirmRequest,
   } = useChat();
 
   const [isFeedbackMode, setIsFeedbackMode] = useState(false);
   const [showRequestType, setShowRequestType] = useState(false);
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
