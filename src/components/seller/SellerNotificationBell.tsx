@@ -54,7 +54,7 @@ const SellerNotificationBell = ({ sellerId }: SellerNotificationBellProps) => {
 
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
-  // Realtime subscription
+  // Realtime subscription with sound
   useEffect(() => {
     if (!sellerId) return;
     const channel = supabase
@@ -69,6 +69,25 @@ const SellerNotificationBell = ({ sellerId }: SellerNotificationBellProps) => {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["seller-notifications", sellerId] });
+          // Play notification sound
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 830;
+            osc.type = "sine";
+            gain.gain.value = 0.25;
+            osc.start();
+            setTimeout(() => { osc.frequency.value = 660; }, 150);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.stop(ctx.currentTime + 0.4);
+          } catch { /* no audio */ }
+          // Browser notification
+          if ("Notification" in window && Notification.permission === "granted" && !document.hasFocus()) {
+            new Notification("판매자 알림", { body: "새로운 알림이 있습니다.", icon: "/favicon.ico", tag: "seller-notif" });
+          }
         }
       )
       .subscribe();

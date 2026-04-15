@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useUnreadChat } from "@/hooks/useUnreadChat";
+import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 interface NavItem {
   to: string;
@@ -88,6 +90,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const { unreadCount } = useUnreadChat();
+  const { unreadCount: adminNotifCount } = useAdminNotifications();
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [profileName, setProfileName] = useState("");
@@ -217,8 +220,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     <group.icon className="h-4 w-4" />
                     <span className="font-medium">{group.label}</span>
                     {group.label === "채팅관리" && unreadCount > 0 && (
-                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold leading-none animate-pulse">
+                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold leading-none animate-pulse">
                         {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                    {group.label === "제작/납품관리" && adminNotifCount > 0 && (
+                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold leading-none animate-pulse">
+                        {adminNotifCount > 99 ? "99+" : adminNotifCount}
                       </span>
                     )}
                   </div>
@@ -246,7 +254,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                           <item.icon className="h-3.5 w-3.5" />
                           {item.label}
                           {group.label === "채팅관리" && item.label === "채팅 관리" && unreadCount > 0 && (
-                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none animate-pulse">
+                            <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none animate-pulse">
                               {unreadCount > 99 ? "99+" : unreadCount}
                             </span>
                           )}
@@ -262,6 +270,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Bottom actions */}
         <div className="p-3 border-t border-white/10 space-y-1">
+          <div className="flex items-center justify-between px-3 py-1">
+            <span className="text-xs text-white/40">알림</span>
+            <AdminNotificationBell />
+          </div>
           <button
             onClick={openProfileDialog}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
