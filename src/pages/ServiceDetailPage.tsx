@@ -254,7 +254,7 @@ const ServiceDetailPage = () => {
               <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.serviceDesc")}</h2>
               {service.description && (
                 <div className="text-[15px] text-muted-foreground leading-[1.8] whitespace-pre-line">
-                  {service.description}
+                  {localize(service, "description")}
                 </div>
               )}
               {service.detailed_description && (
@@ -274,7 +274,7 @@ const ServiceDetailPage = () => {
                       [&_a]:text-primary [&_a]:underline
                       [&_img]:rounded-lg [&_img]:my-4
                       [&_hr]:my-6 [&_hr]:border-border"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(service.detailed_description) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(localize(service, "detailed_description")) }}
                   />
                 </div>
               )}
