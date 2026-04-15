@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -24,7 +24,6 @@ function playNotificationSound() {
 export function useAdminNotifications() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
-  const prevCountRef = useRef<number | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["admin-notifications"],
@@ -42,12 +41,12 @@ export function useAdminNotifications() {
 
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
-  // Realtime + sound
+  // Realtime subscription — build chain BEFORE calling subscribe
   useEffect(() => {
     if (!user || !isAdmin) return;
 
     const channel = supabase
-      .channel("admin-notif-realtime")
+      .channel(`admin-notif-${Date.now()}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
@@ -58,8 +57,9 @@ export function useAdminNotifications() {
         if ("Notification" in window && Notification.permission === "granted" && !document.hasFocus()) {
           new Notification("관리자 알림", { body: "새로운 알림이 있습니다.", icon: "/favicon.ico", tag: "admin-notif" });
         }
-      })
-      .subscribe();
+      });
+
+    channel.subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [user, isAdmin, queryClient]);

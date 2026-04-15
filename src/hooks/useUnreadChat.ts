@@ -84,7 +84,7 @@ export function useUnreadChat() {
 
     // Listen for changes on chat_rooms (unread counts update) and chat_messages (new messages)
     const channel = supabase
-      .channel("global_unread_watch")
+      .channel(`global_unread_${Date.now()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_rooms" }, () => {
         fetchUnread().then((newCount) => {
           if (
@@ -100,10 +100,8 @@ export function useUnreadChat() {
         });
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (payload) => {
-        // Also notify on direct message insert if sender is not current user
         const newMsg = payload.new as any;
         if (newMsg && newMsg.sender_id !== user.id) {
-          // Refresh unread counts
           fetchUnread().then((newCount) => {
             if (
               initializedRef.current &&
@@ -120,8 +118,9 @@ export function useUnreadChat() {
             prevCountRef.current = newCount ?? 0;
           });
         }
-      })
-      .subscribe();
+      });
+
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);
