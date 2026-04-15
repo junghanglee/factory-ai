@@ -186,9 +186,11 @@ export type Database = {
           color: string
           created_at: string
           description: string | null
+          description_en: string | null
           icon_name: string
           id: string
           name: string
+          name_en: string | null
           service_count: number
           slug: string
           sort_order: number
@@ -198,9 +200,11 @@ export type Database = {
           color?: string
           created_at?: string
           description?: string | null
+          description_en?: string | null
           icon_name?: string
           id?: string
           name: string
+          name_en?: string | null
           service_count?: number
           slug: string
           sort_order?: number
@@ -210,9 +214,11 @@ export type Database = {
           color?: string
           created_at?: string
           description?: string | null
+          description_en?: string | null
           icon_name?: string
           id?: string
           name?: string
+          name_en?: string | null
           service_count?: number
           slug?: string
           sort_order?: number
@@ -1014,6 +1020,7 @@ export type Database = {
           features: string[] | null
           id: string
           name: string
+          name_en: string | null
           price: number
           price_text: string | null
           revisions: number
@@ -1028,6 +1035,7 @@ export type Database = {
           features?: string[] | null
           id?: string
           name: string
+          name_en?: string | null
           price?: number
           price_text?: string | null
           revisions?: number
@@ -1042,6 +1050,7 @@ export type Database = {
           features?: string[] | null
           id?: string
           name?: string
+          name_en?: string | null
           price?: number
           price_text?: string | null
           revisions?: number
@@ -1115,7 +1124,9 @@ export type Database = {
           delivery_days: number
           delivery_days_text: string | null
           description: string | null
+          description_en: string | null
           detailed_description: string | null
+          detailed_description_en: string | null
           id: string
           original_price: number
           portfolio_images: string[] | null
@@ -1127,6 +1138,7 @@ export type Database = {
           tags: string[] | null
           thumbnail: string | null
           title: string
+          title_en: string | null
           updated_at: string
         }
         Insert: {
@@ -1137,7 +1149,9 @@ export type Database = {
           delivery_days?: number
           delivery_days_text?: string | null
           description?: string | null
+          description_en?: string | null
           detailed_description?: string | null
+          detailed_description_en?: string | null
           id?: string
           original_price?: number
           portfolio_images?: string[] | null
@@ -1149,6 +1163,7 @@ export type Database = {
           tags?: string[] | null
           thumbnail?: string | null
           title: string
+          title_en?: string | null
           updated_at?: string
         }
         Update: {
@@ -1159,7 +1174,9 @@ export type Database = {
           delivery_days?: number
           delivery_days_text?: string | null
           description?: string | null
+          description_en?: string | null
           detailed_description?: string | null
+          detailed_description_en?: string | null
           id?: string
           original_price?: number
           portfolio_images?: string[] | null
@@ -1171,6 +1188,7 @@ export type Database = {
           tags?: string[] | null
           thumbnail?: string | null
           title?: string
+          title_en?: string | null
           updated_at?: string
         }
         Relationships: [
