@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { createBannerUploadPath, getBannerDisplayImageUrl } from "@/lib/heroBanners";
 import { compressImage } from "@/utils/imageCompression";
+import { useTranslation } from "react-i18next";
 
 type Banner = Tables<"banners">;
 
@@ -30,6 +31,7 @@ const emptyForm: BannerForm = { title: "", subtitle: "", image_url: "", link_url
 
 const AdminBanners = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);

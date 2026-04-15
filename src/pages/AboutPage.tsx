@@ -12,6 +12,7 @@ import aboutHero from "@/assets/about-hero.jpg";
 import aboutStrengths from "@/assets/about-strengths.jpg";
 import aboutServices from "@/assets/about-services.jpg";
 import aboutAcademy from "@/assets/about-academy.jpg";
+import { useTranslation } from "react-i18next";
 
 const tabs = [
   { id: "brand", label: "Brand Story" },
@@ -25,6 +26,7 @@ const tabs = [
 const emptyForm = { name: "", email: "", phone: "", company: "", inquiry_type: "일반 문의", message: "" };
 
 const AboutPage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("brand");
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);

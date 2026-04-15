@@ -12,10 +12,12 @@ import { useCategories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
+import { useTranslation } from "react-i18next";
 
 const AdminCategories = () => {
   const { data: cats = [], isLoading } = useCategories();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", name_en: "", description: "", description_en: "", color: "hsl(246, 65%, 56%)", slug: "", icon_name: "Image", sort_order: 0 });

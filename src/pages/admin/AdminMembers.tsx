@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface MemberRow {
   id: string;
@@ -39,6 +40,7 @@ const statusColors: Record<string, string> = {
 const AdminMembers = () => {
   const { isSuperAdmin } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [sellerUserIds, setSellerUserIds] = useState<Set<string>>(new Set());

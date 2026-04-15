@@ -11,11 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, CheckCircle, XCircle, DollarSign, Wallet, BarChart3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (n: number) => n.toLocaleString("ko-KR");
 
 const AdminSettlements = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");

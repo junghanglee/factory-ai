@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { smartCompress } from "@/utils/imageCompression";
+import { useTranslation } from "react-i18next";
 
 interface ProjectRow {
   id: string;
@@ -71,6 +72,7 @@ const allStatuses = ["대기", "작업중", "검수중", "수정중", "완료", 
 
 const AdminProjects = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);

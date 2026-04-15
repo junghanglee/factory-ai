@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Search, Eye, CheckCircle, XCircle, FileText, ExternalLink, Store } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const statusColors: Record<string, string> = {
   "신청": "bg-yellow-100 text-yellow-800",
@@ -24,6 +25,7 @@ const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
 const AdminSellers = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedSeller, setSelectedSeller] = useState<any>(null);

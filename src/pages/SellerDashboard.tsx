@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import MainLayout from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ const SellerDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<any>({});
@@ -107,9 +109,9 @@ const SellerDashboard = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 대시보드</h1>
-          <p className="text-muted-foreground">로그인이 필요합니다.</p>
-          <Button onClick={() => navigate("/login")}>로그인하기</Button>
+          <h1 className="text-2xl font-bold">{t("seller.dashboard")}</h1>
+          <p className="text-muted-foreground">{t("seller.loginNeeded")}</p>
+          <Button onClick={() => navigate("/login")}>{t("common.goLogin")}</Button>
         </div>
       </MainLayout>
     );
@@ -120,28 +122,23 @@ const SellerDashboard = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 등록이 필요합니다</h1>
-          <p className="text-muted-foreground">먼저 판매자 신청을 해주세요.</p>
-          <Button onClick={() => navigate("/seller/apply")}>판매자 신청하기</Button>
+          <h1 className="text-2xl font-bold">{t("seller.registerNeeded")}</h1>
+          <p className="text-muted-foreground">{t("seller.registerFirst")}</p>
+          <Button onClick={() => navigate("/seller/apply")}>{t("seller.goToApply")}</Button>
         </div>
       </MainLayout>
     );
   }
 
   if (sellerProfile.status !== "승인") {
-    const statusMsg: Record<string, string> = {
-      "신청": "판매자 신청이 검토 중입니다. 승인 후 서비스 등록이 가능합니다.",
-      "반려": "판매자 신청이 반려되었습니다. 자세한 내용은 고객센터에 문의해주세요.",
-      "정지": "판매자 계정이 정지되었습니다. 자세한 내용은 고객센터에 문의해주세요.",
-    };
     return (
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 대시보드</h1>
+          <h1 className="text-2xl font-bold">{t("seller.dashboard")}</h1>
           <Badge variant="secondary" className="text-base px-4 py-1">{sellerProfile.status}</Badge>
-          <p className="text-muted-foreground text-center max-w-md">{statusMsg[sellerProfile.status] || ""}</p>
-          <Button variant="outline" onClick={() => navigate("/")}>홈으로</Button>
+          <p className="text-muted-foreground text-center max-w-md">{t(`seller.statusMessages.${sellerProfile.status}`, "")}</p>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("common.goHome")}</Button>
         </div>
       </MainLayout>
     );
@@ -182,8 +179,8 @@ const SellerDashboard = () => {
   };
 
   const handleSave = async () => {
-    if (!form.title?.trim()) { toast.error("서비스명을 입력해주세요."); return; }
-    if (!form.category_id) { toast.error("카테고리를 선택해주세요."); return; }
+    if (!form.title?.trim()) { toast.error(t("common.required")); return; }
+    if (!form.category_id) { toast.error(t("common.required")); return; }
 
     try {
       let serviceId = editId;
@@ -219,23 +216,23 @@ const SellerDashboard = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: ["seller-services"] });
-      toast.success(editId ? "서비스가 수정되었습니다." : "서비스가 등록되었습니다.");
+      toast.success(editId ? t("seller.serviceUpdated") : t("seller.serviceCreated"));
       setEditOpen(false);
     } catch (err: any) {
-      toast.error("저장 실패: " + err.message);
+      toast.error(t("common.saveFailed") + ": " + err.message);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
+    if (!confirm(t("common.deleteConfirm"))) return;
     try {
       await supabase.from("service_packages").delete().eq("service_id", id);
       const { error } = await supabase.from("services").delete().eq("id", id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["seller-services"] });
-      toast.success("삭제되었습니다.");
+      toast.success(t("common.deleted"));
     } catch (err: any) {
-      toast.error("삭제 실패: " + err.message);
+      toast.error(t("common.deleteFailed") + ": " + err.message);
     }
   };
 
@@ -275,14 +272,14 @@ const SellerDashboard = () => {
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Store className="h-6 w-6 text-primary" />
-                판매자 대시보드
+                {t("seller.dashboard")}
               </h1>
-              <p className="text-muted-foreground mt-1">{sellerProfile.business_name}님, 환영합니다</p>
+              <p className="text-muted-foreground mt-1">{t("seller.welcome", { name: sellerProfile.business_name })}</p>
             </div>
             <div className="flex items-center gap-2">
               <SellerNotificationBell sellerId={sellerProfile.id} />
               <Button onClick={openNew} className="gap-2">
-                <Plus className="h-4 w-4" /> 새 서비스 등록
+                <Plus className="h-4 w-4" /> {t("seller.registerService")}
               </Button>
             </div>
           </div>
@@ -293,7 +290,7 @@ const SellerDashboard = () => {
               <CardContent className="p-4 flex items-center gap-3">
                 <Package className="h-8 w-8 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">등록 서비스</p>
+                  <p className="text-sm text-muted-foreground">{t("seller.registeredServices")}</p>
                   <p className="text-2xl font-bold">{myServices.length}</p>
                 </div>
               </CardContent>
@@ -302,8 +299,8 @@ const SellerDashboard = () => {
               <CardContent className="p-4 flex items-center gap-3">
                 <BarChart3 className="h-8 w-8 text-green-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">총 매출</p>
-                  <p className="text-2xl font-bold">{formatPrice(totalRevenue)}원</p>
+                  <p className="text-sm text-muted-foreground">{t("seller.totalRevenue")}</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalRevenue)}{t("common.won")}</p>
                 </div>
               </CardContent>
             </Card>
@@ -312,25 +309,25 @@ const SellerDashboard = () => {
           {/* Tabs: Services & Settlements */}
           <Tabs defaultValue="services">
             <TabsList className="mb-4">
-              <TabsTrigger value="services">내 서비스</TabsTrigger>
-              <TabsTrigger value="chat">고객 채팅</TabsTrigger>
-              <TabsTrigger value="settlements">정산관리</TabsTrigger>
+              <TabsTrigger value="services">{t("seller.myServices")}</TabsTrigger>
+              <TabsTrigger value="chat">{t("seller.customerChat")}</TabsTrigger>
+              <TabsTrigger value="settlements">{t("seller.settlements")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="services">
               <Card>
                 <CardHeader>
-                  <CardTitle>내 서비스 목록</CardTitle>
-                  <CardDescription>등록한 서비스를 관리하세요</CardDescription>
+                  <CardTitle>{t("seller.myServiceList")}</CardTitle>
+                  <CardDescription>{t("seller.manageServices")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {servicesLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+                    <div className="text-center py-8 text-muted-foreground">{t("common.loading")}</div>
                   ) : myServices.length === 0 ? (
                     <div className="text-center py-12">
                       <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">등록된 서비스가 없습니다</p>
-                      <Button className="mt-4" onClick={openNew}>첫 서비스 등록하기</Button>
+                      <p className="text-muted-foreground">{t("seller.noServices")}</p>
+                      <Button className="mt-4" onClick={openNew}>{t("seller.firstService")}</Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -344,7 +341,7 @@ const SellerDashboard = () => {
                               <span>·</span>
                               <span>{formatPrice(svc.price)}원</span>
                               <span>·</span>
-                              <span>패키지 {svc.service_packages?.length || 0}개</span>
+                              <span>{t("seller.packages")} {svc.service_packages?.length || 0}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
@@ -381,17 +378,17 @@ const SellerDashboard = () => {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editId ? "서비스 수정" : "새 서비스 등록"}</DialogTitle>
+          <DialogTitle>{editId ? t("seller.editService") : t("seller.newService")}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="basic">
             <TabsList className="w-full">
-              <TabsTrigger value="basic" className="flex-1">기본 정보</TabsTrigger>
-              <TabsTrigger value="packages" className="flex-1">패키지 설정 ({pkgForms.length}개)</TabsTrigger>
+              <TabsTrigger value="basic" className="flex-1">{t("seller.basicTab")}</TabsTrigger>
+              <TabsTrigger value="packages" className="flex-1">{t("seller.packageTab")} ({pkgForms.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
               <div>
-                <Label className="mb-2 block">대표이미지</Label>
+                <Label className="mb-2 block">{t("seller.thumbnail")}</Label>
                 <ImageUploader
                   value={form.thumbnail || ""}
                   onChange={(url) => setForm((prev: any) => ({ ...prev, thumbnail: url }))}
@@ -399,17 +396,17 @@ const SellerDashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>서비스명 <span className="text-red-500">*</span></Label>
+                  <Label>{t("seller.serviceName")} <span className="text-red-500">*</span></Label>
                   <Input value={form.title || ""} onChange={e => setForm((prev: any) => ({ ...prev, title: e.target.value }))} />
                 </div>
                 <div>
-                  <Label>카테고리 <span className="text-red-500">*</span></Label>
+                  <Label>{t("common.category")} <span className="text-red-500">*</span></Label>
                   <select
                     className="w-full h-10 border rounded-md px-3 text-sm bg-background"
                     value={form.category_id || ""}
                     onChange={e => setForm((prev: any) => ({ ...prev, category_id: e.target.value }))}
                   >
-                    <option value="">카테고리 선택</option>
+                    <option value="">{t("seller.categorySelect")}</option>
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
@@ -417,37 +414,36 @@ const SellerDashboard = () => {
                 </div>
               </div>
               <div>
-                <Label>간단 설명</Label>
+                <Label>{t("seller.descLabel")}</Label>
                 <Input value={form.description || ""} onChange={e => setForm((prev: any) => ({ ...prev, description: e.target.value }))} />
               </div>
               <div>
-                <Label className="mb-2 block">상세 설명</Label>
+                <Label className="mb-2 block">{t("seller.detailedDesc")}</Label>
                 <SimpleRichEditor
                   value={form.detailed_description || ""}
                   onChange={html => setForm((prev: any) => ({ ...prev, detailed_description: html }))}
-                  placeholder="서비스 상세 설명을 입력하세요..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>판매 가격 (원)</Label>
+                  <Label>{t("seller.basePrice")}</Label>
                   <Input type="number" value={form.price || 0} onChange={e => setForm((prev: any) => ({ ...prev, price: Number(e.target.value) }))} />
                 </div>
                 <div>
-                  <Label>정가 (원)</Label>
+                  <Label>{t("seller.agencyPrice")}</Label>
                   <Input type="number" value={form.original_price || 0} onChange={e => setForm((prev: any) => ({ ...prev, original_price: Number(e.target.value) }))} />
                 </div>
               </div>
               <div>
-                <Label>납기일 (일)</Label>
+                <Label>{t("seller.deliveryDays")}</Label>
                 <Input type="number" value={form.delivery_days || 1} onChange={e => setForm((prev: any) => ({ ...prev, delivery_days: Number(e.target.value) }))} />
               </div>
               <div>
-                <Label>태그 (쉼표 구분)</Label>
+                <Label>{t("seller.tags")}</Label>
                 <Input value={(form.tags || []).join(", ")} onChange={e => setForm((prev: any) => ({ ...prev, tags: e.target.value.split(",").map((t: string) => t.trim()) }))} />
               </div>
               <div>
-                <Label className="mb-2 block">포트폴리오 이미지</Label>
+                <Label className="mb-2 block">{t("seller.portfolioImages")}</Label>
                 <MultiImageUploader
                   value={form.portfolio_images || []}
                   onChange={urls => setForm((prev: any) => ({ ...prev, portfolio_images: urls }))}
@@ -457,10 +453,10 @@ const SellerDashboard = () => {
 
             <TabsContent value="packages" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">최소 1개, 최대 5개까지 등록 가능합니다.</p>
+                <p className="text-sm text-muted-foreground">{t("seller.packageTab")}</p>
                 {pkgForms.length < 5 && (
                   <Button variant="outline" size="sm" onClick={addPackage}>
-                    <Plus className="h-4 w-4 mr-1" /> 패키지 추가
+                    <Plus className="h-4 w-4 mr-1" /> {t("seller.addPackage")}
                   </Button>
                 )}
               </div>
@@ -477,11 +473,11 @@ const SellerDashboard = () => {
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                       <div>
-                        <Label>패키지명</Label>
+                      <Label>{t("seller.packageName")}</Label>
                         <Input value={pkg.name} onChange={e => updatePkg(pkgIdx, "name", e.target.value)} />
                       </div>
                       <div>
-                        <Label>가격</Label>
+                        <Label>{t("common.price")}</Label>
                         <Input
                           value={pkg.price_text || (pkg.price === 0 ? "" : String(pkg.price))}
                           onChange={e => {
@@ -495,26 +491,25 @@ const SellerDashboard = () => {
                               updatePkg(pkgIdx, "price", 0);
                             }
                           }}
-                          placeholder="숫자 또는 텍스트"
                         />
                       </div>
                       <div>
-                        <Label>납기(일)</Label>
+                        <Label>{t("seller.deliveryDays")}</Label>
                         <Input type="number" value={pkg.delivery_days} onChange={e => updatePkg(pkgIdx, "delivery_days", Number(e.target.value))} />
                       </div>
                       <div>
-                        <Label>수정횟수</Label>
+                        <Label>{t("seller.revisions")}</Label>
                         <Input type="number" value={pkg.revisions} onChange={e => updatePkg(pkgIdx, "revisions", Number(e.target.value))} />
                       </div>
                     </div>
                     <div>
-                      <Label>주요 특징</Label>
+                      <Label>{t("seller.features")}</Label>
                       <div className="space-y-2">
                         {pkg.features.map((feat, featIdx) => (
-                          <Input key={featIdx} value={feat} onChange={e => updatePkgFeature(pkgIdx, featIdx, e.target.value)} placeholder={`특징 ${featIdx + 1}`} />
+                          <Input key={featIdx} value={feat} onChange={e => updatePkgFeature(pkgIdx, featIdx, e.target.value)} placeholder={t("seller.featurePlaceholder")} />
                         ))}
                         {pkg.features.length < 8 && (
-                          <Button variant="outline" size="sm" onClick={() => addPkgFeature(pkgIdx)}>+ 항목 추가</Button>
+                          <Button variant="outline" size="sm" onClick={() => addPkgFeature(pkgIdx)}>+ {t("seller.addFeature")}</Button>
                         )}
                       </div>
                     </div>
@@ -525,7 +520,7 @@ const SellerDashboard = () => {
           </Tabs>
 
           <Button onClick={handleSave} className="w-full gap-2 mt-4">
-            <Save className="h-4 w-4" /> 저장
+            <Save className="h-4 w-4" /> {t("common.save")}
           </Button>
         </DialogContent>
       </Dialog>
