@@ -3,23 +3,23 @@ import { Zap, Shield, Clock, Layers } from "lucide-react";
 const usps = [
   {
     icon: Zap,
-    title: "에이전시 반값",
-    description: "AI 기술로 제작 비용을 획기적으로 절감",
+    title: "에이전시 반값수준의 비용",
+    description: "해외생산기지 설립으로 압도적가성비",
   },
   {
     icon: Shield,
     title: "높은 퀄리티",
-    description: "전문가 감수를 거친 고품질 결과물 보장",
+    description: "한국인 관리자가 높은 기준으로 QC",
   },
   {
     icon: Clock,
-    title: "빠른 납기",
-    description: "기존 대비 3~5배 빠르게 납품",
+    title: "빠른 납기/수정",
+    description: "전담자 배정을 통해 빠른 업무처리",
   },
   {
     icon: Layers,
     title: "대량생산 가능",
-    description: "균일한 퀄리티로 수백 개 제작",
+    description: "균일한 퀄리티로 대량생산(계약)가능",
   },
 ];
 
