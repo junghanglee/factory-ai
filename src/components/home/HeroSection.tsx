@@ -63,7 +63,7 @@ const HeroSection = () => {
           <div className="flex-1 flex flex-col justify-between">
             <div>
               <h1 className="text-[32px] md:text-[40px] font-bold text-white leading-[1.3] mb-8 tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
-                해외생산 X AI콘텐츠
+                AI콘텐츠 해외생산기지
                 <br />
                 <span className="text-primary drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">압도적인 가성비</span>로 제작!
               </h1>
