@@ -4,6 +4,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (n: number) => "₩" + n.toLocaleString("ko-KR");
 
@@ -15,7 +16,8 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDashboard = () => {
-  // Real stats
+  const { t } = useTranslation();
+
   const { data: projectStats } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
@@ -55,16 +57,16 @@ const AdminDashboard = () => {
   });
 
   const stats = [
-    { label: "총 매출", value: formatPrice(projectStats?.totalRevenue || 0), icon: DollarSign, color: "hsl(246, 65%, 56%)" },
-    { label: "총 주문 수", value: String(projectStats?.totalOrders || 0), icon: ShoppingCart, color: "hsl(210, 100%, 56%)" },
-    { label: "진행중 프로젝트", value: String(projectStats?.inProgress || 0), icon: FolderKanban, color: "hsl(30, 90%, 55%)" },
-    { label: "총 회원", value: String(projectStats?.totalMembers || 0), icon: Users, color: "hsl(160, 70%, 42%)" },
+    { label: t("admin.totalRevenue"), value: formatPrice(projectStats?.totalRevenue || 0), icon: DollarSign, color: "hsl(246, 65%, 56%)" },
+    { label: t("admin.totalOrders"), value: String(projectStats?.totalOrders || 0), icon: ShoppingCart, color: "hsl(210, 100%, 56%)" },
+    { label: t("admin.activeProjects"), value: String(projectStats?.inProgress || 0), icon: FolderKanban, color: "hsl(30, 90%, 55%)" },
+    { label: t("admin.totalMembers"), value: String(projectStats?.totalMembers || 0), icon: Users, color: "hsl(160, 70%, 42%)" },
   ];
 
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">대시보드</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("admin.dashboard")}</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat) => (
@@ -84,22 +86,22 @@ const AdminDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">최근 프로젝트</CardTitle>
+            <CardTitle className="text-lg">{t("admin.recentProjects")}</CardTitle>
           </CardHeader>
           <CardContent>
             {recentProjects.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground">프로젝트가 없습니다</p>
+              <p className="text-center py-8 text-muted-foreground">{t("admin.noProjects")}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 font-medium text-muted-foreground">주문번호</th>
-                      <th className="text-left py-3 font-medium text-muted-foreground">서비스</th>
-                      <th className="text-left py-3 font-medium text-muted-foreground">고객</th>
-                      <th className="text-left py-3 font-medium text-muted-foreground">금액</th>
-                      <th className="text-left py-3 font-medium text-muted-foreground">상태</th>
-                      <th className="text-left py-3 font-medium text-muted-foreground">결제</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.orderNumber")}</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.service")}</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.customer")}</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.amount")}</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.status")}</th>
+                      <th className="text-left py-3 font-medium text-muted-foreground">{t("admin.payment")}</th>
                     </tr>
                   </thead>
                   <tbody>

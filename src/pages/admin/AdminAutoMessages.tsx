@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AutoMessage {
   id: string;
@@ -16,15 +17,16 @@ interface AutoMessage {
   sort_order: number;
 }
 
-const TRIGGER_LABELS: Record<string, string> = {
-  new_room: "신규 문의 입장",
-  order_received: "주문 접수",
-  project_started: "프로젝트 시작",
-};
-
 const AdminAutoMessages = () => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<AutoMessage[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const TRIGGER_LABELS: Record<string, string> = {
+    new_room: t("autoMessages.triggers.new_room"),
+    order_received: t("autoMessages.triggers.order_received"),
+    project_started: t("autoMessages.triggers.project_started"),
+  };
 
   const fetchMessages = async () => {
     setLoading(true);
@@ -41,26 +43,26 @@ const AdminAutoMessages = () => {
       active: msg.active,
       trigger_type: msg.trigger_type,
     }).eq("id", msg.id);
-    if (error) { toast.error("저장 실패"); return; }
-    toast.success("저장되었습니다");
+    if (error) { toast.error(t("autoMessages.saveFailed")); return; }
+    toast.success(t("autoMessages.saved"));
   };
 
   const handleAdd = async () => {
     const { error } = await supabase.from("auto_messages").insert({
       trigger_type: "new_room",
-      message: "새 자동 메시지를 입력하세요.",
+      message: "",
       sort_order: messages.length,
     });
-    if (error) { toast.error("추가 실패"); return; }
+    if (error) { toast.error(t("autoMessages.addFailed")); return; }
     await fetchMessages();
-    toast.success("추가되었습니다");
+    toast.success(t("autoMessages.added"));
   };
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("auto_messages").delete().eq("id", id);
-    if (error) { toast.error("삭제 실패"); return; }
+    if (error) { toast.error(t("autoMessages.deleteFailed")); return; }
     setMessages((prev) => prev.filter((m) => m.id !== id));
-    toast.success("삭제되었습니다");
+    toast.success(t("autoMessages.deleted"));
   };
 
   const updateLocal = (id: string, field: keyof AutoMessage, value: any) => {
@@ -70,14 +72,14 @@ const AdminAutoMessages = () => {
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">자동 메시지 설정</h1>
-        <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" /> 추가</Button>
+        <h1 className="text-2xl font-bold">{t("autoMessages.title")}</h1>
+        <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" /> {t("autoMessages.add")}</Button>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">로딩 중...</p>
+        <p className="text-muted-foreground text-sm">{t("common.loading")}</p>
       ) : messages.length === 0 ? (
-        <p className="text-muted-foreground text-sm">등록된 자동 메시지가 없습니다.</p>
+        <p className="text-muted-foreground text-sm">{t("autoMessages.noMessages")}</p>
       ) : (
         <div className="space-y-4">
           {messages.map((msg) => (
@@ -95,12 +97,12 @@ const AdminAutoMessages = () => {
                   </select>
                   <div className="flex items-center gap-2">
                     <Switch checked={msg.active} onCheckedChange={(v) => updateLocal(msg.id, "active", v)} />
-                    <span className="text-xs text-muted-foreground">{msg.active ? "활성" : "비활성"}</span>
+                    <span className="text-xs text-muted-foreground">{msg.active ? t("common.active") : t("common.inactive")}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleUpdate(msg)}>
-                    <Save className="h-3.5 w-3.5 mr-1" /> 저장
+                    <Save className="h-3.5 w-3.5 mr-1" /> {t("autoMessages.save")}
                   </Button>
                   <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(msg.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
@@ -112,7 +114,7 @@ const AdminAutoMessages = () => {
                 onChange={(e) => updateLocal(msg.id, "message", e.target.value)}
                 rows={3}
                 className="text-sm"
-                placeholder="자동 전송될 메시지를 입력하세요..."
+                placeholder={t("autoMessages.placeholder")}
               />
             </div>
           ))}
