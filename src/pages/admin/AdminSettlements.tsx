@@ -84,10 +84,23 @@ const AdminSettlements = () => {
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
+      const settlement = settlements.find((s: any) => s.id === id);
       const updateData: any = { status: newStatus };
       if (newStatus === "완료") updateData.settled_at = new Date().toISOString();
       const { error } = await supabase.from("settlements").update(updateData).eq("id", id);
       if (error) throw error;
+
+      // Send notification to seller on completion
+      if (newStatus === "완료" && settlement) {
+        await supabase.from("seller_notifications").insert({
+          seller_id: settlement.seller_id,
+          type: "settlement_complete",
+          title: "정산이 완료되었습니다",
+          message: `정산금액: ${settlement.seller_amount.toLocaleString("ko-KR")}원\n주문: ${settlement.projects?.service_title || ""}`,
+          metadata: { settlement_id: id },
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["admin-settlements"] });
       toast.success(`정산 상태가 '${newStatus}'(으)로 변경되었습니다.`);
     } catch (err: any) {
