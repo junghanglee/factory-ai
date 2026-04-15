@@ -109,9 +109,9 @@ const SellerDashboard = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 대시보드</h1>
-          <p className="text-muted-foreground">로그인이 필요합니다.</p>
-          <Button onClick={() => navigate("/login")}>로그인하기</Button>
+          <h1 className="text-2xl font-bold">{t("seller.dashboard")}</h1>
+          <p className="text-muted-foreground">{t("seller.loginNeeded")}</p>
+          <Button onClick={() => navigate("/login")}>{t("common.goLogin")}</Button>
         </div>
       </MainLayout>
     );
@@ -122,28 +122,23 @@ const SellerDashboard = () => {
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 등록이 필요합니다</h1>
-          <p className="text-muted-foreground">먼저 판매자 신청을 해주세요.</p>
-          <Button onClick={() => navigate("/seller/apply")}>판매자 신청하기</Button>
+          <h1 className="text-2xl font-bold">{t("seller.registerNeeded")}</h1>
+          <p className="text-muted-foreground">{t("seller.registerFirst")}</p>
+          <Button onClick={() => navigate("/seller/apply")}>{t("seller.goToApply")}</Button>
         </div>
       </MainLayout>
     );
   }
 
   if (sellerProfile.status !== "승인") {
-    const statusMsg: Record<string, string> = {
-      "신청": "판매자 신청이 검토 중입니다. 승인 후 서비스 등록이 가능합니다.",
-      "반려": "판매자 신청이 반려되었습니다. 자세한 내용은 고객센터에 문의해주세요.",
-      "정지": "판매자 계정이 정지되었습니다. 자세한 내용은 고객센터에 문의해주세요.",
-    };
     return (
       <MainLayout>
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <Store className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">판매자 대시보드</h1>
+          <h1 className="text-2xl font-bold">{t("seller.dashboard")}</h1>
           <Badge variant="secondary" className="text-base px-4 py-1">{sellerProfile.status}</Badge>
-          <p className="text-muted-foreground text-center max-w-md">{statusMsg[sellerProfile.status] || ""}</p>
-          <Button variant="outline" onClick={() => navigate("/")}>홈으로</Button>
+          <p className="text-muted-foreground text-center max-w-md">{t(`seller.statusMessages.${sellerProfile.status}`, "")}</p>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("common.goHome")}</Button>
         </div>
       </MainLayout>
     );
