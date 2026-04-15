@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import MainLayout from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,9 @@ const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
 const SellerDashboard = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
