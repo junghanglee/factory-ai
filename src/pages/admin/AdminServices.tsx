@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit, Trash2, Save, X, Star, ShieldCheck, Store, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Star, ShieldCheck, Store } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -220,15 +220,17 @@ const AdminServices = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-secondary/50">
-                  <th className="text-left p-4 font-medium text-muted-foreground">구분</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">서비스</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">카테고리</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">가격</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">패키지</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">평점</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">승인</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">노출</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
+                 <th className="text-left p-4 font-medium text-muted-foreground">구분</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">서비스</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">등록자</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">카테고리</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">가격</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">패키지</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">평점</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">피드백</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">승인</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">노출</th>
+                   <th className="text-left p-4 font-medium text-muted-foreground">관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -252,35 +254,47 @@ const AdminServices = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img src={svc.thumbnail || "/placeholder.svg"} alt="" className="w-12 h-9 rounded object-cover" />
-                          <div>
-                            <span className="font-medium truncate max-w-[200px] block">{svc.title}</span>
-                            {isSellerService && <span className="text-[11px] text-muted-foreground">{svc.seller}</span>}
-                          </div>
+                          <span className="font-medium truncate max-w-[200px] block">{svc.title}</span>
                         </div>
+                      </td>
+                      <td className="p-4 text-sm text-muted-foreground">
+                        {(svc as any).seller_profile_name || svc.seller || "AI팩토리"}
                       </td>
                       <td className="p-4 text-muted-foreground">
                         {categories.find((c) => c.id === svc.category_id)?.name || "-"}
                       </td>
                       <td className="p-4">{formatPrice(svc.price)}원</td>
                       <td className="p-4">
-                        <div className="flex gap-1">
-                          {svc.packages.map((pkg) => (
-                            <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs">{pkg.name}</span>
-                          ))}
-                        </div>
+                        <button
+                          className="flex gap-1 hover:opacity-70 transition-opacity"
+                          onClick={() => openEdit(svc)}
+                          title="패키지 수정"
+                        >
+                          {svc.packages.length > 0 ? svc.packages.map((pkg: any) => (
+                            <span key={pkg.id} className="px-1.5 py-0.5 bg-secondary rounded text-xs cursor-pointer">{pkg.name}</span>
+                          )) : <span className="text-xs text-muted-foreground">없음</span>}
+                        </button>
                       </td>
-                      <td className="p-4">{svc.rating} ({svc.review_count})</td>
+                      <td className="p-4">
+                        <button
+                          className="flex items-center gap-1 hover:opacity-70 transition-opacity cursor-pointer"
+                          onClick={() => { setReviewService({ id: svc.id, title: svc.title }); setReviewOpen(true); }}
+                          title="평점 관리"
+                        >
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          <span>{svc.rating}</span>
+                          <span className="text-muted-foreground">({svc.review_count})</span>
+                        </button>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-xs text-muted-foreground">{(svc as any).feedback_count || 0}개 항목</span>
+                      </td>
                       <td className="p-4">
                         {isSellerService ? (
-                          <Button
-                            size="sm"
-                            variant={approvalStatus === "승인" ? "default" : "destructive"}
-                            className="h-7 text-xs gap-1"
-                            onClick={() => toggleApproval(svc.id, approvalStatus)}
-                          >
-                            {approvalStatus === "승인" ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                            {approvalStatus}
-                          </Button>
+                          <Switch
+                            checked={approvalStatus === "승인"}
+                            onCheckedChange={() => toggleApproval(svc.id, approvalStatus)}
+                          />
                         ) : (
                           <span className="text-xs text-muted-foreground">-</span>
                         )}
@@ -293,9 +307,6 @@ const AdminServices = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReviewService({ id: svc.id, title: svc.title }); setReviewOpen(true); }}>
-                            <Star className="h-4 w-4" />
-                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}><Edit className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>

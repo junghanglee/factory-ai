@@ -129,7 +129,7 @@ export const useAllServicesWithPackages = () =>
     queryFn: async () => {
       const { data: services, error: sErr } = await supabase
         .from("services")
-        .select("*")
+        .select("*, seller_profiles:seller_id(id, business_name)")
         .order("created_at", { ascending: false });
       if (sErr) throw sErr;
 
@@ -139,9 +139,17 @@ export const useAllServicesWithPackages = () =>
         .order("sort_order");
       if (pErr) throw pErr;
 
-      return (services as DbService[]).map((s) => ({
+      const { data: feedbackFields, error: fErr } = await supabase
+        .from("feedback_fields")
+        .select("id, service_id, category_id, field_label, field_type")
+        .order("sort_order");
+      if (fErr) throw fErr;
+
+      return (services as any[]).map((s) => ({
         ...s,
+        seller_profile_name: s.seller_profiles?.business_name || null,
         packages: (packages as DbServicePackage[]).filter((p) => p.service_id === s.id),
+        feedback_count: (feedbackFields as any[]).filter((f) => f.service_id === s.id || (f.category_id === s.category_id && !f.service_id)).length,
       }));
     },
   });
