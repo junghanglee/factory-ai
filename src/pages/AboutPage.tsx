@@ -92,24 +92,35 @@ const AboutPage = () => {
           <div className="text-center mb-16">
             <p className="text-sm tracking-[0.2em] uppercase text-primary font-semibold mb-3">Brand Story</p>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">혁신의 시작</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              호치민의 열정과 AI 기술의 만남, 당신의 콘텐츠 생산 기지
+            <p className="max-w-xl mx-auto text-xl text-muted-foreground">
+              "당신의 천재성은 어디에 쓰이고 있습니까?"
             </p>
           </div>
 
-          {/* Hook */}
-          <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-8 md:p-12 mb-16 border border-primary/20">
-            <p className="text-xl md:text-2xl font-medium text-foreground leading-relaxed text-center">
-              아직도 콘텐츠 하나를 만들기 위해<br />
-              <span className="text-primary font-bold">수천만 원의 비용</span>과 <span className="text-primary font-bold">수개월의 시간</span>을<br />
-              낭비하고 계십니까?
+          <div className="max-w-3xl mx-auto space-y-12 mb-16">
+            <div className="text-center space-y-4">
+              <p className="text-lg text-muted-foreground">
+                매일 아침, 수많은 인재가 사무실로 출근합니다.<br />
+                하지만 그들이 마주하는 것은 위대한 아이디어가 아니라, 단순 반복 업무의 굴레입니다.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-8 md:p-12 border border-primary/20 text-center">
+              <p className="text-xl md:text-2xl font-bold text-foreground leading-relaxed">
+                우리는 질문합니다. AI시대에 <br className="md:hidden" />
+                <span className="text-primary">"인간의 역할은 어떻게 다시 정의될 것인가?"</span>
+              </p>
+            </div>
+
+            <p className="text-xl text-center font-medium">
+              이 질문이 바로 AI 팩토리(AI Factory)의 시작이었습니다.
             </p>
           </div>
 
           {/* Identity */}
           <div className="mb-16">
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              AI 팩토리는 베트남 호치민에 본사를 둔 <strong className="text-foreground">'다국적 AI 크리에이티브 그룹'</strong>입니다.
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8 text-center">
+              AI 팩토리는 베트남 호치민에 본사를 둔 <strong className="text-foreground">'다국적 AI 크리에이티브 그룹'</strong>입니다.<br />
               한국인 매니저의 섬세한 디렉팅과 글로벌 AI 전문가들의 기술력이 만나, 콘텐츠 제작의 새로운 표준을 만듭니다.
             </p>
           </div>
