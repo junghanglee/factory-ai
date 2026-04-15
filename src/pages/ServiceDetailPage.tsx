@@ -270,7 +270,7 @@ const ServiceDetailPage = () => {
                       [&_a]:text-primary [&_a]:underline
                       [&_img]:rounded-lg [&_img]:my-4
                       [&_hr]:my-6 [&_hr]:border-border"
-                    dangerouslySetInnerHTML={{ __html: service.detailed_description }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(service.detailed_description) }}
                   />
                 </div>
               )}

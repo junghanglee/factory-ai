@@ -52,7 +52,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("hero-media error", error);
 
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Media not found" }), {
       status: 404,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
