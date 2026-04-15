@@ -220,8 +220,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     <group.icon className="h-4 w-4" />
                     <span className="font-medium">{group.label}</span>
                     {group.label === "채팅관리" && unreadCount > 0 && (
-                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold leading-none animate-pulse">
+                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold leading-none animate-pulse">
                         {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                    {group.label === "제작/납품관리" && adminNotifCount > 0 && (
+                      <span className="ml-auto mr-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold leading-none animate-pulse">
+                        {adminNotifCount > 99 ? "99+" : adminNotifCount}
                       </span>
                     )}
                   </div>
