@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Star, Plus, ShieldCheck, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
