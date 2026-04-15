@@ -265,6 +265,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Bottom actions */}
         <div className="p-3 border-t border-white/10 space-y-1">
+          <div className="flex items-center justify-between px-3 py-1">
+            <span className="text-xs text-white/40">알림</span>
+            <AdminNotificationBell />
+          </div>
           <button
             onClick={openProfileDialog}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
