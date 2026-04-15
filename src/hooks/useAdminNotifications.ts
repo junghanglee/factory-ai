@@ -45,13 +45,21 @@ export function useAdminNotifications() {
   useEffect(() => {
     if (!user || !isAdmin) return;
 
+    let cancelled = false;
+    const channelName = `admin-notif-${user.id}`;
+
+    // Remove any existing channel with same name first
+    const existing = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel(`admin-notif-${Date.now()}`)
+      .channel(channelName)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
         table: "admin_notifications",
       }, () => {
+        if (cancelled) return;
         queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
         playNotificationSound();
         if ("Notification" in window && Notification.permission === "granted" && !document.hasFocus()) {
@@ -60,7 +68,10 @@ export function useAdminNotifications() {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, [user, isAdmin, queryClient]);
 
   // Request notification permission
