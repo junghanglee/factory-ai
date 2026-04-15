@@ -97,10 +97,11 @@ const AdminServices = () => {
   const handleSave = async () => {
     try {
       let serviceId = editId;
-      const serviceData = {
+      const serviceData: any = {
         category_id: form.category_id, title: form.title, description: form.description,
         detailed_description: form.detailed_description, thumbnail: form.thumbnail,
         price: form.price, original_price: form.original_price, delivery_days: form.delivery_days,
+        delivery_days_text: form.delivery_days_text || null,
         seller: form.seller, tags: form.tags, portfolio_images: form.portfolio_images,
       };
 
@@ -121,7 +122,9 @@ const AdminServices = () => {
           price: p.price,
           price_text: p.price_text || null,
           delivery_days: p.delivery_days,
+          delivery_days_text: p.delivery_days_text || null,
           revisions: p.revisions,
+          revisions_text: p.revisions_text || null,
           features: p.features.filter(Boolean),
           sort_order: p.sort_order,
         }));
