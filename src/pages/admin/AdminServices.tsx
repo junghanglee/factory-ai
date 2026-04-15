@@ -469,10 +469,14 @@ const AdminServices = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-5 gap-3">
                       <div>
-                        <Label>패키지명</Label>
+                        <Label>패키지명 (KO)</Label>
                         <Input value={pkg.name} onChange={(e) => updatePkg(pkgIdx, "name", e.target.value)} />
+                      </div>
+                      <div>
+                        <Label>Name (EN)</Label>
+                        <Input value={pkg.name_en} onChange={(e) => updatePkg(pkgIdx, "name_en", e.target.value)} placeholder="English" />
                       </div>
                       <div>
                         <Label>가격</Label>
