@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Save, X, Package, BarChart3, Clock, Store, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Package, BarChart3, Clock, Store, Eye, Wallet, DollarSign } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ImageUploader from "@/components/admin/ImageUploader";
 import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
@@ -84,6 +85,25 @@ const SellerDashboard = () => {
       return data;
     },
   });
+
+  // Fetch settlements
+  const { data: settlements = [], isLoading: settlementsLoading } = useQuery({
+    queryKey: ["seller-settlements", sellerProfile?.id],
+    queryFn: async () => {
+      if (!sellerProfile) return [];
+      const { data, error } = await supabase
+        .from("settlements")
+        .select("*, projects(order_number, service_title, customer)")
+        .eq("seller_id", sellerProfile.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!sellerProfile?.id,
+  });
+
+  const totalSettled = settlements.filter((s: any) => s.status === "완료").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
+  const totalPending = settlements.filter((s: any) => s.status === "대기").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
 
   if (loading || profileLoading) {
     return (
@@ -278,7 +298,7 @@ const SellerDashboard = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-4 mb-6">
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
                 <Package className="h-8 w-8 text-primary" />
@@ -299,66 +319,132 @@ const SellerDashboard = () => {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <Clock className="h-8 w-8 text-orange-500" />
+                <Wallet className="h-8 w-8 text-emerald-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">수수료율</p>
-                  <p className="text-2xl font-bold">{sellerProfile.commission_rate}%</p>
+                  <p className="text-sm text-muted-foreground">정산 완료</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalSettled)}원</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <DollarSign className="h-8 w-8 text-orange-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">정산 대기</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalPending)}원</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Service List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>내 서비스 목록</CardTitle>
-              <CardDescription>등록한 서비스를 관리하세요</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {servicesLoading ? (
-                <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
-              ) : myServices.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">등록된 서비스가 없습니다</p>
-                  <Button className="mt-4" onClick={openNew}>첫 서비스 등록하기</Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {myServices.map((svc: any) => (
-                    <div key={svc.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-secondary/30 transition-colors">
-                      <img
-                        src={svc.thumbnail || "/placeholder.svg"}
-                        alt=""
-                        className="w-16 h-12 rounded object-cover shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{svc.title}</h3>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                          <span>{categories.find(c => c.id === svc.category_id)?.name || "-"}</span>
-                          <span>·</span>
-                          <span>{formatPrice(svc.price)}원</span>
-                          <span>·</span>
-                          <span>패키지 {svc.service_packages?.length || 0}개</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/service/${svc.id}`)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+          {/* Tabs: Services & Settlements */}
+          <Tabs defaultValue="services">
+            <TabsList className="mb-4">
+              <TabsTrigger value="services">내 서비스</TabsTrigger>
+              <TabsTrigger value="settlements">정산 내역</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="services">
+              <Card>
+                <CardHeader>
+                  <CardTitle>내 서비스 목록</CardTitle>
+                  <CardDescription>등록한 서비스를 관리하세요</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {servicesLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+                  ) : myServices.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">등록된 서비스가 없습니다</p>
+                      <Button className="mt-4" onClick={openNew}>첫 서비스 등록하기</Button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      {myServices.map((svc: any) => (
+                        <div key={svc.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-secondary/30 transition-colors">
+                          <img src={svc.thumbnail || "/placeholder.svg"} alt="" className="w-16 h-12 rounded object-cover shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate">{svc.title}</h3>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                              <span>{categories.find(c => c.id === svc.category_id)?.name || "-"}</span>
+                              <span>·</span>
+                              <span>{formatPrice(svc.price)}원</span>
+                              <span>·</span>
+                              <span>패키지 {svc.service_packages?.length || 0}개</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/service/${svc.id}`)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(svc)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(svc.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settlements">
+              <Card>
+                <CardHeader>
+                  <CardTitle>정산 내역</CardTitle>
+                  <CardDescription>주문별 정산 현황을 확인하세요 (수수료율: {sellerProfile.commission_rate}%)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {settlementsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
+                  ) : settlements.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">정산 내역이 없습니다</p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>주문번호</TableHead>
+                          <TableHead>서비스</TableHead>
+                          <TableHead className="text-right">주문금액</TableHead>
+                          <TableHead className="text-right">수수료</TableHead>
+                          <TableHead className="text-right">정산금액</TableHead>
+                          <TableHead>상태</TableHead>
+                          <TableHead>정산일</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {settlements.map((s: any) => (
+                          <TableRow key={s.id}>
+                            <TableCell className="font-mono text-xs">{s.projects?.order_number || "-"}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">{s.projects?.service_title || "-"}</TableCell>
+                            <TableCell className="text-right">{formatPrice(s.order_amount)}원</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{formatPrice(s.commission_amount)}원</TableCell>
+                            <TableCell className="text-right font-medium">{formatPrice(s.seller_amount)}원</TableCell>
+                            <TableCell>
+                              <Badge variant={s.status === "완료" ? "default" : s.status === "취소" ? "destructive" : "secondary"}>
+                                {s.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {s.settled_at ? new Date(s.settled_at).toLocaleDateString("ko-KR") : "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
