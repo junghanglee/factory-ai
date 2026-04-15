@@ -37,6 +37,7 @@ import SellerApplyPage from "./pages/SellerApplyPage";
 import SellerDashboard from "./pages/SellerDashboard";
 import SellerProfilePage from "./pages/SellerProfilePage";
 import AdminSellers from "./pages/admin/AdminSellers";
+import AdminSettlements from "./pages/admin/AdminSettlements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -104,6 +105,7 @@ const App = () => (
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="/admin/display-groups" element={<ProtectedRoute requireAdmin><AdminDisplayGroups /></ProtectedRoute>} />
             <Route path="/admin/sellers" element={<ProtectedRoute requireAdmin><AdminSellers /></ProtectedRoute>} />
+            <Route path="/admin/settlements" element={<ProtectedRoute requireAdmin><AdminSettlements /></ProtectedRoute>} />
             <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
