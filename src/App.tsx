@@ -34,6 +34,7 @@ import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import PortfolioDetailPage from "./pages/PortfolioDetailPage";
 import SearchPage from "./pages/SearchPage";
 import SellerApplyPage from "./pages/SellerApplyPage";
+import SellerDashboard from "./pages/SellerDashboard";
 import AdminSellers from "./pages/admin/AdminSellers";
 import NotFound from "./pages/NotFound";
 
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/seller/apply" element={<SellerApplyPage />} />
+            <Route path="/seller/dashboard" element={<SellerDashboard />} />
             {/* Admin login */}
             <Route path="/admin" element={<AdminLoginPage />} />
             {/* Admin routes - require admin role */}

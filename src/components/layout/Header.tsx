@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { getCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
@@ -90,6 +90,12 @@ const Header = () => {
                     </div>
                   )}
                 </div>
+                <Link to="/seller/dashboard">
+                  <Button variant="ghost" size="sm" className="gap-1.5">
+                    <Store className="h-3.5 w-3.5" />
+                    판매자 센터
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">
