@@ -1,8 +1,10 @@
 import { Star, User } from "lucide-react";
 import { useRecentReviews } from "@/hooks/useServiceReviews";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const RecentReviews = () => {
+  const { t } = useTranslation();
   const { data: reviews = [] } = useRecentReviews(6);
 
   if (reviews.length === 0) return null;
@@ -11,8 +13,8 @@ const RecentReviews = () => {
     <section className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold mb-2">고객 후기</h2>
-          <p className="text-muted-foreground">실제 이용 고객들의 생생한 후기입니다</p>
+          <h2 className="text-2xl font-bold mb-2">{t("reviews.title")}</h2>
+          <p className="text-muted-foreground">{t("reviews.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -36,10 +38,7 @@ const RecentReviews = () => {
                 <img src={review.image_url} alt="" className="w-full h-32 object-cover rounded-lg mb-3" />
               )}
               {review.services && (
-                <Link
-                  to={`/service/${review.service_id}`}
-                  className="text-xs text-primary hover:underline"
-                >
+                <Link to={`/service/${review.service_id}`} className="text-xs text-primary hover:underline">
                   {review.services.title}
                 </Link>
               )}

@@ -5,6 +5,7 @@ import {
   CheckCircle2, ChevronRight, Send, Plus, Camera
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -29,15 +30,24 @@ interface ProjectRow {
   completed_date: string | null;
 }
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  "대기": { color: "bg-muted text-muted-foreground", label: "대기" },
-  "작업중": { color: "bg-blue-100 text-blue-700", label: "작업중" },
-  "검수중": { color: "bg-amber-100 text-amber-700", label: "검수중" },
-  "수정중": { color: "bg-orange-100 text-orange-700", label: "수정중" },
-  "완료": { color: "bg-green-100 text-green-700", label: "완료" },
+const statusLabelMap: Record<string, string> = {
+  "대기": "waiting",
+  "작업중": "inProgress",
+  "검수중": "reviewing",
+  "수정중": "revising",
+  "완료": "done",
+};
+
+const statusConfig: Record<string, { color: string; key: string }> = {
+  "대기": { color: "bg-muted text-muted-foreground", key: "waiting" },
+  "작업중": { color: "bg-blue-100 text-blue-700", key: "inProgress" },
+  "검수중": { color: "bg-amber-100 text-amber-700", key: "reviewing" },
+  "수정중": { color: "bg-orange-100 text-orange-700", key: "revising" },
+  "완료": { color: "bg-green-100 text-green-700", key: "done" },
 };
 
 const MyPage = () => {
+  const { t } = useTranslation();
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -347,7 +357,7 @@ const MyPage = () => {
                               {project.package_name && (
                                 <span className="text-xs text-muted-foreground">({project.package_name})</span>
                               )}
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{t(`mypage.status.${sc.key}`)}</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
                               주문번호: {project.order_number} · 금액: {project.price.toLocaleString()}원 · 납기: {new Date(project.due_date).toLocaleDateString("ko-KR")}

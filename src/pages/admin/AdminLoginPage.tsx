@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const AdminLoginPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { signIn, user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect when auth state confirms admin
   useEffect(() => {
     if (!authLoading && user && isAdmin) {
       navigate("/admin/dashboard", { replace: true });
@@ -25,16 +27,15 @@ const AdminLoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("이메일과 비밀번호를 입력해주세요.");
+      toast.error(t("adminLogin.enterBoth"));
       return;
     }
     setSubmitting(true);
     const { error } = await signIn(email, password);
     if (error) {
       setSubmitting(false);
-      toast.error("로그인 실패: " + error.message);
+      toast.error(t("adminLogin.loginFailed") + error.message);
     }
-    // Don't navigate here — useEffect above handles redirect after role is confirmed
   };
 
   if (authLoading) {
@@ -49,34 +50,27 @@ const AdminLoginPage = () => {
     <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2">
+          <div className="flex justify-end">
+            <LanguageSwitcher />
+          </div>
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-xl">관리자 로그인</CardTitle>
-          <p className="text-sm text-muted-foreground">AI팩토리 관리자 전용</p>
+          <CardTitle className="text-xl">{t("adminLogin.title")}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t("adminLogin.subtitle")}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>이메일</Label>
-              <Input
-                placeholder="admin@example.com"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Label>{t("adminLogin.emailLabel")}</Label>
+              <Input placeholder="admin@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
-              <Label>비밀번호</Label>
-              <Input
-                placeholder="비밀번호"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Label>{t("adminLogin.passwordLabel")}</Label>
+              <Input placeholder={t("adminLogin.passwordLabel")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? "로그인 중..." : "관리자 로그인"}
+              {submitting ? t("adminLogin.loggingIn") : t("adminLogin.loginButton")}
             </Button>
           </form>
         </CardContent>

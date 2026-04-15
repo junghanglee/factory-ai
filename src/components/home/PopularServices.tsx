@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Star, Plus, ShieldCheck, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -51,7 +52,9 @@ interface DisplayGroupService {
   sort_order: number;
 }
 
-const ServiceCard = ({ service }: { service: Service }) => (
+const ServiceCard = ({ service }: { service: Service }) => {
+  const { t } = useTranslation();
+  return (
   <Link to={`/service/${service.id}`} className="group block">
     <div className="aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-secondary relative">
       <img
@@ -60,7 +63,6 @@ const ServiceCard = ({ service }: { service: Service }) => (
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         loading="lazy"
       />
-      {/* Seller badge overlay on image */}
       <div className="absolute top-2 left-2">
         {!service.seller_id ? (
           <span className="flex items-center gap-0.5 bg-primary/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
@@ -69,7 +71,7 @@ const ServiceCard = ({ service }: { service: Service }) => (
         ) : (
           <span className="flex items-center gap-0.5 bg-emerald-600/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
             <Store className="h-3 w-3" />
-            인증판매자
+            {t("serviceCard.verifiedSeller")}
           </span>
         )}
       </div>
@@ -96,7 +98,8 @@ const ServiceCard = ({ service }: { service: Service }) => (
       <span className="text-[12px] text-muted-foreground">{service.seller}</span>
     </div>
   </Link>
-);
+  );
+};
 
 function renderStyledTitle(title: string, fontSize?: number, fontColor?: string, highlightColor?: string) {
   const size = fontSize || 26;
@@ -131,14 +134,13 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
   groupServices: DisplayGroupService[];
   allServices: Service[];
 }) {
-  // null = "전체" (show all services in the group)
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const visibleServiceIds = activeFilter
     ? groupServices.filter(gs => gs.filter_id === activeFilter).sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id)
     : groupServices.sort((a, b) => a.sort_order - b.sort_order).map(gs => gs.service_id);
 
-  // Deduplicate for "전체"
   const uniqueServiceIds = activeFilter ? visibleServiceIds : [...new Set(visibleServiceIds)];
 
   const services = uniqueServiceIds
@@ -151,14 +153,11 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
     <section className="py-10">
       <div className="max-w-[1200px] mx-auto px-5">
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
-          {/* Left title */}
           <div className="md:w-[200px] shrink-0">
             {renderStyledTitle(group.title, (group as any).font_size, (group as any).font_color, (group as any).highlight_color)}
           </div>
 
-          {/* Right content */}
           <div className="flex-1 min-w-0">
-            {/* Filter tabs */}
             {filters.length > 0 && (
               <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
                 <button
@@ -169,7 +168,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
                       : "border-border text-muted-foreground hover:border-foreground/30"
                   }`}
                 >
-                  <span>전체</span>
+                  <span>{t("common.all")}</span>
                   <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
                 {filters.map((f) => (
@@ -189,13 +188,12 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
               </div>
             )}
 
-            {/* Service cards grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               {services.map((service) => (
                 <ServiceCard key={service.id} service={service} />
               ))}
               {services.length === 0 && (
-                <p className="text-sm text-muted-foreground col-span-full">등록된 서비스가 없습니다.</p>
+                <p className="text-sm text-muted-foreground col-span-full">{t("serviceCard.noServices")}</p>
               )}
             </div>
           </div>

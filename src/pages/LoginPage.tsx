@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -24,6 +25,7 @@ const AppleIcon = () => (
 );
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,12 +35,12 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { toast.error("이메일과 비밀번호를 입력해주세요."); return; }
+    if (!email || !password) { toast.error(t("login.enterBoth")); return; }
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
-    if (error) { toast.error("로그인 실패: " + error.message); }
-    else { toast.success("로그인 성공!"); navigate("/"); }
+    if (error) { toast.error(t("login.loginFailed") + error.message); }
+    else { toast.success(t("login.loginSuccess")); navigate("/"); }
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
@@ -46,15 +48,15 @@ const LoginPage = () => {
     try {
       const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
       if (result.error) {
-        toast.error(`${provider === "google" ? "Google" : "Apple"} 로그인 실패`);
+        toast.error(provider === "google" ? t("login.googleFailed") : t("login.appleFailed"));
         setSocialLoading(null);
         return;
       }
       if (result.redirected) return;
-      toast.success("로그인 성공!");
+      toast.success(t("login.loginSuccess"));
       navigate("/");
     } catch {
-      toast.error("소셜 로그인 중 오류가 발생했습니다.");
+      toast.error(t("login.socialError"));
       setSocialLoading(null);
     }
   };
@@ -64,39 +66,39 @@ const LoginPage = () => {
       <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">로그인</CardTitle>
-            <p className="text-sm text-muted-foreground">AI팩토리에 오신 것을 환영합니다</p>
+            <CardTitle className="text-2xl">{t("login.title")}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t("login.welcome")}</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 mb-4">
               <Button variant="outline" className="w-full h-11 gap-3 font-medium" onClick={() => handleOAuth("google")} disabled={!!socialLoading}>
-                <GoogleIcon /> Google로 로그인
+                <GoogleIcon /> {t("login.googleLogin")}
               </Button>
               <Button variant="outline" className="w-full h-11 gap-3 font-medium bg-black text-white hover:bg-black/90 border-black" onClick={() => handleOAuth("apple")} disabled={!!socialLoading}>
-                <AppleIcon /> Apple로 로그인
+                <AppleIcon /> {t("login.appleLogin")}
               </Button>
             </div>
 
             <div className="relative my-4">
               <Separator />
-              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">또는 이메일로 로그인</span>
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">{t("login.orEmail")}</span>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">이메일</label>
+                <label className="text-sm font-medium mb-1.5 block">{t("login.emailLabel")}</label>
                 <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="email@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block">비밀번호</label>
-                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="비밀번호" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <label className="text-sm font-medium mb-1.5 block">{t("login.passwordLabel")}</label>
+                <input className="w-full h-10 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t("login.passwordPlaceholder")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>{loading ? "로그인 중..." : "로그인"}</Button>
+              <Button className="w-full" type="submit" disabled={loading}>{loading ? t("login.loggingIn") : t("login.loginButton")}</Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              계정이 없으신가요?{" "}
-              <Link to="/signup" className="text-primary hover:underline font-medium">회원가입</Link>
+              {t("login.noAccount")}{" "}
+              <Link to="/signup" className="text-primary hover:underline font-medium">{t("common.signup")}</Link>
             </p>
           </CardContent>
         </Card>
