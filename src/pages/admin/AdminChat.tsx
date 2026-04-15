@@ -373,7 +373,11 @@ const AdminChat = () => {
         )}
         {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
           <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
-            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable}
+            onSendQuote={() => setShowQuoteDialog(true)}
+            onConfirmPayment={confirmPayment}
+            onSendPurchaseConfirmRequest={sendPurchaseConfirmRequest}
+          />
         )}
       </div>
 
