@@ -49,7 +49,7 @@ const CategoryPage = () => {
           {isAll ? t("category.allServices") : (category ? localize(category, "name") : "")}
         </h1>
         <p className="text-muted-foreground mb-8">
-          {isAll ? t("category.allDesc") : category?.description}
+          {isAll ? t("category.allDesc") : (category ? localize(category, "description") : "")}
         </p>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -65,7 +65,7 @@ const CategoryPage = () => {
                   {categories.filter((c) => shouldShowInHeroGrid(c.slug)).map((c) => (
                     <Link key={c.id} to={`/category/${c.id}`} className={`flex items-center gap-2 py-1 hover:text-foreground ${c.id === id ? "text-primary font-medium" : "text-muted-foreground"}`}>
                       <img src={getCategoryIcon(c.slug)} alt="" className="w-5 h-5 object-contain" />
-                      {c.name}
+                      {localize(c, "name")}
                     </Link>
                   ))}
                 </div>
@@ -85,14 +85,14 @@ const CategoryPage = () => {
                 <Link key={service.id} to={`/service/${service.id}`}>
                   <Card className="overflow-hidden group hover:shadow-lg transition-all border-transparent hover:border-primary/20">
                     <div className="aspect-[4/3] overflow-hidden">
-                      <img src={service.thumbnail || "/placeholder.svg"} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                      <img src={service.thumbnail || "/placeholder.svg"} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                     </div>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-xs text-muted-foreground">{service.seller}</p>
                         <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
                       </div>
-                      <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{service.title}</h3>
+                      <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                         <span className="text-sm font-medium">{service.rating}</span>
