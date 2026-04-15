@@ -105,7 +105,7 @@ const CategoryPage = () => {
           <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-foreground">다른 AI 팩토리 서비스</h2>
+                <h2 className="text-xl font-bold text-primary">이런 서비스는 어떤가요?</h2>
                 <p className="text-sm text-muted-foreground mt-1">AI 팩토리의 다양한 서비스를 만나보세요</p>
               </div>
               {otherServices.length > 4 && (
