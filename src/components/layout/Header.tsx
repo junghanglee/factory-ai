@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown, LogOut, Settings, Package, Receipt, FileText, HelpCircle, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useSupabaseData";
@@ -16,6 +16,7 @@ const Header = () => {
   const { data: dbCategories = [] } = useCategories();
   const categories = dbCategories.filter((c) => shouldShowInHeroGrid(c.slug));
   const navigate = useNavigate();
+  const location = useLocation();
   const myPageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { unreadCount } = useUnreadChat();
 
@@ -157,24 +158,27 @@ const Header = () => {
             <div className="w-px h-5 bg-border mx-1" />
             <Link
               to="/about"
-              className="px-3 py-2 text-[14px] font-semibold text-primary hover:text-primary/80 whitespace-nowrap transition-colors"
+              className={`px-3 py-2 text-[14px] font-semibold whitespace-nowrap transition-colors ${location.pathname === "/about" ? "text-primary border-b-2 border-primary" : "text-primary hover:text-primary/80"}`}
             >
               AI팩토리 소개
             </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                to={`/category/${cat.id}`}
-                className="relative px-3 py-2 text-[14px] text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
-              >
-                {(cat.id === "ai-video" || cat.id === "ai-assistant") && (
-                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 px-1.5 py-px text-[9px] font-bold rounded-full bg-destructive text-destructive-foreground leading-tight">
-                    인기
-                  </span>
-                )}
-                {cat.name}
-              </Link>
-            ))}
+            {categories.map((cat) => {
+              const isActive = location.pathname === `/category/${cat.id}`;
+              return (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.id}`}
+                  className={`relative px-3 py-2 text-[14px] whitespace-nowrap transition-colors ${isActive ? "text-primary font-semibold border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {(cat.id === "ai-video" || cat.id === "ai-assistant") && (
+                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 px-1.5 py-px text-[9px] font-bold rounded-full bg-destructive text-destructive-foreground leading-tight">
+                      인기
+                    </span>
+                  )}
+                  {cat.name}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>
