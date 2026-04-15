@@ -57,9 +57,8 @@ export function useAdminNotifications() {
         if ("Notification" in window && Notification.permission === "granted" && !document.hasFocus()) {
           new Notification("관리자 알림", { body: "새로운 알림이 있습니다.", icon: "/favicon.ico", tag: "admin-notif" });
         }
-      });
-
-    channel.subscribe();
+      })
+      .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [user, isAdmin, queryClient]);
