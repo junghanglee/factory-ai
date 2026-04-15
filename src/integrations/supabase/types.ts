@@ -750,6 +750,7 @@ export type Database = {
           order_number: string
           package_name: string | null
           price: number
+          seller_id: string | null
           service_title: string
           status: string
           updated_at: string
@@ -767,6 +768,7 @@ export type Database = {
           order_number: string
           package_name?: string | null
           price?: number
+          seller_id?: string | null
           service_title: string
           status?: string
           updated_at?: string
@@ -784,6 +786,7 @@ export type Database = {
           order_number?: string
           package_name?: string | null
           price?: number
+          seller_id?: string | null
           service_title?: string
           status?: string
           updated_at?: string
@@ -794,6 +797,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1032,6 +1042,63 @@ export type Database = {
           },
           {
             foreignKeyName: "services_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settlements: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          id: string
+          order_amount: number
+          project_id: string
+          seller_amount: number
+          seller_id: string
+          settled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          order_amount?: number
+          project_id: string
+          seller_amount?: number
+          seller_id: string
+          settled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          order_amount?: number
+          project_id?: string
+          seller_amount?: number
+          seller_id?: string
+          settled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlements_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "seller_profiles"
