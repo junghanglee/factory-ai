@@ -620,7 +620,7 @@ const AboutPage = () => {
                   <MapPin className="h-5 w-5 text-primary" />
                   <h4 className="font-bold">Location</h4>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   15 Đường số 21, Khu dân cư Phước Kiển A, Nhà Bè, Hồ Chí Minh
                 </p>
               </div>
@@ -638,8 +638,8 @@ const AboutPage = () => {
                     <Mail className="h-4 w-4 text-primary" />
                     <div>
                       <div className="font-medium text-foreground">이메일 접수</div>
-                      <div className="text-sm whitespace-pre-line">
-                        junghanglee@gmail.com(KR)
+                      <div className="text-sm">
+                        junghanglee@gmail.com(KR)<br />
                         Contact@linkto.vn (VN)
                       </div>
                     </div>
@@ -648,8 +648,8 @@ const AboutPage = () => {
                     <Phone className="h-4 w-4 text-primary" />
                     <div>
                       <div className="font-medium text-foreground">오피스 유선 번호</div>
-                      <div className="text-sm whitespace-pre-line">
-                        +84 077-743-6620 (한국어상담)
+                      <div className="text-sm">
+                        +84 077-743-6620 (한국어상담)<br />
                         +84 035-404-2660 (베트남어상담)
                       </div>
                     </div>
