@@ -357,7 +357,7 @@ const MyPage = () => {
                               {project.package_name && (
                                 <span className="text-xs text-muted-foreground">({project.package_name})</span>
                               )}
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{t(`mypage.status.${sc.key}`)}</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
                               주문번호: {project.order_number} · 금액: {project.price.toLocaleString()}원 · 납기: {new Date(project.due_date).toLocaleDateString("ko-KR")}
