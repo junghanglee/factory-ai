@@ -250,6 +250,7 @@ export type Database = {
           last_message_at: string | null
           metadata: Json | null
           project_id: string | null
+          seller_id: string | null
           service_id: string | null
           status: string
           title: string
@@ -266,6 +267,7 @@ export type Database = {
           last_message_at?: string | null
           metadata?: Json | null
           project_id?: string | null
+          seller_id?: string | null
           service_id?: string | null
           status?: string
           title?: string
@@ -282,6 +284,7 @@ export type Database = {
           last_message_at?: string | null
           metadata?: Json | null
           project_id?: string | null
+          seller_id?: string | null
           service_id?: string | null
           status?: string
           title?: string
@@ -295,6 +298,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_rooms_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
           {
