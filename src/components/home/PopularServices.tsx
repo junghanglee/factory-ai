@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Plus } from "lucide-react";
+import { Star, Plus, ShieldCheck, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +14,7 @@ interface Service {
   rating: number;
   review_count: number;
   seller: string | null;
+  seller_id?: string | null;
 }
 
 interface DisplayGroup {
@@ -65,6 +66,11 @@ const ServiceCard = ({ service }: { service: Service }) => (
         {service.seller?.[0] || "A"}
       </div>
       <span className="text-[12px] text-muted-foreground">{service.seller}</span>
+      {!service.seller_id ? (
+        <span className="ml-auto flex items-center gap-0.5 text-[10px] text-primary font-medium"><ShieldCheck className="h-3 w-3" />AI팩토리</span>
+      ) : (
+        <span className="ml-auto flex items-center gap-0.5 text-[10px] text-emerald-600 font-medium"><Store className="h-3 w-3" />인증</span>
+      )}
     </div>
   </Link>
 );
@@ -207,7 +213,7 @@ const PopularServices = () => {
   const { data: allServices = [] } = useQuery({
     queryKey: ["services_for_display"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller");
+      const { data, error } = await supabase.from("services").select("id, title, thumbnail, price, rating, review_count, seller, seller_id");
       if (error) throw error;
       return data as Service[];
     },

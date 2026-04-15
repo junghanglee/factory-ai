@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Star, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import SellerBadge from "@/components/SellerBadge";
 import { useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { useCategories, useServices } from "@/hooks/useSupabaseData";
@@ -84,7 +85,10 @@ const CategoryPage = () => {
                       <img src={service.thumbnail || "/placeholder.svg"} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                     </div>
                     <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground mb-1">{service.seller}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-xs text-muted-foreground">{service.seller}</p>
+                        <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
+                      </div>
                       <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{service.title}</h3>
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
@@ -138,7 +142,10 @@ const CategoryPage = () => {
                         )}
                       </div>
                       <CardContent className="p-4">
-                        <p className="text-xs text-muted-foreground mb-1">{service.seller}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs text-muted-foreground">{service.seller}</p>
+                          <SellerBadge sellerId={(service as any).seller_id} sellerName={service.seller} />
+                        </div>
                         <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{service.title}</h3>
                         <div className="flex items-center gap-1 mb-2">
                           <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
