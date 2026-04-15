@@ -1045,6 +1045,8 @@ export type Database = {
       }
       services: {
         Row: {
+          active: boolean
+          approval_status: string
           category_id: string | null
           created_at: string
           delivery_days: number
@@ -1064,6 +1066,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean
+          approval_status?: string
           category_id?: string | null
           created_at?: string
           delivery_days?: number
@@ -1083,6 +1087,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean
+          approval_status?: string
           category_id?: string | null
           created_at?: string
           delivery_days?: number
