@@ -19,6 +19,7 @@ import MultiImageUploader from "@/components/admin/MultiImageUploader";
 import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import SellerNotificationBell from "@/components/seller/SellerNotificationBell";
 import SellerChatTab from "@/components/seller/SellerChatTab";
+import SellerSettlementTab from "@/components/seller/SellerSettlementTab";
 
 interface PackageForm {
   id?: string;
@@ -88,26 +89,8 @@ const SellerDashboard = () => {
     },
   });
 
-  // Fetch settlements
-  const { data: settlements = [], isLoading: settlementsLoading } = useQuery({
-    queryKey: ["seller-settlements", sellerProfile?.id],
-    queryFn: async () => {
-      if (!sellerProfile) return [];
-      const { data, error } = await supabase
-        .from("settlements")
-        .select("*, projects(order_number, service_title, customer)")
-        .eq("seller_id", sellerProfile.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!sellerProfile?.id,
-  });
-
-  const totalSettled = settlements.filter((s: any) => s.status === "완료").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
-  const totalPending = settlements.filter((s: any) => s.status === "대기").reduce((sum: number, s: any) => sum + s.seller_amount, 0);
-
-  if (loading || profileLoading) {
+  // Stats computed from settlements in SellerSettlementTab; keep simple stats here
+  const totalRevenue = sellerProfile?.total_revenue || 0;
     return (
       <MainLayout>
         <div className="min-h-screen flex items-center justify-center">
