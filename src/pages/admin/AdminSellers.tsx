@@ -35,23 +35,16 @@ const AdminSellers = () => {
   const { data: sellers = [], isLoading } = useQuery({
     queryKey: ["admin-sellers"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("seller_profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("seller_profiles").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  // Fetch withdrawal requests for all sellers
   const { data: withdrawals = [] } = useQuery({
     queryKey: ["admin-withdrawals"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("withdrawal_requests")
-        .select("*, seller_profiles(business_name)")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("withdrawal_requests").select("*, seller_profiles(business_name)").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -59,37 +52,24 @@ const AdminSellers = () => {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from("seller_profiles")
-        .update({ status })
-        .eq("id", id);
+      const { error } = await supabase.from("seller_profiles").update({ status }).eq("id", id);
       if (error) throw error;
-
       if (status === "승인" && selectedSeller) {
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .upsert(
-            { user_id: selectedSeller.user_id, role: "seller" as any },
-            { onConflict: "user_id,role" }
-          );
+        const { error: roleError } = await supabase.from("user_roles").upsert({ user_id: selectedSeller.user_id, role: "seller" as any }, { onConflict: "user_id,role" });
         if (roleError) console.error("Role assignment error:", roleError);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-sellers"] });
-      toast.success("상태가 변경되었습니다.");
-      setSelectedSeller(null);
-    },
-    onError: (err: any) => toast.error("오류: " + err.message),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-sellers"] }); toast.success(t("admin.statusChanged")); setSelectedSeller(null); },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const updateCommission = async (id: string) => {
     const rate = Number(editCommission);
-    if (isNaN(rate) || rate < 0 || rate > 100) { toast.error("올바른 수수료율을 입력하세요 (0~100)"); return; }
+    if (isNaN(rate) || rate < 0 || rate > 100) { toast.error(t("admin.validCommission")); return; }
     const { error } = await supabase.from("seller_profiles").update({ commission_rate: rate }).eq("id", id);
-    if (error) { toast.error("변경 실패"); return; }
+    if (error) { toast.error(t("admin.changeFailed")); return; }
     queryClient.invalidateQueries({ queryKey: ["admin-sellers"] });
-    toast.success("수수료율이 변경되었습니다");
+    toast.success(t("admin.commissionChanged"));
     if (selectedSeller?.id === id) setSelectedSeller({ ...selectedSeller, commission_rate: rate });
   };
 
@@ -97,9 +77,9 @@ const AdminSellers = () => {
     const updateData: any = { status, processed_at: new Date().toISOString() };
     if (memo) updateData.admin_memo = memo;
     const { error } = await supabase.from("withdrawal_requests").update(updateData).eq("id", id);
-    if (error) { toast.error("처리 실패"); return; }
+    if (error) { toast.error(t("admin.processFailed")); return; }
     queryClient.invalidateQueries({ queryKey: ["admin-withdrawals"] });
-    toast.success(status === "완료" ? "출금이 승인되었습니다" : "출금이 반려되었습니다");
+    toast.success(status === "완료" ? t("admin.withdrawalApproved") : t("admin.withdrawalRejected"));
   };
 
   const filtered = sellers.filter((s: any) => {
@@ -109,12 +89,7 @@ const AdminSellers = () => {
   });
 
   const getDocuments = (seller: any): string[] => {
-    try {
-      const info = JSON.parse(seller.bank_info || "{}");
-      return info.documents || [];
-    } catch {
-      return [];
-    }
+    try { const info = JSON.parse(seller.bank_info || "{}"); return info.documents || []; } catch { return []; }
   };
 
   const stats = {
@@ -133,20 +108,19 @@ const AdminSellers = () => {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Store className="h-6 w-6" />
-              판매자 관리
+              {t("admin.sellerManageTitle")}
             </h1>
-            <p className="text-muted-foreground mt-1">판매자 신청을 검토하고 승인/반려합니다</p>
+            <p className="text-muted-foreground mt-1">{t("admin.sellerManageDesc")}</p>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-5 gap-4">
           {[
-            { label: "전체", value: stats.total, color: "text-foreground" },
-            { label: "신청 대기", value: stats.pending, color: "text-yellow-600" },
-            { label: "승인됨", value: stats.approved, color: "text-green-600" },
-            { label: "반려됨", value: stats.rejected, color: "text-red-600" },
-            { label: "출금 대기", value: pendingWithdrawals.length, color: "text-orange-600" },
+            { label: t("admin.all"), value: stats.total, color: "text-foreground" },
+            { label: t("admin.pendingApply"), value: stats.pending, color: "text-yellow-600" },
+            { label: t("admin.approved"), value: stats.approved, color: "text-green-600" },
+            { label: t("admin.rejectedLabel"), value: stats.rejected, color: "text-red-600" },
+            { label: t("admin.withdrawalPending"), value: pendingWithdrawals.length, color: "text-orange-600" },
           ].map(s => (
             <Card key={s.label}>
               <CardContent className="p-4 text-center">
@@ -157,28 +131,17 @@ const AdminSellers = () => {
           ))}
         </div>
 
-        {/* Filters */}
         <Card>
           <CardContent className="p-4">
             <div className="flex gap-3 items-center">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="상호명, 연락처 검색..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pl-9"
-                />
+                <Input placeholder={t("admin.searchSellerPlaceholder")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
               </div>
               <div className="flex gap-2">
-                {["all", "신청", "승인", "반려", "정지"].map(s => (
-                  <Button
-                    key={s}
-                    size="sm"
-                    variant={statusFilter === s ? "default" : "outline"}
-                    onClick={() => setStatusFilter(s)}
-                  >
-                    {s === "all" ? "전체" : s}
+                {[{ label: t("admin.all"), value: "all" }, { label: "신청", value: "신청" }, { label: "승인", value: "승인" }, { label: "반려", value: "반려" }, { label: "정지", value: "정지" }].map(s => (
+                  <Button key={s.value} size="sm" variant={statusFilter === s.value ? "default" : "outline"} onClick={() => setStatusFilter(s.value)}>
+                    {s.value === "all" ? s.label : s.value}
                   </Button>
                 ))}
               </div>
@@ -186,38 +149,37 @@ const AdminSellers = () => {
           </CardContent>
         </Card>
 
-        {/* Seller Table */}
         <Card>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>상호명</TableHead>
-                  <TableHead>사업자유형</TableHead>
-                  <TableHead>연락처</TableHead>
-                  <TableHead>수수료율</TableHead>
-                  <TableHead>매출/정산</TableHead>
-                  <TableHead>계좌정보</TableHead>
-                  <TableHead>신청일</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead className="text-right">관리</TableHead>
+                  <TableHead>{t("admin.businessName")}</TableHead>
+                  <TableHead>{t("admin.businessType")}</TableHead>
+                  <TableHead>{t("admin.contact")}</TableHead>
+                  <TableHead>{t("admin.commissionRate")}</TableHead>
+                  <TableHead>{t("admin.salesSettlement")}</TableHead>
+                  <TableHead>{t("admin.bankInfo")}</TableHead>
+                  <TableHead>{t("admin.applicationDate")}</TableHead>
+                  <TableHead>{t("admin.status")}</TableHead>
+                  <TableHead className="text-right">{t("admin.manage")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">로딩 중...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">{t("common.loading")}</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">판매자 신청이 없습니다</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">{t("admin.noSellers")}</TableCell></TableRow>
                 ) : (
                   filtered.map((seller: any) => (
                     <TableRow key={seller.id}>
                       <TableCell className="font-medium">{seller.business_name}</TableCell>
-                      <TableCell className="text-sm">{seller.business_type || "개인"}</TableCell>
+                      <TableCell className="text-sm">{seller.business_type || t("admin.individual")}</TableCell>
                       <TableCell className="text-sm">{seller.phone || "-"}</TableCell>
                       <TableCell className="text-sm font-medium">{seller.commission_rate}%</TableCell>
                       <TableCell className="text-xs">
-                        <div>매출: {formatPrice(seller.total_revenue || 0)}원</div>
-                        <div className="text-muted-foreground">판매: {seller.total_sales || 0}건</div>
+                        <div>{t("admin.revenue")}: {formatPrice(seller.total_revenue || 0)}{t("common.won")}</div>
+                        <div className="text-muted-foreground">{t("admin.salesCount")}: {seller.total_sales || 0}</div>
                       </TableCell>
                       <TableCell className="text-xs">
                         {seller.bank_name ? `${seller.bank_name} ${seller.bank_account || ""}` : "-"}
@@ -230,7 +192,7 @@ const AdminSellers = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button size="sm" variant="ghost" onClick={() => { setSelectedSeller(seller); setEditCommission(String(seller.commission_rate)); }}>
-                          <Eye className="h-4 w-4 mr-1" /> 상세
+                          <Eye className="h-4 w-4 mr-1" /> {t("admin.detail")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -241,34 +203,33 @@ const AdminSellers = () => {
           </CardContent>
         </Card>
 
-        {/* Pending Withdrawals */}
         {pendingWithdrawals.length > 0 && (
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-bold mb-3">출금 신청 대기 ({pendingWithdrawals.length}건)</h3>
+              <h3 className="font-bold mb-3">{t("admin.withdrawalRequests")} ({t("admin.withdrawalCount", { count: pendingWithdrawals.length })})</h3>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>판매자</TableHead>
-                    <TableHead>금액</TableHead>
-                    <TableHead>계좌</TableHead>
-                    <TableHead>신청일</TableHead>
-                    <TableHead className="text-right">처리</TableHead>
+                    <TableHead>{t("admin.sellerLabel")}</TableHead>
+                    <TableHead>{t("admin.amount")}</TableHead>
+                    <TableHead>{t("admin.account")}</TableHead>
+                    <TableHead>{t("admin.applicationDate")}</TableHead>
+                    <TableHead className="text-right">{t("admin.action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pendingWithdrawals.map((w: any) => (
                     <TableRow key={w.id}>
                       <TableCell className="font-medium">{(w as any).seller_profiles?.business_name || "-"}</TableCell>
-                      <TableCell className="font-medium">{formatPrice(w.amount)}원</TableCell>
+                      <TableCell className="font-medium">{formatPrice(w.amount)}{t("common.won")}</TableCell>
                       <TableCell className="text-sm">{w.bank_name} {w.bank_account} ({w.bank_holder})</TableCell>
                       <TableCell className="text-sm">{new Date(w.created_at).toLocaleDateString("ko-KR")}</TableCell>
                       <TableCell className="text-right flex gap-1 justify-end">
                         <Button size="sm" onClick={() => processWithdrawal(w.id, "완료")}>
-                          <CheckCircle className="h-3 w-3 mr-1" /> 승인
+                          <CheckCircle className="h-3 w-3 mr-1" /> {t("admin.approve")}
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => processWithdrawal(w.id, "반려", "관리자 반려")}>
-                          <XCircle className="h-3 w-3 mr-1" /> 반려
+                          <XCircle className="h-3 w-3 mr-1" /> {t("admin.reject")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -280,83 +241,54 @@ const AdminSellers = () => {
         )}
       </div>
 
-      {/* Detail Dialog */}
       <Dialog open={!!selectedSeller} onOpenChange={() => setSelectedSeller(null)}>
         <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>판매자 상세 정보</DialogTitle>
+            <DialogTitle>{t("admin.sellerDetail")}</DialogTitle>
           </DialogHeader>
           {selectedSeller && (
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground text-xs">상호명</Label>
-                  <p className="font-medium">{selectedSeller.business_name}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs">연락처</Label>
-                  <p className="font-medium">{selectedSeller.phone || "-"}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs">사업자유형</Label>
-                  <p>{selectedSeller.business_type || "개인"}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs">사업자번호</Label>
-                  <p>{selectedSeller.business_number || "-"}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs">대표자명</Label>
-                  <p>{selectedSeller.business_owner || "-"}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs">상태</Label>
-                  <Badge className={statusColors[selectedSeller.status] || ""}>{selectedSeller.status}</Badge>
-                </div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.businessName")}</Label><p className="font-medium">{selectedSeller.business_name}</p></div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.contact")}</Label><p className="font-medium">{selectedSeller.phone || "-"}</p></div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.businessType")}</Label><p>{selectedSeller.business_type || t("admin.individual")}</p></div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.businessNumber")}</Label><p>{selectedSeller.business_number || "-"}</p></div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.representative")}</Label><p>{selectedSeller.business_owner || "-"}</p></div>
+                <div><Label className="text-muted-foreground text-xs">{t("admin.status")}</Label><Badge className={statusColors[selectedSeller.status] || ""}>{selectedSeller.status}</Badge></div>
               </div>
 
-              {/* Bank info */}
               <div className="p-3 bg-secondary/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">계좌 정보</h4>
+                <h4 className="text-sm font-medium mb-2">{t("admin.bankInfoTitle")}</h4>
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div><span className="text-muted-foreground">은행:</span> {selectedSeller.bank_name || "-"}</div>
-                  <div><span className="text-muted-foreground">계좌:</span> {selectedSeller.bank_account || "-"}</div>
-                  <div><span className="text-muted-foreground">예금주:</span> {selectedSeller.bank_holder || "-"}</div>
+                  <div><span className="text-muted-foreground">{t("admin.bank")}:</span> {selectedSeller.bank_name || "-"}</div>
+                  <div><span className="text-muted-foreground">{t("admin.account")}:</span> {selectedSeller.bank_account || "-"}</div>
+                  <div><span className="text-muted-foreground">{t("admin.accountHolder")}:</span> {selectedSeller.bank_holder || "-"}</div>
                 </div>
               </div>
 
-              {/* Revenue & Commission */}
               <div className="p-3 bg-secondary/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">매출 / 수수료</h4>
+                <h4 className="text-sm font-medium mb-2">{t("admin.revenueCommission")}</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-muted-foreground">총 매출:</span> {formatPrice(selectedSeller.total_revenue || 0)}원</div>
-                  <div><span className="text-muted-foreground">총 판매:</span> {selectedSeller.total_sales || 0}건</div>
+                  <div><span className="text-muted-foreground">{t("admin.totalRevenue")}:</span> {formatPrice(selectedSeller.total_revenue || 0)}{t("common.won")}</div>
+                  <div><span className="text-muted-foreground">{t("admin.totalSales")}:</span> {selectedSeller.total_sales || 0}</div>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <Label className="text-xs whitespace-nowrap">수수료율 (%):</Label>
-                  <Input
-                    type="number"
-                    className="h-8 w-24 text-sm"
-                    value={editCommission}
-                    onChange={e => setEditCommission(e.target.value)}
-                  />
-                  <Button size="sm" className="h-8" onClick={() => updateCommission(selectedSeller.id)}>적용</Button>
+                  <Label className="text-xs whitespace-nowrap">{t("admin.commissionRateLabel")}</Label>
+                  <Input type="number" className="h-8 w-24 text-sm" value={editCommission} onChange={e => setEditCommission(e.target.value)} />
+                  <Button size="sm" className="h-8" onClick={() => updateCommission(selectedSeller.id)}>{t("admin.apply")}</Button>
                 </div>
               </div>
 
               <div>
-                <Label className="text-muted-foreground text-xs">자기소개 / 전문 분야</Label>
-                <p className="mt-1 text-sm whitespace-pre-wrap bg-secondary/50 p-3 rounded-lg">
-                  {selectedSeller.bio || "내용 없음"}
-                </p>
+                <Label className="text-muted-foreground text-xs">{t("admin.introExpertise")}</Label>
+                <p className="mt-1 text-sm whitespace-pre-wrap bg-secondary/50 p-3 rounded-lg">{selectedSeller.bio || t("admin.noContent")}</p>
               </div>
 
-              {/* Documents */}
               <div>
-                <Label className="text-muted-foreground text-xs">첨부된 역량 증빙 자료</Label>
+                <Label className="text-muted-foreground text-xs">{t("admin.attachedDocs")}</Label>
                 <div className="mt-2 space-y-2">
                   {getDocuments(selectedSeller).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">첨부된 자료가 없습니다</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.noAttachments")}</p>
                   ) : (
                     getDocuments(selectedSeller).map((url: string, idx: number) => {
                       const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
@@ -364,12 +296,12 @@ const AdminSellers = () => {
                         <div key={idx} className="border rounded-lg overflow-hidden">
                           {isImage ? (
                             <a href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} alt={`자료 ${idx + 1}`} className="w-full max-h-60 object-contain bg-secondary/30" />
+                              <img src={url} alt={`${t("admin.docLabel")} ${idx + 1}`} className="w-full max-h-60 object-contain bg-secondary/30" />
                             </a>
                           ) : (
                             <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 hover:bg-secondary/50 transition-colors">
                               <FileText className="h-5 w-5 text-orange-500" />
-                              <span className="text-sm flex-1 truncate">자료 {idx + 1}</span>
+                              <span className="text-sm flex-1 truncate">{t("admin.docLabel")} {idx + 1}</span>
                               <ExternalLink className="h-4 w-4 text-muted-foreground" />
                             </a>
                           )}
@@ -380,23 +312,22 @@ const AdminSellers = () => {
                 </div>
               </div>
 
-              {/* Actions */}
               {selectedSeller.status === "신청" && (
                 <div className="pt-4 border-t space-y-3">
                   <div className="flex gap-3">
                     <Button className="flex-1" onClick={() => updateStatus.mutate({ id: selectedSeller.id, status: "승인" })} disabled={updateStatus.isPending}>
-                      <CheckCircle className="h-4 w-4 mr-2" /> 승인
+                      <CheckCircle className="h-4 w-4 mr-2" /> {t("admin.approve")}
                     </Button>
                     <Button variant="destructive" className="flex-1" onClick={() => {
-                      if (!rejectReason.trim()) { toast.error("반려 사유를 입력해주세요."); return; }
+                      if (!rejectReason.trim()) { toast.error(t("admin.enterRejectReason")); return; }
                       updateStatus.mutate({ id: selectedSeller.id, status: "반려" });
                     }} disabled={updateStatus.isPending}>
-                      <XCircle className="h-4 w-4 mr-2" /> 반려
+                      <XCircle className="h-4 w-4 mr-2" /> {t("admin.reject")}
                     </Button>
                   </div>
                   <div>
-                    <Label className="text-xs">반려 시 사유</Label>
-                    <Textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="반려 사유를 입력하세요 (반려 시 필수)" rows={2} />
+                    <Label className="text-xs">{t("admin.rejectReasonLabel")}</Label>
+                    <Textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder={t("admin.rejectReasonPlaceholder")} rows={2} />
                   </div>
                 </div>
               )}
@@ -404,7 +335,7 @@ const AdminSellers = () => {
               {selectedSeller.status === "승인" && (
                 <div className="pt-4 border-t">
                   <Button variant="destructive" onClick={() => updateStatus.mutate({ id: selectedSeller.id, status: "정지" })} disabled={updateStatus.isPending}>
-                    판매자 정지
+                    {t("admin.suspendSeller")}
                   </Button>
                 </div>
               )}
@@ -412,7 +343,7 @@ const AdminSellers = () => {
               {selectedSeller.status === "정지" && (
                 <div className="pt-4 border-t">
                   <Button onClick={() => updateStatus.mutate({ id: selectedSeller.id, status: "승인" })} disabled={updateStatus.isPending}>
-                    정지 해제
+                    {t("admin.unsuspendSeller")}
                   </Button>
                 </div>
               )}
