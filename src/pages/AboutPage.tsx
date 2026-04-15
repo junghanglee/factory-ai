@@ -119,7 +119,10 @@ const AboutPage = () => {
 
           {/* Identity */}
           <div className="mb-16">
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8 text-center">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8 text-left">
+              우리는 당신의 가능성을 현실로 만드는 곳, 여기는 AI 팩토리입니다.
+            </p>
+            <p className="text-muted-foreground text-lg text-left">
               AI 팩토리는 베트남 호치민에 본사를 둔 <strong className="text-foreground">'다국적 AI 크리에이티브 그룹'</strong>입니다.<br />
               한국인 매니저의 섬세한 디렉팅과 글로벌 AI 전문가들의 기술력이 만나, 콘텐츠 제작의 새로운 표준을 만듭니다.
             </p>
