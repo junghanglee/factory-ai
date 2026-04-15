@@ -4,6 +4,7 @@ import { Search, Star, Clock } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 interface ServiceResult {
   id: string;
@@ -36,7 +37,7 @@ const SearchPage = () => {
     setLoading(true);
     const { data } = await supabase
       .from("services")
-      .select("id, title, description, thumbnail, price, original_price, rating, review_count, delivery_days, tags")
+      .select("id, title, title_en, description, description_en, thumbnail, price, original_price, rating, review_count, delivery_days, tags")
       .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
       .limit(50);
     setResults(data || []);
@@ -118,14 +119,14 @@ const SearchPage = () => {
                   <div className="rounded-xl overflow-hidden border bg-card hover:shadow-md transition-shadow">
                     <div className="aspect-[4/3] bg-secondary overflow-hidden">
                       {service.thumbnail ? (
-                        <img src={service.thumbnail} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={service.thumbnail} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">{t("search.noImage")}</div>
                       )}
                     </div>
                     <div className="p-3.5">
                       <h3 className="text-[14px] font-medium text-foreground line-clamp-2 mb-2 leading-snug group-hover:text-primary transition-colors">
-                        {service.title}
+                        {localize(service, "title")}
                       </h3>
                       <div className="flex items-center gap-1.5 mb-2">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
