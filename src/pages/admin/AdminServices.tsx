@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit, Trash2, Save, X, Star, ShieldCheck, Store, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Star, ShieldCheck, Store } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
