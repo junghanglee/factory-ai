@@ -8,6 +8,7 @@ export interface ChatRoom {
   id: string;
   customer_id: string;
   admin_id: string | null;
+  seller_id: string | null;
   title: string;
   service_id: string | null;
   project_id: string | null;
