@@ -33,16 +33,16 @@ serve(async (req) => {
       });
     }
 
-    // Check super_admin role
+    // Check admin or super_admin role
     const { data: roleData } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", caller.id)
-      .eq("role", "super_admin")
-      .maybeSingle();
+      .in("role", ["admin", "super_admin"])
+      .limit(1);
 
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Super admin access required" }), {
+    if (!roleData || roleData.length === 0) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
