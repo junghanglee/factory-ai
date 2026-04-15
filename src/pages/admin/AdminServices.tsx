@@ -25,6 +25,7 @@ const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 interface PackageForm {
   id?: string;
   name: string;
+  name_en: string;
   price: number;
   price_text: string;
   delivery_days: number;
@@ -36,7 +37,7 @@ interface PackageForm {
 }
 
 const emptyPackage = (name: string, order: number): PackageForm => ({
-  name, price: 0, price_text: "", delivery_days: 1, delivery_days_text: "", revisions: 1, revisions_text: "", features: [""], sort_order: order,
+  name, name_en: "", price: 0, price_text: "", delivery_days: 1, delivery_days_text: "", revisions: 1, revisions_text: "", features: [""], sort_order: order,
 });
 
 const AdminServices = () => {
@@ -87,7 +88,7 @@ const AdminServices = () => {
     setPkgForms(
       svc.packages.length > 0
         ? svc.packages.map((p: any) => ({
-            id: p.id, name: p.name, price: p.price, price_text: p.price_text ?? "",
+            id: p.id, name: p.name, name_en: p.name_en ?? "", price: p.price, price_text: p.price_text ?? "",
             delivery_days: p.delivery_days, delivery_days_text: p.delivery_days_text ?? "",
             revisions: p.revisions, revisions_text: p.revisions_text ?? "",
             features: p.features?.length ? p.features : [""], sort_order: p.sort_order,
@@ -124,6 +125,7 @@ const AdminServices = () => {
         const pkgInserts = pkgForms.filter((p) => p.name).map((p) => ({
           service_id: serviceId!,
           name: p.name,
+          name_en: p.name_en || null,
           price: p.price,
           price_text: p.price_text || null,
           delivery_days: p.delivery_days,
