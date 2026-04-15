@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList } from "lucide-react";
+import { Send, Paperclip, Plus, FolderOpen, X, Film, Video as VideoIcon, UserCircle, ClipboardList, FileText, CheckCircle } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { useChat, ChatMessage } from "@/hooks/useChat";
@@ -18,6 +18,7 @@ import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ChatRoomList from "@/components/chat/ChatRoomList";
 import { groupMessages } from "@/utils/messageGrouping";
 import RequestTypeDialog from "@/components/chat/RequestTypeDialog";
+import QuoteDialog from "@/components/chat/QuoteDialog";
 import { toast } from "sonner";
 
 const MAX_FILES = 10;
@@ -33,10 +34,12 @@ const AdminChat = () => {
     selectRoom, sendMessage, sendFile, sendConfirmVideo, sendFeedbackRequest, user,
     project, projectFiles,
     createProjectFromChat, updateProjectStatus, uploadDeliverable,
+    sendQuote, confirmPayment, sendPurchaseConfirmRequest,
   } = useChat();
 
   const [isFeedbackMode, setIsFeedbackMode] = useState(false);
   const [showRequestType, setShowRequestType] = useState(false);
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
 
   const [input, setInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -231,6 +234,14 @@ const AdminChat = () => {
                   <Button size="sm" variant={showInfoPanel ? "secondary" : "ghost"} className="text-xs h-7" onClick={() => { setShowInfoPanel(!showInfoPanel); setShowFileDrawer(false); }}>
                     <UserCircle className="h-3.5 w-3.5 mr-1" /> 정보
                   </Button>
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowQuoteDialog(true)}>
+                    <FileText className="h-3.5 w-3.5 mr-1" /> 견적서
+                  </Button>
+                  {project && (project.status === "검수중" || project.status === "완료") && project.confirm_status !== "확인완료" && (
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => sendPurchaseConfirmRequest()}>
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> 구매확정요청
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowRequestType(true)}>
                     <ClipboardList className="h-3.5 w-3.5 mr-1" /> 요청하기
                   </Button>
@@ -259,6 +270,11 @@ const AdminChat = () => {
                               isMine={item.msg.sender_id === user?.id}
                               onReply={(m) => setReplyTo(m)}
                               roomId={selectedRoomId || undefined}
+                              isAdmin={true}
+                              paymentStatus={project?.payment_status}
+                              onConfirmPayment={confirmPayment}
+                              currentUserId={user?.id}
+                              serviceId={selectedRoom?.service_id || undefined}
                             />
                           )
                         )}
@@ -460,6 +476,16 @@ const AdminChat = () => {
         onOpenChange={setShowRequestType}
         onSelectFeedback={handleFeedbackRequest}
         onSelectProduction={handleProductionRequest}
+      />
+
+      {/* Quote dialog */}
+      <QuoteDialog
+        open={showQuoteDialog}
+        onOpenChange={setShowQuoteDialog}
+        onSubmit={async (q) => { await sendQuote(q); }}
+        defaultServiceTitle={(() => { const meta = selectedRoom?.metadata as any; return meta?.serviceTitle || ""; })()}
+        defaultPrice={(() => { const meta = selectedRoom?.metadata as any; return meta?.price || 0; })()}
+        defaultDeliveryDays={(() => { const meta = selectedRoom?.metadata as any; return meta?.deliveryDays || 7; })()}
       />
     </AdminLayout>
   );

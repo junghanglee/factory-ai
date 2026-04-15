@@ -38,6 +38,7 @@ const ChatPage = () => {
     rooms, selectedRoomId, messages, loadingRooms,
     selectRoom, sendMessage, sendFile, createRoom,
     project, projectFiles, confirmProject, requestRevision,
+    confirmPurchase,
   } = useChat();
 
   const [messageInput, setMessageInput] = useState("");
@@ -314,6 +315,11 @@ const ChatPage = () => {
                                 isMine={item.msg.sender_id === user?.id}
                                 onReply={(m) => setReplyTo(m)}
                                 roomId={selectedRoomId || undefined}
+                                isAdmin={false}
+                                paymentStatus={project?.payment_status}
+                                onConfirmPurchase={confirmPurchase}
+                                currentUserId={user?.id}
+                                serviceId={selectedRoom?.service_id || undefined}
                               />
                             )
                           )}

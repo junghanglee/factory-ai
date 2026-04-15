@@ -759,7 +759,9 @@ export type Database = {
           order_date: string
           order_number: string
           package_name: string | null
+          payment_status: string
           price: number
+          quote_details: Json | null
           seller_id: string | null
           service_title: string
           status: string
@@ -777,7 +779,9 @@ export type Database = {
           order_date?: string
           order_number: string
           package_name?: string | null
+          payment_status?: string
           price?: number
+          quote_details?: Json | null
           seller_id?: string | null
           service_title: string
           status?: string
@@ -795,7 +799,9 @@ export type Database = {
           order_date?: string
           order_number?: string
           package_name?: string | null
+          payment_status?: string
           price?: number
+          quote_details?: Json | null
           seller_id?: string | null
           service_title?: string
           status?: string
