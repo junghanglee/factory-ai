@@ -28,13 +28,15 @@ interface PackageForm {
   price: number;
   price_text: string;
   delivery_days: number;
+  delivery_days_text: string;
   revisions: number;
+  revisions_text: string;
   features: string[];
   sort_order: number;
 }
 
 const emptyPackage = (name: string, order: number): PackageForm => ({
-  name, price: 0, price_text: "", delivery_days: 1, revisions: 1, features: [""], sort_order: order,
+  name, price: 0, price_text: "", delivery_days: 1, delivery_days_text: "", revisions: 1, revisions_text: "", features: [""], sort_order: order,
 });
 
 const AdminServices = () => {
@@ -74,13 +76,19 @@ const AdminServices = () => {
       category_id: svc.category_id || "", title: svc.title, description: svc.description || "",
       detailed_description: svc.detailed_description || "", thumbnail: svc.thumbnail || "",
       price: svc.price, original_price: svc.original_price, rating: svc.rating,
-      review_count: svc.review_count, delivery_days: svc.delivery_days, seller: svc.seller || "",
+      review_count: svc.review_count, delivery_days: svc.delivery_days,
+      delivery_days_text: (svc as any).delivery_days_text || "",
+      seller: svc.seller || "",
       tags: svc.tags || [], portfolio_images: svc.portfolio_images || [],
     });
     setPkgForms(
       svc.packages.length > 0
-        ? svc.packages.map((p) => ({ id: p.id, name: p.name, price: p.price, delivery_days: p.delivery_days, revisions: p.revisions, features: p.features?.length ? p.features : [""], sort_order: p.sort_order }))
-            .map((p: any) => ({ ...p, price_text: (svc.packages.find((sp: any) => sp.id === p.id) as any)?.price_text ?? "" }))
+        ? svc.packages.map((p: any) => ({
+            id: p.id, name: p.name, price: p.price, price_text: p.price_text ?? "",
+            delivery_days: p.delivery_days, delivery_days_text: p.delivery_days_text ?? "",
+            revisions: p.revisions, revisions_text: p.revisions_text ?? "",
+            features: p.features?.length ? p.features : [""], sort_order: p.sort_order,
+          }))
         : [emptyPackage("Basic", 1)]
     );
     setEditOpen(true);
@@ -89,10 +97,11 @@ const AdminServices = () => {
   const handleSave = async () => {
     try {
       let serviceId = editId;
-      const serviceData = {
+      const serviceData: any = {
         category_id: form.category_id, title: form.title, description: form.description,
         detailed_description: form.detailed_description, thumbnail: form.thumbnail,
         price: form.price, original_price: form.original_price, delivery_days: form.delivery_days,
+        delivery_days_text: form.delivery_days_text || null,
         seller: form.seller, tags: form.tags, portfolio_images: form.portfolio_images,
       };
 
@@ -113,7 +122,9 @@ const AdminServices = () => {
           price: p.price,
           price_text: p.price_text || null,
           delivery_days: p.delivery_days,
+          delivery_days_text: p.delivery_days_text || null,
           revisions: p.revisions,
+          revisions_text: p.revisions_text || null,
           features: p.features.filter(Boolean),
           sort_order: p.sort_order,
         }));
@@ -377,8 +388,16 @@ const AdminServices = () => {
                   <Input value={form.seller || ""} onChange={(e) => { const v = e.target.value; setForm((prev: any) => ({ ...prev, seller: v })); }} />
                 </div>
                 <div>
-                  <Label>납기일(일) - 제작 평균기간</Label>
-                  <Input type="number" value={form.delivery_days || 1} onChange={(e) => { const v = Number(e.target.value); setForm((prev: any) => ({ ...prev, delivery_days: v })); }} />
+                  <Label>납기일 - 제작 평균기간</Label>
+                  <Input value={form.delivery_days_text || (form.delivery_days === 0 ? "" : String(form.delivery_days))} onChange={(e) => {
+                    const v = e.target.value;
+                    const num = Number(v);
+                    if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                      setForm((prev: any) => ({ ...prev, delivery_days: v === "" ? 0 : num, delivery_days_text: "" }));
+                    } else {
+                      setForm((prev: any) => ({ ...prev, delivery_days_text: v, delivery_days: 0 }));
+                    }
+                  }} placeholder="숫자 또는 텍스트 (예: 3~5일)" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -449,11 +468,31 @@ const AdminServices = () => {
                       </div>
                       <div>
                         <Label>납기(일)</Label>
-                        <Input type="number" value={pkg.delivery_days} onChange={(e) => updatePkg(pkgIdx, "delivery_days", Number(e.target.value))} />
+                        <Input value={pkg.delivery_days_text || (pkg.delivery_days === 0 ? "" : String(pkg.delivery_days))} onChange={(e) => {
+                          const v = e.target.value;
+                          const num = Number(v);
+                          if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                            updatePkg(pkgIdx, "delivery_days", v === "" ? 0 : num);
+                            updatePkg(pkgIdx, "delivery_days_text", "");
+                          } else {
+                            updatePkg(pkgIdx, "delivery_days_text", v);
+                            updatePkg(pkgIdx, "delivery_days", 0);
+                          }
+                        }} placeholder="숫자 또는 텍스트" />
                       </div>
                       <div>
                         <Label>수정횟수</Label>
-                        <Input type="number" value={pkg.revisions} onChange={(e) => updatePkg(pkgIdx, "revisions", Number(e.target.value))} />
+                        <Input value={pkg.revisions_text || (pkg.revisions === 0 ? "" : String(pkg.revisions))} onChange={(e) => {
+                          const v = e.target.value;
+                          const num = Number(v);
+                          if (v === "" || (!isNaN(num) && v.trim() !== "")) {
+                            updatePkg(pkgIdx, "revisions", v === "" ? 0 : num);
+                            updatePkg(pkgIdx, "revisions_text", "");
+                          } else {
+                            updatePkg(pkgIdx, "revisions_text", v);
+                            updatePkg(pkgIdx, "revisions", 0);
+                          }
+                        }} placeholder="숫자 또는 텍스트" />
                       </div>
                     </div>
                     <div>
