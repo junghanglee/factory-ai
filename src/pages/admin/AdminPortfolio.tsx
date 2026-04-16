@@ -27,7 +27,9 @@ import { useTranslation } from "react-i18next";
 interface PortfolioItem {
   id: string;
   title: string;
+  title_en: string | null;
   description: string | null;
+  description_en: string | null;
   image_url: string | null;
   category: string | null;
   active: boolean;
@@ -43,7 +45,9 @@ interface PortfolioItem {
 
 interface FormState {
   title: string;
+  title_en: string;
   description: string;
+  description_en: string;
   image_url: string;
   category: string;
   active: boolean;
@@ -57,7 +61,7 @@ interface FormState {
 }
 
 const emptyForm: FormState = {
-  title: "", description: "", image_url: "", category: "",
+  title: "", title_en: "", description: "", description_en: "", image_url: "", category: "",
   active: true, files: [], detail_images: [], final_outputs: [], client_name: "", duration: "", cost: "", show_extra_info: false,
 };
 
@@ -180,8 +184,8 @@ const AdminPortfolio = () => {
   const openEdit = (item: PortfolioItem) => {
     setEditId(item.id);
     setForm({
-      title: item.title, description: item.description || "", image_url: item.image_url || "",
-      category: item.category || "", active: item.active, files: item.files || [],
+      title: item.title, title_en: (item as any).title_en || "", description: item.description || "", description_en: (item as any).description_en || "",
+      image_url: item.image_url || "", category: item.category || "", active: item.active, files: item.files || [],
       detail_images: item.detail_images || [], final_outputs: item.final_outputs || [],
       client_name: item.client_name || "", duration: item.duration || "", cost: item.cost || "",
       show_extra_info: item.show_extra_info,
@@ -192,8 +196,8 @@ const AdminPortfolio = () => {
   const handleSave = () => {
     if (!form.title.trim()) { toast.error("제목을 입력해주세요"); return; }
     const payload: Partial<PortfolioItem> = {
-      title: form.title, description: form.description || null, image_url: form.image_url || null,
-      category: form.category || null, active: form.active, files: form.files,
+      title: form.title, title_en: form.title_en || null, description: form.description || null, description_en: form.description_en || null,
+      image_url: form.image_url || null, category: form.category || null, active: form.active, files: form.files,
       detail_images: form.detail_images, final_outputs: form.final_outputs,
       client_name: form.client_name || null, duration: form.duration || null, cost: form.cost || null,
       show_extra_info: form.show_extra_info,
@@ -308,14 +312,23 @@ const AdminPortfolio = () => {
           <div className="space-y-4">
             {/* 제목 */}
             <div>
-              <Label>제목 *</Label>
+              <Label>제목 (한국어) *</Label>
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="포트폴리오 제목" />
+            </div>
+            <div>
+              <Label>Title (English)</Label>
+              <Input value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} placeholder="Portfolio title in English" />
             </div>
             {/* 설명 */}
             <div>
-              <Label>설명 (50자 이내)</Label>
+              <Label>설명 (한국어, 50자 이내)</Label>
               <Textarea value={form.description} onChange={(e) => { if (e.target.value.length <= 50) setForm({ ...form, description: e.target.value }); }} rows={2} placeholder="간단한 설명" />
               <p className="text-xs text-muted-foreground mt-1">{form.description.length}/50</p>
+            </div>
+            <div>
+              <Label>Description (English, max 100 chars)</Label>
+              <Textarea value={form.description_en} onChange={(e) => { if (e.target.value.length <= 100) setForm({ ...form, description_en: e.target.value }); }} rows={2} placeholder="Short description in English" />
+              <p className="text-xs text-muted-foreground mt-1">{form.description_en.length}/100</p>
             </div>
 
             {/* 대표이미지 */}
