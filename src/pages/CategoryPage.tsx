@@ -13,10 +13,12 @@ import { formatPrice } from "@/utils/formatPrice";
 
 const CategoryPage = () => {
   const { id } = useParams();
-  const { data: categories = [] } = useCategories();
-  const { data: allServices = [] } = useServices();
+  const { data: categories = [], isLoading: categoriesLoading, isFetching: categoriesFetching } = useCategories();
+  const { data: allServices = [], isLoading: servicesLoading, isFetching: servicesFetching } = useServices();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+
+  const isDataLoading = categoriesLoading || servicesLoading || (categories.length === 0 && categoriesFetching) || (allServices.length === 0 && servicesFetching);
 
   const isAll = id === "all";
   const category = categories.find((c) => c.id === id);
@@ -34,6 +36,16 @@ const CategoryPage = () => {
     const amount = 300;
     scrollRef.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
   };
+
+  if (isDataLoading) {
+    return (
+      <MainLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center text-muted-foreground">
+          {t("common.loading")}
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
