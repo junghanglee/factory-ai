@@ -1,5 +1,8 @@
-import { FileText, CheckCircle, CreditCard, Clock } from "lucide-react";
+import { useState } from "react";
+import { FileText, CheckCircle, CreditCard, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { ChatMessage } from "@/hooks/useChat";
 
 interface QuoteDetails {
@@ -17,6 +20,7 @@ interface QuoteBubbleProps {
   paymentStatus?: string;
   isAdmin?: boolean;
   onConfirmPayment?: () => void;
+  projectId?: string;
 }
 
 function formatTime(dateStr: string) {
@@ -24,7 +28,9 @@ function formatTime(dateStr: string) {
   return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onConfirmPayment }: QuoteBubbleProps) {
+export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onConfirmPayment, projectId }: QuoteBubbleProps) {
+  const [paying, setPaying] = useState(false);
+
   let quote: QuoteDetails | null = null;
   try {
     quote = JSON.parse(msg.file_name || "{}");
@@ -37,11 +43,47 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
   const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     "견적발송": { label: "견적 발송됨", color: "text-blue-600 bg-blue-50", icon: <FileText className="h-3.5 w-3.5" /> },
     "입금대기": { label: "입금 대기중", color: "text-amber-600 bg-amber-50", icon: <Clock className="h-3.5 w-3.5" /> },
-    "입금완료": { label: "입금 확인됨", color: "text-green-600 bg-green-50", icon: <CheckCircle className="h-3.5 w-3.5" /> },
+    "입금완료": { label: "결제 완료", color: "text-green-600 bg-green-50", icon: <CheckCircle className="h-3.5 w-3.5" /> },
     "구매확정": { label: "구매 확정됨", color: "text-primary bg-primary/10", icon: <CheckCircle className="h-3.5 w-3.5" /> },
   };
 
   const status = statusLabels[paymentStatus || "견적발송"] || statusLabels["견적발송"];
+
+  const handleCardPayment = async () => {
+    if (!projectId) {
+      toast.error("프로젝트 정보를 찾을 수 없습니다.");
+      return;
+    }
+    setPaying(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("create-checkout-session", {
+        body: {
+          project_id: projectId,
+          amount: quote!.price,
+          currency: "krw",
+          service_title: quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : ""),
+          success_url: `${window.location.origin}/my-projects?payment=success`,
+          cancel_url: `${window.location.origin}/chat?payment=cancelled`,
+        },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      const { url } = res.data;
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("결제 URL을 생성하지 못했습니다.");
+      }
+    } catch (e: any) {
+      console.error("Payment error:", e);
+      toast.error("결제 처리 중 오류가 발생했습니다.");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const canPay = !isMine && !isAdmin && (paymentStatus === "견적발송" || paymentStatus === "입금대기");
 
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2`}>
@@ -91,14 +133,31 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
             )}
           </div>
 
-          {/* Action */}
-          {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
-            <div className="px-4 py-3 border-t bg-muted/30">
+          {/* Actions */}
+          <div className="px-4 py-3 border-t bg-muted/30 space-y-2">
+            {/* Customer: Card Payment button */}
+            {canPay && projectId && (
+              <Button
+                size="sm"
+                className="w-full text-xs bg-green-600 hover:bg-green-700"
+                onClick={handleCardPayment}
+                disabled={paying}
+              >
+                {paying ? (
+                  <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> 결제 처리중...</>
+                ) : (
+                  <><CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기</>
+                )}
+              </Button>
+            )}
+
+            {/* Admin: Confirm payment button */}
+            {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
               <Button size="sm" className="w-full text-xs" onClick={onConfirmPayment}>
                 <CreditCard className="h-3.5 w-3.5 mr-1" /> 입금 확인 처리
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1 ml-1">{formatTime(msg.created_at)}</p>
       </div>
