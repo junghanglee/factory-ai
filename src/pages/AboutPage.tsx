@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import aiFactoryLogoWhite from "@/assets/ai-factory-logo-white.png";
 import MainLayout from "@/components/layout/MainLayout";
 import { cn } from "@/lib/utils";
 import { DollarSign, Users, Zap, Globe, Film, Settings, Smartphone, GraduationCap, Handshake, MapPin, MessageCircle, Mail, Phone, ChevronDown, ArrowRight, Send, Loader2, UserCheck, Code, Video, Palette } from "lucide-react";
@@ -44,6 +45,7 @@ const AboutPage = () => {
         <img src={aboutHero} alt="AI Factory Team" className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
         <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-6">
+          <img src={aiFactoryLogoWhite} alt="LINKTO Factory" className="h-10 md:h-14 w-auto mx-auto mb-6" />
           <p className="text-sm tracking-[0.3em] uppercase text-white/60 mb-4 font-medium">{t("about.hero.subtitle")}</p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
             {t("about.hero.title1")}<br />
