@@ -176,16 +176,6 @@ const MyPage = () => {
     setSearchParams({ tab });
   };
 
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
-      </MainLayout>
-    );
-  }
-
   const goToChat = useCallback(async (projectId: string) => {
     if (!user) return;
     const { data: rooms } = await supabase
@@ -211,6 +201,16 @@ const MyPage = () => {
       if (newRoom) navigate("/chat", { state: { openRoomId: newRoom.id } });
     }
   }, [user, projects, navigate]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   const handleSaveProfile = async () => {
     if (!user) return;
