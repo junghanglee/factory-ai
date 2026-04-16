@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatPrice } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -444,7 +445,6 @@ const ChatPage = () => {
   );
 };
 
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
 function InlineServicePicker({ onSelectService }: { onSelectService: (service: any) => void }) {
   const { data: categories = [] } = useCategories();
@@ -554,7 +554,7 @@ function InlineServicePicker({ onSelectService }: { onSelectService: (service: a
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-primary">{formatPrice(service.price)}원</span>
+                      <span className="text-sm font-bold text-primary">{formatPrice(service.price, (service as any).price_usd)}</span>
                       <ArrowRight className="h-3.5 w-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>

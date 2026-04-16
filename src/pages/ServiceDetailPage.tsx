@@ -5,6 +5,7 @@ import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Z
 import { useTranslation } from "react-i18next";
 import SellerBadge from "@/components/SellerBadge";
 import { localize } from "@/utils/localize";
+import { formatPrice, displayServicePrice, formatOriginalPrice } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
@@ -13,12 +14,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderRequestDialog";
-
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
-const displayPrice = (pkg: any) => {
-  if (pkg.price_text) return pkg.price_text;
-  return `${formatPrice(pkg.price)}원`;
-};
 
 const ServiceDetailPage = () => {
   const { id } = useParams();
@@ -98,7 +93,7 @@ const ServiceDetailPage = () => {
     if (packages.length === 0) {
       return (
         <div className="p-5 space-y-4">
-          <span className="text-3xl font-bold text-foreground">{formatPrice(service.price)}원</span>
+          <span className="text-3xl font-bold text-foreground">{formatPrice(service.price, service.price_usd)}</span>
           <div className="space-y-2">
             <Button className="w-full gap-2" onClick={handleInquiry}>
               <MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}
@@ -116,9 +111,9 @@ const ServiceDetailPage = () => {
             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{localize(pkg, "name")}</span>
           </div>
           <div>
-            <span className="text-3xl font-bold text-foreground">{displayPrice(pkg)}</span>
+            <span className="text-3xl font-bold text-foreground">{displayServicePrice(pkg)}</span>
             {!(pkg as any).price_text && service.original_price > pkg.price && (
-              <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
+              <span className="ml-2 text-sm line-through text-muted-foreground">{formatOriginalPrice(service)}</span>
             )}
           </div>
           <div className="text-sm text-muted-foreground space-y-1">
@@ -152,9 +147,9 @@ const ServiceDetailPage = () => {
         {packages.map((pkg) => (
           <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
             <div>
-              <span className="text-3xl font-bold text-foreground">{displayPrice(pkg)}</span>
+              <span className="text-3xl font-bold text-foreground">{displayServicePrice(pkg)}</span>
               {!(pkg as any).price_text && service.original_price > pkg.price && (
-                <span className="ml-2 text-sm line-through text-muted-foreground">{formatPrice(service.original_price)}원</span>
+                <span className="ml-2 text-sm line-through text-muted-foreground">{formatOriginalPrice(service)}</span>
               )}
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
@@ -311,14 +306,14 @@ const ServiceDetailPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg bg-background p-4 text-center border">
                     <div className="text-xs text-muted-foreground mb-1">{t("serviceDetail.avgPrice")}</div>
-                    <div className="text-xl font-bold text-primary">{formatPrice(service.price)}원</div>
+                    <div className="text-xl font-bold text-primary">{formatPrice(service.price, service.price_usd)}</div>
                     <div className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
                       <Zap className="h-3 w-3" /> {t("serviceDetail.avgDays", { days: service.delivery_days })}
                     </div>
                   </div>
                   <div className="rounded-lg bg-background p-4 text-center border">
                     <div className="text-xs text-muted-foreground mb-1">{t("serviceDetail.agencyPrice")}</div>
-                    <div className="text-xl font-bold text-muted-foreground line-through">{formatPrice(service.original_price)}원</div>
+                    <div className="text-xl font-bold text-muted-foreground line-through">{formatOriginalPrice(service)}</div>
                      <div className="text-xs text-muted-foreground mt-1">
                        {t("serviceDetail.agencyDays", { days: Math.ceil(service.delivery_days * 2.5) })}
                      </div>

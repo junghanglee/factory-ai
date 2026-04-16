@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { services } from "@/data/services";
 import { useTranslation } from "react-i18next";
-
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 const OrderPage = () => {
   const service = services[0];
@@ -88,7 +87,7 @@ const OrderPage = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("order.serviceAmount")}</span>
-                  <span>{formatPrice(packagePrice)}{t("common.won")}</span>
+                  <span>{formatPrice(packagePrice)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("order.discount")}</span>
@@ -96,7 +95,7 @@ const OrderPage = () => {
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold">
                   <span>{t("order.totalAmount")}</span>
-                  <span className="text-primary">{formatPrice(packagePrice)}{t("common.won")}</span>
+                  <span className="text-primary">{formatPrice(packagePrice)}</span>
                 </div>
                 <Button className="w-full mt-4">{t("order.pay")}</Button>
                 <p className="text-xs text-muted-foreground text-center">
