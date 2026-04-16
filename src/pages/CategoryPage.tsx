@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getCategoryIcon, getAllCategoryIcon, shouldShowInHeroGrid } from "@/lib/categoryIcons";
 import { useTranslation } from "react-i18next";
 import { localize } from "@/utils/localize";
-
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 const CategoryPage = () => {
   const { id } = useParams();
@@ -98,7 +97,7 @@ const CategoryPage = () => {
                         <span className="text-sm font-medium">{service.rating}</span>
                         <span className="text-xs text-muted-foreground">({service.review_count})</span>
                       </div>
-                      <span className="text-lg font-bold">{formatPrice(service.price)}원</span>
+                      <span className="text-lg font-bold">{formatPrice(service.price, (service as any).price_usd)}</span>
                     </CardContent>
                   </Card>
                 </Link>
@@ -155,7 +154,7 @@ const CategoryPage = () => {
                           <span className="text-sm font-medium">{service.rating}</span>
                           <span className="text-xs text-muted-foreground">({service.review_count})</span>
                         </div>
-                        <span className="text-lg font-bold">{formatPrice(service.price)}원</span>
+                        <span className="text-lg font-bold">{formatPrice(service.price, (service as any).price_usd)}</span>
                       </CardContent>
                     </Card>
                   </Link>
