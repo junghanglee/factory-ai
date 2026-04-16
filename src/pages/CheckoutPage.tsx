@@ -16,14 +16,16 @@ export default function CheckoutPage() {
   const amount = parseInt(searchParams.get("amount") || "0");
   const currency = searchParams.get("currency") || "krw";
   const serviceTitle = searchParams.get("title") || "서비스 결제";
+  const packageId = searchParams.get("package_id") || "";
 
   const fetchClientSecret = async (): Promise<string> => {
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: {
         project_id: projectId,
-        amount,
+        amount: amount || undefined,
         currency,
         service_title: serviceTitle,
+        package_id: packageId || undefined,
         return_url: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
       },

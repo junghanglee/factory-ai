@@ -20,3 +20,13 @@ export function getStripe(): Promise<Stripe | null> {
 export function getStripeEnvironment(): string {
   return environment;
 }
+
+export async function getStripePriceId(priceId: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("get-stripe-price", {
+    body: { priceId, environment },
+  });
+  if (error || !data?.stripeId) {
+    throw new Error(`Failed to resolve price: ${priceId}`);
+  }
+  return data.stripeId;
+}

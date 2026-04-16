@@ -72,6 +72,9 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
       currency,
       title,
     });
+    if (quote?.packageId) {
+      params.set("package_id", quote.packageId);
+    }
     navigate(`/checkout?${params.toString()}`);
   };
 
