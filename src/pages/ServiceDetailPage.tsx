@@ -176,8 +176,9 @@ const ServiceDetailPage = () => {
             </ul>
           )}
           <div className="space-y-2 pt-2">
-            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
-            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
+            <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => handleDirectPayment(pkg)}><CreditCard className="h-4 w-4" /> 바로 결제</Button>
+            <Button className="w-full gap-2" variant="outline" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
+            <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
           </div>
         </div>
       );
