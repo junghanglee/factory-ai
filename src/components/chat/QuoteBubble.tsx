@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle, CreditCard, Clock, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatPrice, getCurrency, isEnglishMode } from "@/utils/formatPrice";
 import type { ChatMessage } from "@/hooks/useChat";
 
 interface QuoteDetails {
   serviceTitle: string;
   packageName?: string;
   price: number;
+  priceUsd?: number | null;
   deliveryDays: number;
   memo?: string;
   orderNumber?: string;
@@ -30,6 +33,7 @@ function formatTime(dateStr: string) {
 
 export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onConfirmPayment, projectId }: QuoteBubbleProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   let quote: QuoteDetails | null = null;
   try {
@@ -41,10 +45,10 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
   if (!quote) return null;
 
   const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    "견적발송": { label: "견적 발송됨", color: "text-blue-600 bg-blue-50", icon: <FileText className="h-3.5 w-3.5" /> },
-    "입금대기": { label: "입금 대기중", color: "text-amber-600 bg-amber-50", icon: <Clock className="h-3.5 w-3.5" /> },
-    "입금완료": { label: "결제 완료", color: "text-green-600 bg-green-50", icon: <CheckCircle className="h-3.5 w-3.5" /> },
-    "구매확정": { label: "구매 확정됨", color: "text-primary bg-primary/10", icon: <CheckCircle className="h-3.5 w-3.5" /> },
+    "견적발송": { label: t("quote.sent", "견적 발송됨"), color: "text-blue-600 bg-blue-50", icon: <FileText className="h-3.5 w-3.5" /> },
+    "입금대기": { label: t("quote.pending", "입금 대기중"), color: "text-amber-600 bg-amber-50", icon: <Clock className="h-3.5 w-3.5" /> },
+    "입금완료": { label: t("quote.paid", "결제 완료"), color: "text-green-600 bg-green-50", icon: <CheckCircle className="h-3.5 w-3.5" /> },
+    "구매확정": { label: t("quote.confirmed", "구매 확정됨"), color: "text-primary bg-primary/10", icon: <CheckCircle className="h-3.5 w-3.5" /> },
   };
 
   const status = statusLabels[paymentStatus || "견적발송"] || statusLabels["견적발송"];
@@ -55,10 +59,17 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
       return;
     }
     const title = quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
+    const currency = getCurrency();
+    let amount: number;
+    if (currency === "usd" && quote!.priceUsd != null) {
+      amount = Math.round(quote!.priceUsd * 100); // cents
+    } else {
+      amount = quote!.price;
+    }
     const params = new URLSearchParams({
       project_id: projectId,
-      amount: quote!.price.toString(),
-      currency: "krw",
+      amount: amount.toString(),
+      currency,
       title,
     });
     navigate(`/checkout?${params.toString()}`);
@@ -94,8 +105,8 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">금액</span>
-              <span className="font-bold text-primary">{quote.price.toLocaleString()}원</span>
+              <span className="text-muted-foreground">{isEnglishMode() ? "Amount" : "금액"}</span>
+              <span className="font-bold text-primary">{formatPrice(quote.price, quote.priceUsd)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">납기일</span>
