@@ -1,8 +1,9 @@
 import { useState } from "react";
 import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
+import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck, CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import SellerBadge from "@/components/SellerBadge";
 import { localize } from "@/utils/localize";
 import { formatPrice, displayServicePrice, formatOriginalPrice } from "@/utils/formatPrice";
