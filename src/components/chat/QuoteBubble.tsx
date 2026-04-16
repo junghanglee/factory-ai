@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle, CreditCard, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ChatMessage } from "@/hooks/useChat";
 
@@ -29,7 +29,7 @@ function formatTime(dateStr: string) {
 }
 
 export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onConfirmPayment, projectId }: QuoteBubbleProps) {
-  const [paying, setPaying] = useState(false);
+  const navigate = useNavigate();
 
   let quote: QuoteDetails | null = null;
   try {
@@ -49,38 +49,19 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
 
   const status = statusLabels[paymentStatus || "견적발송"] || statusLabels["견적발송"];
 
-  const handleCardPayment = async () => {
+  const handleCardPayment = () => {
     if (!projectId) {
       toast.error("프로젝트 정보를 찾을 수 없습니다.");
       return;
     }
-    setPaying(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await supabase.functions.invoke("create-checkout-session", {
-        body: {
-          project_id: projectId,
-          amount: quote!.price,
-          currency: "krw",
-          service_title: quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : ""),
-          success_url: `${window.location.origin}/my-projects?payment=success`,
-          cancel_url: `${window.location.origin}/chat?payment=cancelled`,
-        },
-      });
-
-      if (res.error) throw new Error(res.error.message);
-      const { url } = res.data;
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error("결제 URL을 생성하지 못했습니다.");
-      }
-    } catch (e: any) {
-      console.error("Payment error:", e);
-      toast.error("결제 처리 중 오류가 발생했습니다.");
-    } finally {
-      setPaying(false);
-    }
+    const title = quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
+    const params = new URLSearchParams({
+      project_id: projectId,
+      amount: quote!.price.toString(),
+      currency: "krw",
+      title,
+    });
+    navigate(`/checkout?${params.toString()}`);
   };
 
   const canPay = !isMine && !isAdmin && (paymentStatus === "견적발송" || paymentStatus === "입금대기");
@@ -134,30 +115,24 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
           </div>
 
           {/* Actions */}
-          <div className="px-4 py-3 border-t bg-muted/30 space-y-2">
-            {/* Customer: Card Payment button */}
-            {canPay && projectId && (
-              <Button
-                size="sm"
-                className="w-full text-xs bg-green-600 hover:bg-green-700"
-                onClick={handleCardPayment}
-                disabled={paying}
-              >
-                {paying ? (
-                  <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> 결제 처리중...</>
-                ) : (
-                  <><CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기</>
-                )}
-              </Button>
-            )}
-
-            {/* Admin: Confirm payment button */}
-            {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
-              <Button size="sm" className="w-full text-xs" onClick={onConfirmPayment}>
-                <CreditCard className="h-3.5 w-3.5 mr-1" /> 입금 확인 처리
-              </Button>
-            )}
-          </div>
+          {(canPay || (isAdmin && paymentStatus === "견적발송")) && (
+            <div className="px-4 py-3 border-t bg-muted/30 space-y-2">
+              {canPay && projectId && (
+                <Button
+                  size="sm"
+                  className="w-full text-xs bg-green-600 hover:bg-green-700"
+                  onClick={handleCardPayment}
+                >
+                  <CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기
+                </Button>
+              )}
+              {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
+                <Button size="sm" className="w-full text-xs" onClick={onConfirmPayment}>
+                  <CreditCard className="h-3.5 w-3.5 mr-1" /> 입금 확인 처리
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-1 ml-1">{formatTime(msg.created_at)}</p>
       </div>

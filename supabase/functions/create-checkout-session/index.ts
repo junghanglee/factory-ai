@@ -27,7 +27,7 @@ serve(async (req) => {
     if (authError || !user) throw new Error("Unauthorized");
 
     const body = await req.json();
-    const { project_id, amount, currency, service_title, success_url, cancel_url } = body;
+    const { project_id, amount, currency, service_title, return_url, environment } = body;
 
     if (!project_id || !amount || !service_title) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -35,16 +35,18 @@ serve(async (req) => {
       });
     }
 
-    const env: StripeEnv = "sandbox"; // Switch to 'live' for production
+    const env = (environment || "sandbox") as StripeEnv;
     const stripe = createStripeClient(env);
 
+    // Create embedded checkout session with dynamic price_data
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ui_mode: "embedded",
       line_items: [{
         price_data: {
           currency: currency || "krw",
           product_data: { name: service_title },
-          unit_amount: currency === "usd" ? amount : amount, // KRW has no decimals
+          unit_amount: amount, // KRW uses whole numbers, no decimals
         },
         quantity: 1,
       }],
@@ -53,11 +55,10 @@ serve(async (req) => {
         user_id: user.id,
         environment: env,
       },
-      success_url: success_url || `${req.headers.get("origin")}/my-projects?payment=success`,
-      cancel_url: cancel_url || `${req.headers.get("origin")}/chat?payment=cancelled`,
+      return_url: return_url || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
+    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import DOMPurify from "dompurify";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck } from "lucide-react";
+import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck, CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import SellerBadge from "@/components/SellerBadge";
 import { localize } from "@/utils/localize";
 import { formatPrice, displayServicePrice, formatOriginalPrice } from "@/utils/formatPrice";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderRequestDialog";
 
 const ServiceDetailPage = () => {
@@ -89,6 +91,52 @@ const ServiceDetailPage = () => {
     navigate("/chat", { state: { inquiry: { serviceId: service.id, serviceTitle: service.title } } });
   };
 
+  const handleDirectPayment = async (pkg: typeof packages[0]) => {
+    if (!user) { navigate("/login"); return; }
+    try {
+      // Create a project first
+      const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const { data: member } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user.email!)
+        .maybeSingle();
+
+      const { data: project, error } = await supabase.from("projects").insert({
+        order_number: orderNumber,
+        service_title: service.title,
+        package_name: pkg.name,
+        customer: profile?.name || user.email || "고객",
+        customer_id: member?.id || undefined,
+        seller_id: service.seller_id || undefined,
+        price: pkg.price,
+        status: "주문접수",
+        payment_status: "입금대기",
+        due_date: new Date(Date.now() + pkg.delivery_days * 86400000).toISOString().split("T")[0],
+      }).select().single();
+
+      if (error || !project) throw error;
+
+      const title = `${service.title} - ${pkg.name}`;
+      const params = new URLSearchParams({
+        project_id: project.id,
+        amount: pkg.price.toString(),
+        currency: "krw",
+        title,
+      });
+      navigate(`/checkout?${params.toString()}`);
+    } catch (e) {
+      console.error("Direct payment error:", e);
+      toast.error("결제 준비 중 오류가 발생했습니다.");
+    }
+  };
+
   const renderPackageSidebar = () => {
     if (packages.length === 0) {
       return (
@@ -128,8 +176,9 @@ const ServiceDetailPage = () => {
             </ul>
           )}
           <div className="space-y-2 pt-2">
-            <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
-            <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
+            <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => handleDirectPayment(pkg)}><CreditCard className="h-4 w-4" /> 바로 결제</Button>
+            <Button className="w-full gap-2" variant="outline" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
+            <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
           </div>
         </div>
       );
@@ -164,8 +213,9 @@ const ServiceDetailPage = () => {
               </ul>
             )}
             <div className="space-y-2 pt-2">
-              <Button className="w-full gap-2" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
-              <Button variant="outline" className="w-full gap-2" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
+              <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => handleDirectPayment(pkg)}><CreditCard className="h-4 w-4" /> 바로 결제</Button>
+              <Button className="w-full gap-2" variant="outline" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
+              <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
             </div>
           </TabsContent>
         ))}
