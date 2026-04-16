@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle2, MessageCircle, Package, Star } from "lucide-react";
+import { CheckCircle2, MessageCircle, Package, Star, CreditCard, Clock, Banknote } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
