@@ -22,14 +22,14 @@ const ServiceDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { data: service, isLoading } = useService(id);
+  const { data: service, isLoading, isFetching } = useService(id);
   const { data: packages = [] } = useServicePackages(id);
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: reviews = [] } = useServiceReviews(id);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<typeof packages[0] | null>(null);
 
-  if (isLoading) {
+  if (isLoading || categoriesLoading || (!service && isFetching)) {
     return (
       <MainLayout>
         <div className="max-w-7xl mx-auto px-4 py-16 text-center text-muted-foreground">{t("common.loading")}</div>
