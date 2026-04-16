@@ -20,6 +20,7 @@ import SimpleRichEditor from "@/components/admin/SimpleRichEditor";
 import FeedbackFieldsEditor from "@/components/admin/FeedbackFieldsEditor";
 import ReviewManager from "@/components/admin/ReviewManager";
 import { useTranslation } from "react-i18next";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 const formatPrice = (price: number) => price.toLocaleString("ko-KR");
 
@@ -147,6 +148,24 @@ const AdminServices = () => {
       queryClient.invalidateQueries({ queryKey: ["services"] });
       toast.success(editId ? "서비스가 수정되었습니다." : "서비스가 등록되었습니다.");
       setEditOpen(false);
+
+      // Sync to Stripe in background
+      if (serviceId) {
+        supabase.functions.invoke("sync-stripe-product", {
+          body: { service_id: serviceId, environment: getStripeEnvironment() },
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error("Stripe sync failed:", error);
+            toast.error("PG 상품 동기화 실패 — 수동으로 재시도해주세요.");
+          } else {
+            const created = data?.prices?.filter((p: any) => p.action === "created").length || 0;
+            const updated = data?.prices?.filter((p: any) => p.action === "updated").length || 0;
+            if (created > 0 || updated > 0) {
+              toast.success(`PG 상품 동기화 완료 (신규 ${created}건, 변경 ${updated}건)`);
+            }
+          }
+        });
+      }
     } catch (err: any) {
       toast.error("저장 실패: " + err.message);
     }
