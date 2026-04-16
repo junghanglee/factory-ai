@@ -27,9 +27,9 @@ serve(async (req) => {
     if (authError || !user) throw new Error("Unauthorized");
 
     const body = await req.json();
-    const { project_id, amount, currency, service_title, return_url, environment } = body;
+    const { project_id, amount, currency, service_title, return_url, environment, package_id } = body;
 
-    if (!project_id || !amount || !service_title) {
+    if (!project_id || !service_title) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -38,18 +38,37 @@ serve(async (req) => {
     const env = (environment || "sandbox") as StripeEnv;
     const stripe = createStripeClient(env);
 
-    // Create embedded checkout session with dynamic price_data
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "embedded",
-      line_items: [{
+    // Try to resolve Stripe price via package_id lookup_key
+    let lineItem: any;
+    if (package_id) {
+      const lookupKey = `pkg_${package_id.replace(/-/g, "").slice(0, 16)}`;
+      const prices = await stripe.prices.list({ lookup_keys: [lookupKey] });
+      if (prices.data.length > 0) {
+        lineItem = { price: prices.data[0].id, quantity: 1 };
+      }
+    }
+
+    // Fallback to price_data if no registered Stripe price found
+    if (!lineItem) {
+      if (!amount) {
+        return new Response(JSON.stringify({ error: "Missing amount — no registered Stripe price found" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      lineItem = {
         price_data: {
           currency: currency || "krw",
           product_data: { name: service_title },
-          unit_amount: amount, // KRW: whole numbers, USD: cents (already converted by client)
+          unit_amount: amount,
         },
         quantity: 1,
-      }],
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      ui_mode: "embedded",
+      line_items: [lineItem],
       metadata: {
         project_id,
         user_id: user.id,

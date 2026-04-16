@@ -123,6 +123,7 @@ const ServiceDetailPage = () => {
         amount: amount.toString(),
         currency,
         title,
+        package_id: pkg.id,
       });
       navigate(`/checkout?${params.toString()}`);
     } catch (e) {

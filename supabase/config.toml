@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.payments-webhook]
 verify_jwt = false
+
+[functions.sync-stripe-product]
+verify_jwt = false
+
+[functions.get-stripe-price]
+verify_jwt = false
