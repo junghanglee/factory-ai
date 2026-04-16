@@ -159,8 +159,31 @@ const ChatPage = () => {
         await sendAutoMessage(room.id, "order_received");
         navigate("/chat", { replace: true });
       }
+    } else if (state.quoteRequest) {
+      setAutoCreated(true);
+      const qr = state.quoteRequest;
+      const title = `[견적요청] ${qr.serviceTitle}`;
+      const quoteMeta: Record<string, any> = {
+        serviceTitle: qr.serviceTitle,
+        packageName: qr.packageName,
+        deliveryDays: qr.deliveryDays,
+        type: "quote_request",
+      };
+      const room = await createRoom(title, qr.serviceId, quoteMeta);
+      if (room) {
+        selectRoom(room.id);
+        notifyRoomOpen();
+        let quoteMsg = `📝 견적 요청\n\n서비스: ${qr.serviceTitle}\n패키지: ${qr.packageName}\n희망 납기: ${qr.deliveryDays}일`;
+        if (qr.features && qr.features.length > 0) {
+          quoteMsg += `\n\n포함 항목:\n${qr.features.map((f: string) => `• ${f}`).join("\n")}`;
+        }
+        quoteMsg += "\n\n맞춤 견적을 요청합니다. 상세 내용과 가격을 안내해 주세요.";
+        await sendMessage(quoteMsg, room.id);
+        await sendAutoMessage(room.id, "new_room");
+        navigate("/chat", { replace: true });
+      }
     }
-  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, notifyRoomOpen, sendAutoMessage]);
+  }, [autoCreated, loadingRooms, user, location.state, createRoom, selectRoom, navigate, sendMessage, sendFile, notifyRoomOpen, sendAutoMessage]);
 
   useEffect(() => { handleAutoCreate(); }, [handleAutoCreate]);
 
