@@ -444,7 +444,7 @@ const ChatPage = () => {
   );
 };
 
-const { formatPrice: formatPriceUtil } = await import("@/utils/formatPrice");
+import { formatPrice } from "@/utils/formatPrice";
 
 function InlineServicePicker({ onSelectService }: { onSelectService: (service: any) => void }) {
   const { data: categories = [] } = useCategories();
