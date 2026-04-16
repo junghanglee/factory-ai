@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, ClipboardList, Star, Clock, Search, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatPrice } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -444,7 +445,6 @@ const ChatPage = () => {
   );
 };
 
-import { formatPrice } from "@/utils/formatPrice";
 
 function InlineServicePicker({ onSelectService }: { onSelectService: (service: any) => void }) {
   const { data: categories = [] } = useCategories();
