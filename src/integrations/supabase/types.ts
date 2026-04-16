@@ -908,13 +908,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "projects_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "projects_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
