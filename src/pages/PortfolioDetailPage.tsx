@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Building2, Banknote, FileText, Play, ShieldAlert }
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 const isVideoUrl = (url: string) => /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url);
 const isImageUrl = (url: string) => /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i.test(url) || url.includes("unsplash");
@@ -151,11 +152,11 @@ const PortfolioDetailPage = () => {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{item.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{localize(item, "title")}</h1>
             {item.category && <Badge variant="secondary">{item.category}</Badge>}
           </div>
           {item.description && (
-            <p className="text-muted-foreground text-base">{item.description}</p>
+            <p className="text-muted-foreground text-base">{localize(item, "description")}</p>
           )}
         </div>
 
@@ -163,7 +164,7 @@ const PortfolioDetailPage = () => {
         {finalOutputs.length > 0 && (
           <div className="mb-8 space-y-4">
             {finalOutputs.map((url, idx) => (
-              <FinalOutputItem key={idx} url={url} title={item.title} />
+              <FinalOutputItem key={idx} url={url} title={localize(item, "title")} />
             ))}
 
             {/* Watermark disclaimer */}

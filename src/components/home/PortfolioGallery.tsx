@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { localize } from "@/utils/localize";
 
 const PortfolioGallery = () => {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ const PortfolioGallery = () => {
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No Image</div>
                 )}
                 <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/50 transition-colors flex flex-col items-center justify-center">
-                  <span className="text-background text-[14px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">{item.title}</span>
+                  <span className="text-background text-[14px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">{localize(item, "title")}</span>
                   {item.category && (
                     <span className="text-background/70 text-[12px] opacity-0 group-hover:opacity-100 transition-opacity mt-1">{item.category}</span>
                   )}
