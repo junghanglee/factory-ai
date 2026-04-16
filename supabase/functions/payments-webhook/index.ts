@@ -59,11 +59,41 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     environment: env,
   });
 
-  // Update project payment_status to 입금완료
+  // Update project payment_status to 입금완료 and status to 작업중
   await supabase
     .from("projects")
-    .update({ payment_status: "입금완료" })
+    .update({ payment_status: "입금완료", status: "작업중" })
     .eq("id", projectId);
+
+  // Create settlement record if project has a seller
+  const { data: project } = await supabase
+    .from("projects")
+    .select("seller_id, price")
+    .eq("id", projectId)
+    .single();
+
+  if (project?.seller_id) {
+    const { data: seller } = await supabase
+      .from("seller_profiles")
+      .select("commission_rate")
+      .eq("id", project.seller_id)
+      .maybeSingle();
+
+    const rate = seller?.commission_rate || 10;
+    const commissionAmount = Math.round(project.price * rate / 100);
+
+    await supabase.from("settlements").insert({
+      seller_id: project.seller_id,
+      project_id: projectId,
+      order_amount: project.price,
+      commission_rate: rate,
+      commission_amount: commissionAmount,
+      seller_amount: project.price - commissionAmount,
+      status: "대기",
+    });
+
+    console.log("Settlement created for seller:", project.seller_id);
+  }
 
   // Find the chat room for this project and send a system message
   const { data: room } = await supabase
