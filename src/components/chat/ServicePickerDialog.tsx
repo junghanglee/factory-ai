@@ -12,7 +12,7 @@ interface ServicePickerDialogProps {
   onSelectService: (service: { id: string; title: string; thumbnail: string | null; seller: string | null; price: number; rating: number; review_count: number; delivery_days: number }) => void;
 }
 
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function ServicePickerDialog({ open, onOpenChange, onSelectService }: ServicePickerDialogProps) {
   const { data: categories = [] } = useCategories();
@@ -112,7 +112,7 @@ export default function ServicePickerDialog({ open, onOpenChange, onSelectServic
                           {service.delivery_days}일
                         </span>
                       </div>
-                      <span className="text-sm font-bold text-primary">{formatPrice(service.price)}원</span>
+                      <span className="text-sm font-bold text-primary">{formatPrice(service.price, (service as any).price_usd)}</span>
                     </div>
                   </div>
                 </button>

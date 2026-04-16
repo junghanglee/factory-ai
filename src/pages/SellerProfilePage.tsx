@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useSupabaseData";
 import { useTranslation } from "react-i18next";
 
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 const SellerProfilePage = () => {
   const { id } = useParams();
@@ -121,7 +121,7 @@ const SellerProfilePage = () => {
                         <span className="text-sm font-medium">{service.rating}</span>
                         <span className="text-xs text-muted-foreground">({service.review_count})</span>
                       </div>
-                      <span className="text-lg font-bold">{formatPrice(service.price)}원</span>
+                      <span className="text-lg font-bold">{formatPrice(service.price, (service as any).price_usd)}</span>
                     </CardContent>
                   </Card>
                 </Link>
