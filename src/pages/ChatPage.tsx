@@ -323,6 +323,7 @@ const ChatPage = () => {
                                 onConfirmPurchase={confirmPurchase}
                                 currentUserId={user?.id}
                                 serviceId={selectedRoom?.service_id || undefined}
+                                projectId={project?.id}
                               />
                             )
                           )}
