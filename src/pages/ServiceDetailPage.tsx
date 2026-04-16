@@ -91,6 +91,52 @@ const ServiceDetailPage = () => {
     navigate("/chat", { state: { inquiry: { serviceId: service.id, serviceTitle: service.title } } });
   };
 
+  const handleDirectPayment = async (pkg: typeof packages[0]) => {
+    if (!user) { navigate("/login"); return; }
+    try {
+      // Create a project first
+      const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const { data: member } = await supabase
+        .from("members")
+        .select("id")
+        .eq("email", user.email!)
+        .maybeSingle();
+
+      const { data: project, error } = await supabase.from("projects").insert({
+        order_number: orderNumber,
+        service_title: service.title,
+        package_name: pkg.name,
+        customer: profile?.name || user.email || "고객",
+        customer_id: member?.id || undefined,
+        seller_id: service.seller_id || undefined,
+        price: pkg.price,
+        status: "주문접수",
+        payment_status: "입금대기",
+        due_date: new Date(Date.now() + pkg.delivery_days * 86400000).toISOString().split("T")[0],
+      }).select().single();
+
+      if (error || !project) throw error;
+
+      const title = `${service.title} - ${pkg.name}`;
+      const params = new URLSearchParams({
+        project_id: project.id,
+        amount: pkg.price.toString(),
+        currency: "krw",
+        title,
+      });
+      navigate(`/checkout?${params.toString()}`);
+    } catch (e) {
+      console.error("Direct payment error:", e);
+      toast.error("결제 준비 중 오류가 발생했습니다.");
+    }
+  };
+
   const renderPackageSidebar = () => {
     if (packages.length === 0) {
       return (
