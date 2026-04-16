@@ -101,18 +101,12 @@ const ServiceDetailPage = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const { data: member } = await supabase
-        .from("members")
-        .select("id")
-        .eq("email", user.email!)
-        .maybeSingle();
-
       const { data: project, error } = await supabase.from("projects").insert({
         order_number: orderNumber,
         service_title: service.title,
         package_name: pkg.name,
         customer: profile?.name || user.email || "고객",
-        customer_id: member?.id || null,
+        customer_id: user.id,
         seller_id: service.seller_id || null,
         price: pkg.price,
         status: "주문접수",
