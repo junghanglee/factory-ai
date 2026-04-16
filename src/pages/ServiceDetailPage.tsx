@@ -109,7 +109,7 @@ const ServiceDetailPage = () => {
         customer_id: user.id,
         seller_id: service.seller_id || null,
         price: pkg.price,
-        status: "주문접수",
+        status: "대기",
         payment_status: "입금대기",
         due_date: new Date(Date.now() + pkg.delivery_days * 86400000).toISOString().split("T")[0],
       }).select().single();
