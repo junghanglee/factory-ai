@@ -678,6 +678,7 @@ export type Database = {
           cost: string | null
           created_at: string
           description: string | null
+          description_en: string | null
           detail_images: string[] | null
           duration: string | null
           files: string[] | null
@@ -687,6 +688,7 @@ export type Database = {
           show_extra_info: boolean
           sort_order: number
           title: string
+          title_en: string | null
           updated_at: string
         }
         Insert: {
@@ -696,6 +698,7 @@ export type Database = {
           cost?: string | null
           created_at?: string
           description?: string | null
+          description_en?: string | null
           detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
@@ -705,6 +708,7 @@ export type Database = {
           show_extra_info?: boolean
           sort_order?: number
           title: string
+          title_en?: string | null
           updated_at?: string
         }
         Update: {
@@ -714,6 +718,7 @@ export type Database = {
           cost?: string | null
           created_at?: string
           description?: string | null
+          description_en?: string | null
           detail_images?: string[] | null
           duration?: string | null
           files?: string[] | null
@@ -723,6 +728,7 @@ export type Database = {
           show_extra_info?: boolean
           sort_order?: number
           title?: string
+          title_en?: string | null
           updated_at?: string
         }
         Relationships: []
