@@ -107,11 +107,12 @@ interface MessageBubbleProps {
   onConfirmPurchase?: (messageId: string) => Promise<void>;
   currentUserId?: string;
   serviceId?: string;
+  projectId?: string;
 }
 
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
 
-export default function MessageBubble({ msg, isMine, onReply, roomId, isAdmin, paymentStatus, onConfirmPayment, onConfirmPurchase, currentUserId, serviceId }: MessageBubbleProps) {
+export default function MessageBubble({ msg, isMine, onReply, roomId, isAdmin, paymentStatus, onConfirmPayment, onConfirmPurchase, currentUserId, serviceId, projectId }: MessageBubbleProps) {
   const [showReview, setShowReview] = useState(false);
   const [showReviewWrite, setShowReviewWrite] = useState(false);
   const avatarUrl = useAvatar(msg.sender_id);
@@ -133,6 +134,7 @@ export default function MessageBubble({ msg, isMine, onReply, roomId, isAdmin, p
         paymentStatus={paymentStatus}
         isAdmin={isAdmin}
         onConfirmPayment={onConfirmPayment}
+        projectId={projectId}
       />
     );
   }
