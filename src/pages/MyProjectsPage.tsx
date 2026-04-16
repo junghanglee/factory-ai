@@ -21,6 +21,7 @@ interface ProjectRow {
   package_name: string | null;
   status: string;
   confirm_status: string;
+  payment_status: string;
   price: number;
   order_date: string;
   due_date: string;
