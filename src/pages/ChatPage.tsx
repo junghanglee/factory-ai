@@ -444,7 +444,7 @@ const ChatPage = () => {
   );
 };
 
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+const { formatPrice: formatPriceUtil } = await import("@/utils/formatPrice");
 
 function InlineServicePicker({ onSelectService }: { onSelectService: (service: any) => void }) {
   const { data: categories = [] } = useCategories();
