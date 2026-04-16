@@ -5,13 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { localize } from "@/utils/localize";
-
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 interface ServicePackage {
   id: string;
   service_id: string;
   price: number;
+  price_usd: number | null;
   price_text: string | null;
   sort_order: number;
 }
@@ -21,6 +21,7 @@ interface Service {
   title: string;
   thumbnail: string | null;
   price: number;
+  price_usd: number | null;
   rating: number;
   review_count: number;
   seller: string | null;
@@ -89,8 +90,8 @@ const ServiceCard = ({ service }: { service: Service }) => {
       {service.first_package?.price_text
         ? service.first_package.price_text
         : service.first_package
-          ? `${formatPrice(service.first_package.price)}원~`
-          : `${formatPrice(service.price)}원~`}
+          ? `${formatPrice(service.first_package.price, service.first_package.price_usd)}~`
+          : `${formatPrice(service.price, service.price_usd)}~`}
     </p>
     <div className="flex items-center gap-1.5 mt-2">
       <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground">
@@ -235,9 +236,9 @@ const PopularServices = () => {
   const { data: allServices = [] } = useQuery({
     queryKey: ["services_for_display"],
     queryFn: async () => {
-      const { data: svcs, error } = await supabase.from("services").select("id, title, title_en, thumbnail, price, rating, review_count, seller, seller_id");
+      const { data: svcs, error } = await supabase.from("services").select("id, title, title_en, thumbnail, price, price_usd, rating, review_count, seller, seller_id");
       if (error) throw error;
-      const { data: pkgs, error: pErr } = await supabase.from("service_packages").select("id, service_id, price, price_text, sort_order").order("sort_order");
+      const { data: pkgs, error: pErr } = await supabase.from("service_packages").select("id, service_id, price, price_usd, price_text, sort_order").order("sort_order");
       if (pErr) throw pErr;
       return (svcs as Service[]).map(s => ({
         ...s,
