@@ -12,6 +12,7 @@ interface QuoteDialogProps {
     serviceTitle: string;
     packageName: string;
     price: number;
+    priceUsd: number | null;
     deliveryDays: number;
     memo: string;
   }) => Promise<void>;
@@ -31,6 +32,7 @@ export default function QuoteDialog({
   const [serviceTitle, setServiceTitle] = useState(defaultServiceTitle);
   const [packageName, setPackageName] = useState("");
   const [price, setPrice] = useState(defaultPrice.toString());
+  const [priceUsd, setPriceUsd] = useState("");
   const [deliveryDays, setDeliveryDays] = useState(defaultDeliveryDays.toString());
   const [memo, setMemo] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -44,6 +46,7 @@ export default function QuoteDialog({
         serviceTitle: serviceTitle.trim(),
         packageName: packageName.trim(),
         price: priceNum,
+        priceUsd: priceUsd.trim() ? parseFloat(priceUsd) : null,
         deliveryDays: parseInt(deliveryDays) || 7,
         memo: memo.trim(),
       });
@@ -91,15 +94,26 @@ export default function QuoteDialog({
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">납기 (일)</label>
+              <label className="text-sm font-medium mb-1.5 block">금액 (USD)</label>
               <Input
                 type="number"
-                value={deliveryDays}
-                onChange={(e) => setDeliveryDays(e.target.value)}
-                placeholder="7"
-                min="1"
+                value={priceUsd}
+                onChange={(e) => setPriceUsd(e.target.value)}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
               />
             </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">납기 (일)</label>
+            <Input
+              type="number"
+              value={deliveryDays}
+              onChange={(e) => setDeliveryDays(e.target.value)}
+              placeholder="7"
+              min="1"
+            />
           </div>
           <div>
             <label className="text-sm font-medium mb-1.5 block">메모</label>

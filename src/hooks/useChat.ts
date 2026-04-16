@@ -426,7 +426,7 @@ export function useChat() {
 
   // Admin/Seller: Send quote
   const sendQuote = useCallback(async (params: {
-    serviceTitle: string; packageName: string; price: number; deliveryDays: number; memo: string;
+    serviceTitle: string; packageName: string; price: number; priceUsd?: number | null; deliveryDays: number; memo: string;
   }) => {
     if (!user || !selectedRoomId) return null;
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
@@ -438,7 +438,7 @@ export function useChat() {
       const { data: svc } = await supabase.from("services").select("seller_id").eq("id", room.service_id).maybeSingle();
       if (svc?.seller_id) sellerId = svc.seller_id;
     }
-    const quoteDetails = { serviceTitle: params.serviceTitle, packageName: params.packageName || undefined, price: params.price, deliveryDays: params.deliveryDays, memo: params.memo || undefined, orderNumber };
+    const quoteDetails = { serviceTitle: params.serviceTitle, packageName: params.packageName || undefined, price: params.price, priceUsd: params.priceUsd ?? undefined, deliveryDays: params.deliveryDays, memo: params.memo || undefined, orderNumber };
     const { data: proj, error } = await supabase.from("projects").insert({
       order_number: orderNumber, service_title: params.serviceTitle, package_name: params.packageName || null,
       customer: room?.title || "고객", customer_id: room?.customer_id || null, price: params.price,
@@ -449,7 +449,7 @@ export function useChat() {
     await supabase.from("chat_rooms").update({ project_id: proj.id }).eq("id", selectedRoomId);
     await supabase.from("chat_messages").insert({
       room_id: selectedRoomId, sender_id: user.id,
-      message: `📋 견적서가 발송되었습니다.\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원`,
+      message: `📋 견적서가 발송되었습니다.\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원${params.priceUsd ? ` ($${params.priceUsd})` : ''}`,
       message_type: "quote", file_name: JSON.stringify(quoteDetails),
     });
     await supabase.from("chat_rooms").update({
