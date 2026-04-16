@@ -1,0 +1,1 @@
+ALTER TABLE public.projects DROP CONSTRAINT projects_customer_id_fkey;
