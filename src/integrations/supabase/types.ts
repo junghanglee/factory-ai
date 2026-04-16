@@ -1029,6 +1029,7 @@ export type Database = {
           name_en: string | null
           price: number
           price_text: string | null
+          price_usd: number | null
           revisions: number
           revisions_text: string | null
           service_id: string
@@ -1044,6 +1045,7 @@ export type Database = {
           name_en?: string | null
           price?: number
           price_text?: string | null
+          price_usd?: number | null
           revisions?: number
           revisions_text?: string | null
           service_id: string
@@ -1059,6 +1061,7 @@ export type Database = {
           name_en?: string | null
           price?: number
           price_text?: string | null
+          price_usd?: number | null
           revisions?: number
           revisions_text?: string | null
           service_id?: string
@@ -1135,8 +1138,10 @@ export type Database = {
           detailed_description_en: string | null
           id: string
           original_price: number
+          original_price_usd: number | null
           portfolio_images: string[] | null
           price: number
+          price_usd: number | null
           rating: number
           review_count: number
           seller: string | null
@@ -1160,8 +1165,10 @@ export type Database = {
           detailed_description_en?: string | null
           id?: string
           original_price?: number
+          original_price_usd?: number | null
           portfolio_images?: string[] | null
           price?: number
+          price_usd?: number | null
           rating?: number
           review_count?: number
           seller?: string | null
@@ -1185,8 +1192,10 @@ export type Database = {
           detailed_description_en?: string | null
           id?: string
           original_price?: number
+          original_price_usd?: number | null
           portfolio_images?: string[] | null
           price?: number
+          price_usd?: number | null
           rating?: number
           review_count?: number
           seller?: string | null
