@@ -138,6 +138,22 @@ const MyProjectsPage = () => {
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
                             {sc.label}
                           </span>
+                          {/* Payment status badge */}
+                          {project.payment_status === "입금완료" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex items-center gap-1">
+                              <CreditCard className="h-3 w-3" /> 결제완료
+                            </span>
+                          )}
+                          {project.payment_status === "구매확정" && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> 구매확정
+                            </span>
+                          )}
+                          {(project.payment_status === "입금대기" || project.payment_status === "견적발송") && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> 결제대기
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {t("myProjects.orderNumber")}: {project.order_number} · {t("myProjects.amount")}: {project.price.toLocaleString()}{t("common.won")} · {t("myProjects.dueDate")}: {new Date(project.due_date).toLocaleDateString("ko-KR")}
