@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { services } from "@/data/services";
 import { useTranslation } from "react-i18next";
-
-const formatPrice = (price: number) => price.toLocaleString("ko-KR");
+import { formatPrice } from "@/utils/formatPrice";
 
 const OrderPage = () => {
   const service = services[0];

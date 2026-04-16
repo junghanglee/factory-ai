@@ -554,7 +554,7 @@ function InlineServicePicker({ onSelectService }: { onSelectService: (service: a
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-primary">{formatPrice(service.price)}원</span>
+                      <span className="text-sm font-bold text-primary">{formatPrice(service.price, (service as any).price_usd)}</span>
                       <ArrowRight className="h-3.5 w-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
