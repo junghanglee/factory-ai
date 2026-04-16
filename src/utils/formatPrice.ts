@@ -1,6 +1,31 @@
 import i18n from "i18next";
 
 /**
+ * Returns true when the UI is in English mode.
+ */
+export function isEnglishMode(): boolean {
+  return i18n.language === "en";
+}
+
+/**
+ * Get currency code based on current language.
+ */
+export function getCurrency(): "usd" | "krw" {
+  return isEnglishMode() ? "usd" : "krw";
+}
+
+/**
+ * Get the payment amount (in smallest unit) and currency for a package.
+ * USD prices are in cents, KRW prices are whole numbers.
+ */
+export function getPaymentAmount(pkg: { price: number; price_usd?: number | null }): { amount: number; currency: "usd" | "krw" } {
+  if (isEnglishMode() && pkg.price_usd != null) {
+    return { amount: Math.round(pkg.price_usd * 100), currency: "usd" };
+  }
+  return { amount: pkg.price, currency: "krw" };
+}
+
+/**
  * Format price based on current language.
  * English → USD ($), Korean → KRW (원)
  */

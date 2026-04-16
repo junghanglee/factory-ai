@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import SellerBadge from "@/components/SellerBadge";
 import { localize } from "@/utils/localize";
-import { formatPrice, displayServicePrice, formatOriginalPrice } from "@/utils/formatPrice";
+import { formatPrice, displayServicePrice, formatOriginalPrice, getPaymentAmount } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
@@ -94,7 +94,6 @@ const ServiceDetailPage = () => {
   const handleDirectPayment = async (pkg: typeof packages[0]) => {
     if (!user) { navigate("/login"); return; }
     try {
-      // Create a project first
       const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
       const { data: profile } = await supabase
         .from("profiles")
@@ -123,11 +122,12 @@ const ServiceDetailPage = () => {
 
       if (error || !project) throw error;
 
+      const { amount, currency } = getPaymentAmount(pkg);
       const title = `${service.title} - ${pkg.name}`;
       const params = new URLSearchParams({
         project_id: project.id,
-        amount: pkg.price.toString(),
-        currency: "krw",
+        amount: amount.toString(),
+        currency,
         title,
       });
       navigate(`/checkout?${params.toString()}`);

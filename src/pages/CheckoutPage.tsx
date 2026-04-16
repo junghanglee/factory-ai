@@ -45,16 +45,20 @@ export default function CheckoutPage() {
     );
   }
 
+  const displayAmount = currency === "usd"
+    ? `$${(amount / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+    : `${amount.toLocaleString("ko-KR")}원`;
+
   return (
     <MainLayout>
       <PaymentTestModeBanner />
       <div className="max-w-3xl mx-auto px-4 py-8">
         <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> 뒤로가기
+          <ArrowLeft className="h-4 w-4 mr-2" /> {currency === "usd" ? "Back" : "뒤로가기"}
         </Button>
-        <h1 className="text-2xl font-bold mb-2">결제하기</h1>
+        <h1 className="text-2xl font-bold mb-2">{currency === "usd" ? "Checkout" : "결제하기"}</h1>
         <p className="text-muted-foreground mb-6">
-          {serviceTitle} — {amount.toLocaleString()}{currency === "krw" ? "원" : ` ${currency.toUpperCase()}`}
+          {serviceTitle} — {displayAmount}
         </p>
         <div className="border rounded-xl overflow-hidden">
           <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>

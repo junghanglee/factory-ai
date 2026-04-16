@@ -46,7 +46,7 @@ serve(async (req) => {
         price_data: {
           currency: currency || "krw",
           product_data: { name: service_title },
-          unit_amount: amount, // KRW uses whole numbers, no decimals
+          unit_amount: amount, // KRW: whole numbers, USD: cents (already converted by client)
         },
         quantity: 1,
       }],
