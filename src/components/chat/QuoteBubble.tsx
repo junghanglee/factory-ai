@@ -15,6 +15,7 @@ interface QuoteDetails {
   deliveryDays: number;
   memo?: string;
   orderNumber?: string;
+  packageId?: string;
 }
 
 interface QuoteBubbleProps {
