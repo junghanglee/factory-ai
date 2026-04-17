@@ -199,14 +199,16 @@ const AdminDisplayGroups = () => {
     onSuccess: () => invalidateAll(),
   });
 
+  const [filterNameEn, setFilterNameEn] = useState("");
+
   const saveFilter = useMutation({
     mutationFn: async () => {
       if (editingFilter) {
-        const { error } = await supabase.from("display_group_filters").update({ name: filterName }).eq("id", editingFilter.id);
+        const { error } = await supabase.from("display_group_filters").update({ name: filterName, name_en: filterNameEn || null }).eq("id", editingFilter.id);
         if (error) throw error;
       } else {
         const groupFilters = filters.filter(f => f.group_id === filterGroupId);
-        const { error } = await supabase.from("display_group_filters").insert({ group_id: filterGroupId!, name: filterName, sort_order: groupFilters.length });
+        const { error } = await supabase.from("display_group_filters").insert({ group_id: filterGroupId!, name: filterName, name_en: filterNameEn || null, sort_order: groupFilters.length });
         if (error) throw error;
       }
     },
