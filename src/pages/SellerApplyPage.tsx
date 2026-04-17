@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { Upload, X, FileText, Image, CheckCircle2, Store } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useFeatureFlag } from "@/hooks/useSiteSettings";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -18,6 +19,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const SellerApplyPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const certifiedSellersEnabled = useFeatureFlag("certified_sellers_enabled");
   const [businessName, setBusinessName] = useState("");
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,6 +37,20 @@ const SellerApplyPage = () => {
       </MainLayout>
     );
   }
+
+  if (!certifiedSellersEnabled) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+          <Store className="h-16 w-16 text-muted-foreground" />
+          <h1 className="text-2xl font-bold">현재 판매자 신청을 받고 있지 않습니다</h1>
+          <p className="text-muted-foreground">잠시 후 다시 시도해주세요.</p>
+          <Button onClick={() => navigate("/")}>홈으로</Button>
+        </div>
+      </MainLayout>
+    );
+  }
+
 
   if (!user) {
     return (

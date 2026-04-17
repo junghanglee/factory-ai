@@ -4,7 +4,7 @@ import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor, Store, Wallet,
-  LogOut, Settings, User,
+  LogOut, Settings, User, SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,6 +82,13 @@ const navGroupsDef: NavGroup[] = [
     icon: Inbox,
     items: [
       { to: "/admin/inquiries", icon: Inbox, labelKey: "admin.inquiryList" },
+    ],
+  },
+  {
+    labelKey: "기능 설정",
+    icon: SlidersHorizontal,
+    items: [
+      { to: "/admin/feature-settings", icon: SlidersHorizontal, labelKey: "기능 토글" },
     ],
   },
 ];

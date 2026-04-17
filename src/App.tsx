@@ -49,6 +49,7 @@ const AdminChatPopup = lazy(() => import("./pages/admin/AdminChatPopup"));
 const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage"));
 const AdminSellers = lazy(() => import("./pages/admin/AdminSellers"));
 const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
+const AdminFeatureSettings = lazy(() => import("./pages/admin/AdminFeatureSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,6 +125,7 @@ const App = () => (
             <Route path="/admin/display-groups" element={<ProtectedRoute requireAdmin><AdminDisplayGroups /></ProtectedRoute>} />
             <Route path="/admin/sellers" element={<ProtectedRoute requireAdmin><AdminSellers /></ProtectedRoute>} />
             <Route path="/admin/settlements" element={<ProtectedRoute requireAdmin><AdminSettlements /></ProtectedRoute>} />
+            <Route path="/admin/feature-settings" element={<ProtectedRoute requireAdmin><AdminFeatureSettings /></ProtectedRoute>} />
             <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
