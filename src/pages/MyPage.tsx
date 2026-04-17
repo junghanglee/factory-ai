@@ -333,6 +333,7 @@ const MyPage = () => {
           </CardContent>
         </Card>
 
+        <LazyMount rootMargin="200px" minHeight={500}>
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           {/* Hidden TabsList - tabs controlled by sub-nav above */}
           <TabsList className="hidden">
