@@ -15,6 +15,8 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+          <a href="https://company.linktofactory.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t("footer.company")}</a>
+          <span className="text-border">|</span>
           <a href="#" className="hover:text-foreground transition-colors">{t("footer.terms")}</a>
           <span className="text-border">|</span>
           <a href="#" className="hover:text-foreground transition-colors">{t("footer.privacy")}</a>
