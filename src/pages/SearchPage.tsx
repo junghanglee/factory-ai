@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search, Star, Clock } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
-import LazyMount from "@/components/LazyMount";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { localize } from "@/utils/localize";
