@@ -466,7 +466,6 @@ const AdminDisplayGroups = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-            <div>
               <Label>필터명 (한국어)</Label>
               <Input value={filterName} onChange={e => setFilterName(e.target.value)} placeholder="예: AI 이미지" />
             </div>
