@@ -35,6 +35,7 @@ import { useTranslation } from "react-i18next";
 interface DisplayGroup {
   id: string;
   title: string;
+  title_en?: string | null;
   sort_order: number;
   active: boolean;
   font_size: number;
@@ -46,6 +47,7 @@ interface DisplayFilter {
   id: string;
   group_id: string;
   name: string;
+  name_en?: string | null;
   sort_order: number;
 }
 
@@ -92,6 +94,7 @@ const AdminDisplayGroups = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editGroup, setEditGroup] = useState<DisplayGroup | null>(null);
   const [formTitle, setFormTitle] = useState("");
+  const [formTitleEn, setFormTitleEn] = useState("");
   const [formActive, setFormActive] = useState(true);
   const [formFontSize, setFormFontSize] = useState(26);
   const [formFontColor, setFormFontColor] = useState("");
