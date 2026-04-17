@@ -32,6 +32,7 @@ interface Service {
 interface DisplayGroup {
   id: string;
   title: string;
+  title_en?: string | null;
   sort_order: number;
   active: boolean;
   font_size?: number;
@@ -43,6 +44,7 @@ interface DisplayFilter {
   id: string;
   group_id: string;
   name: string;
+  name_en?: string | null;
   sort_order: number;
 }
 
@@ -156,7 +158,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
       <div className="max-w-[1200px] mx-auto px-5">
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           <div className="md:w-[200px] shrink-0">
-            {renderStyledTitle(group.title, (group as any).font_size, (group as any).font_color, (group as any).highlight_color)}
+            {renderStyledTitle(localize(group, "title"), (group as any).font_size, (group as any).font_color, (group as any).highlight_color)}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -183,7 +185,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
                         : "border-border text-muted-foreground hover:border-foreground/30"
                     }`}
                   >
-                    <span>{f.name}</span>
+                    <span>{localize(f, "name")}</span>
                     <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </button>
                 ))}
