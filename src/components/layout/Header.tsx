@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUnreadChat } from "@/hooks/useUnreadChat";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { localize } from "@/utils/localize";
 
 const Header = () => {
   const { t } = useTranslation();
@@ -135,7 +136,7 @@ const Header = () => {
       {/* Category nav - desktop */}
       <div className="hidden md:block border-t border-b border-border bg-background">
         <div className="max-w-[1200px] mx-auto px-5">
-          <nav className="flex items-center gap-0 h-[46px]">
+          <nav className="flex items-center gap-0 min-h-[46px] flex-wrap">
             <div className="relative">
               <button
                 className="flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium text-foreground hover:text-primary transition-colors"
@@ -152,16 +153,19 @@ const Header = () => {
                   onMouseEnter={() => setCategoryMenuOpen(true)}
                   onMouseLeave={() => setCategoryMenuOpen(false)}
                 >
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      to={`/category/${cat.id}`}
-                      className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
-                    >
-                      <img src={getCategoryIcon(cat.slug)} alt={cat.name} className="h-5 w-5 object-contain" />
-                      <span>{cat.name}</span>
-                    </Link>
-                  ))}
+                  {categories.map((cat) => {
+                    const catName = localize(cat, "name");
+                    return (
+                      <Link
+                        key={cat.id}
+                        to={`/category/${cat.id}`}
+                        className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
+                      >
+                        <img src={getCategoryIcon(cat.slug)} alt={catName} className="h-5 w-5 object-contain" />
+                        <span>{catName}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -185,7 +189,7 @@ const Header = () => {
                       {t("header.popular")}
                     </span>
                   )}
-                  {cat.name}
+                  {localize(cat, "name")}
                 </Link>
               );
             })}
@@ -208,17 +212,20 @@ const Header = () => {
               >
                 {t("header.aboutUs")}
               </Link>
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/category/${cat.id}`}
-                  className="flex items-center gap-3 px-3 py-3 text-[14px] rounded-lg hover:bg-secondary"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <img src={getCategoryIcon(cat.slug)} alt={cat.name} className="h-5 w-5 object-contain" />
-                  {cat.name}
-                </Link>
-              ))}
+              {categories.map((cat) => {
+                const catName = localize(cat, "name");
+                return (
+                  <Link
+                    key={cat.id}
+                    to={`/category/${cat.id}`}
+                    className="flex items-center gap-3 px-3 py-3 text-[14px] rounded-lg hover:bg-secondary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <img src={getCategoryIcon(cat.slug)} alt={catName} className="h-5 w-5 object-contain" />
+                    {catName}
+                  </Link>
+                );
+              })}
             </div>
             <div className="flex gap-2 mt-5 pt-4 border-t">
               {user ? (
