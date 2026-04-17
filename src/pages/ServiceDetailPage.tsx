@@ -8,6 +8,7 @@ import SellerBadge from "@/components/SellerBadge";
 import { localize } from "@/utils/localize";
 import { formatPrice, displayServicePrice, formatOriginalPrice, getPaymentAmount } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
+import LazyMount from "@/components/LazyMount";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
 import { Button } from "@/components/ui/button";
@@ -348,16 +349,18 @@ const ServiceDetailPage = () => {
             </div>
 
             {service.portfolio_images && service.portfolio_images.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.portfolio")}</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {service.portfolio_images.map((img, idx) => (
-                    <div key={idx} className="aspect-video rounded-lg overflow-hidden border">
-                      <img src={img} alt={`포트폴리오 ${idx + 1}`} className="w-full h-full object-cover" />
-                    </div>
-                  ))}
+              <LazyMount rootMargin="300px" minHeight={300}>
+                <div>
+                  <h2 className="text-lg font-semibold mb-3">{t("serviceDetail.portfolio")}</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    {service.portfolio_images.map((img, idx) => (
+                      <div key={idx} className="aspect-video rounded-lg overflow-hidden border">
+                        <img src={img} alt={`포트폴리오 ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </LazyMount>
             )}
 
             {service.tags && service.tags.length > 0 && (
@@ -405,36 +408,38 @@ const ServiceDetailPage = () => {
             )}
 
             {/* Reviews section */}
-            <div>
-              <h2 className="text-lg font-semibold mb-4">{t("serviceDetail.reviews")} ({reviews.length})</h2>
-              {reviews.length === 0 ? (
-                 <p className="text-sm text-muted-foreground text-center py-8 border rounded-lg border-dashed">
-                  {t("serviceDetail.noReviews")}
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                          <User className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="font-medium text-sm">{review.nickname}</span>
-                          <div className="flex">
-                            {Array.from({ length: review.rating }).map((_, i) => (
-                              <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                            ))}
-                          </div>
+            <LazyMount rootMargin="300px" minHeight={300}>
+              <div>
+                <h2 className="text-lg font-semibold mb-4">{t("serviceDetail.reviews")} ({reviews.length})</h2>
+                {reviews.length === 0 ? (
+                   <p className="text-sm text-muted-foreground text-center py-8 border rounded-lg border-dashed">
+                    {t("serviceDetail.noReviews")}
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                            <User className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="font-medium text-sm">{review.nickname}</span>
+                            <div className="flex">
+                              {Array.from({ length: review.rating }).map((_, i) => (
+                                <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                              ))}
+                            </div>
+                        </div>
+                        {review.review_text && (
+                          <p className="text-sm text-muted-foreground">{review.review_text}</p>
+                        )}
+                        {review.image_url && (
+                          <img src={review.image_url} alt="" className="mt-2 h-24 rounded-lg object-cover" loading="lazy" />
+                        )}
                       </div>
-                      {review.review_text && (
-                        <p className="text-sm text-muted-foreground">{review.review_text}</p>
-                      )}
-                      {review.image_url && (
-                        <img src={review.image_url} alt="" className="mt-2 h-24 rounded-lg object-cover" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </LazyMount>
           </div>
 
           {/* Right - Pricing sidebar */}

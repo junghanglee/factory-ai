@@ -3,6 +3,7 @@ import { Star, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import SellerBadge from "@/components/SellerBadge";
 import { useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import LazyMount from "@/components/LazyMount";
 import { useCategories, useServices } from "@/hooks/useSupabaseData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -120,60 +121,62 @@ const CategoryPage = () => {
 
         {/* Other services from different categories */}
         {!isAll && otherServices.length > 0 && (
-          <div className="mt-16">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-primary">{t("category.otherServices")}</h2>
-                <p className="text-sm text-muted-foreground mt-1">{t("category.otherServicesDesc")}</p>
-              </div>
-              {otherServices.length > 4 && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("left")}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("right")}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+          <LazyMount rootMargin="300px" minHeight={400}>
+            <div className="mt-16">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-primary">{t("category.otherServices")}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{t("category.otherServicesDesc")}</p>
                 </div>
-              )}
-            </div>
-            <div
-              ref={scrollRef}
-              className="flex gap-5 overflow-x-auto scrollbar-hide pb-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {otherServices.map((service) => {
-                const serviceCat = categories.find((c) => c.id === service.category_id);
-                return (
-                  <Link key={service.id} to={`/service/${service.id}`} className="group shrink-0 w-[calc(25%-15px)] min-w-[220px]">
-                    <Card className="overflow-hidden hover:shadow-lg transition-all border-transparent hover:border-primary/20">
-                      <div className="aspect-[4/3] overflow-hidden relative">
-                        <img src={service.thumbnail || "/placeholder.svg"} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                        {serviceCat && (
-                          <span className="absolute top-2 left-2 px-2 py-0.5 text-[11px] font-medium rounded-full bg-background/80 backdrop-blur-sm text-foreground border">
-                            {localize(serviceCat, "name")}
-                          </span>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-xs text-muted-foreground">{service.seller}</p>
-                          <SellerBadge sellerId={(service as any).seller_id} sellerName={service.seller} />
+                {otherServices.length > 4 && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("left")}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("right")}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div
+                ref={scrollRef}
+                className="flex gap-5 overflow-x-auto scrollbar-hide pb-4"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {otherServices.map((service) => {
+                  const serviceCat = categories.find((c) => c.id === service.category_id);
+                  return (
+                    <Link key={service.id} to={`/service/${service.id}`} className="group shrink-0 w-[calc(25%-15px)] min-w-[220px]">
+                      <Card className="overflow-hidden hover:shadow-lg transition-all border-transparent hover:border-primary/20">
+                        <div className="aspect-[4/3] overflow-hidden relative">
+                          <img src={service.thumbnail || "/placeholder.svg"} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                          {serviceCat && (
+                            <span className="absolute top-2 left-2 px-2 py-0.5 text-[11px] font-medium rounded-full bg-background/80 backdrop-blur-sm text-foreground border">
+                              {localize(serviceCat, "name")}
+                            </span>
+                          )}
                         </div>
-                        <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
-                        <div className="flex items-center gap-1 mb-2">
-                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{service.rating}</span>
-                          <span className="text-xs text-muted-foreground">({service.review_count})</span>
-                        </div>
-                        <span className="text-lg font-bold">{formatPrice(service.price, (service as any).price_usd)}</span>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs text-muted-foreground">{service.seller}</p>
+                            <SellerBadge sellerId={(service as any).seller_id} sellerName={service.seller} />
+                          </div>
+                          <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
+                          <div className="flex items-center gap-1 mb-2">
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">{service.rating}</span>
+                            <span className="text-xs text-muted-foreground">({service.review_count})</span>
+                          </div>
+                          <span className="text-lg font-bold">{formatPrice(service.price, (service as any).price_usd)}</span>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </LazyMount>
         )}
       </div>
     </MainLayout>
