@@ -249,10 +249,10 @@ const AdminDisplayGroups = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const openNewGroup = () => { setEditGroup(null); setFormTitle(""); setFormActive(true); setFormFontSize(26); setFormFontColor(""); setFormHighlightColor(""); setEditOpen(true); };
-  const openEditGroup = (g: DisplayGroup) => { setEditGroup(g); setFormTitle(g.title); setFormActive(g.active); setFormFontSize(g.font_size || 26); setFormFontColor(g.font_color || ""); setFormHighlightColor(g.highlight_color || ""); setEditOpen(true); };
-  const openNewFilter = (groupId: string) => { setFilterGroupId(groupId); setEditingFilter(null); setFilterName(""); setFilterDialogOpen(true); };
-  const openEditFilter = (f: DisplayFilter) => { setFilterGroupId(f.group_id); setEditingFilter(f); setFilterName(f.name); setFilterDialogOpen(true); };
+  const openNewGroup = () => { setEditGroup(null); setFormTitle(""); setFormTitleEn(""); setFormActive(true); setFormFontSize(26); setFormFontColor(""); setFormHighlightColor(""); setEditOpen(true); };
+  const openEditGroup = (g: DisplayGroup) => { setEditGroup(g); setFormTitle(g.title); setFormTitleEn((g as any).title_en || ""); setFormActive(g.active); setFormFontSize(g.font_size || 26); setFormFontColor(g.font_color || ""); setFormHighlightColor(g.highlight_color || ""); setEditOpen(true); };
+  const openNewFilter = (groupId: string) => { setFilterGroupId(groupId); setEditingFilter(null); setFilterName(""); setFilterNameEn(""); setFilterDialogOpen(true); };
+  const openEditFilter = (f: DisplayFilter) => { setFilterGroupId(f.group_id); setEditingFilter(f); setFilterName(f.name); setFilterNameEn((f as any).name_en || ""); setFilterDialogOpen(true); };
 
   const openServiceAssign = (groupId: string, filterId: string | null) => {
     setAssignGroupId(groupId);
@@ -395,7 +395,7 @@ const AdminDisplayGroups = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>그룹 타이틀 (줄바꿈 가능, **강조텍스트** 지원)</Label>
+              <Label>그룹 타이틀 (한국어, 줄바꿈 가능, **강조텍스트** 지원)</Label>
               <Textarea
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
@@ -403,6 +403,15 @@ const AdminDisplayGroups = () => {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground mt-1">**텍스트** 로 감싸면 강조색상이 적용됩니다</p>
+            </div>
+            <div>
+              <Label>그룹 타이틀 (English, optional)</Label>
+              <Textarea
+                value={formTitleEn}
+                onChange={e => setFormTitleEn(e.target.value)}
+                placeholder={"e.g. Shop owners\n**often** choose"}
+                rows={3}
+              />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
