@@ -35,6 +35,21 @@ const HeroSection = () => {
 
   const hasBannerImage = current.image_url && !current.image_url.endsWith(".mp4");
 
+  // Preload the first banner image for faster LCP
+  const firstBannerImage = displayBanners[0]?.image_url;
+  useEffect(() => {
+    if (!firstBannerImage || firstBannerImage.endsWith(".mp4")) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = firstBannerImage;
+    link.fetchPriority = "high";
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, [firstBannerImage]);
+
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -88,7 +103,14 @@ const HeroSection = () => {
           <div className="w-full md:w-[400px] shrink-0 flex items-stretch">
             <div className="relative rounded-2xl overflow-hidden w-full shadow-lg min-h-[280px]">
               {hasBannerImage && (
-                <img src={current.image_url!} alt={current.title} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
+                <img
+                  src={current.image_url!}
+                  alt={current.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                  fetchPriority={safeIndex === 0 ? "high" : "auto"}
+                  loading={safeIndex === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
               )}
               <div className={`relative z-10 w-full h-full ${hasBannerImage ? "bg-black/40" : "bg-primary/90"} p-7 flex flex-col justify-between transition-colors duration-300`}>
                 <div>
