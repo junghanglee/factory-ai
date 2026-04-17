@@ -700,6 +700,7 @@ const MyPage = () => {
             </div>
           </TabsContent>
         </Tabs>
+        </LazyMount>
       </div>
     </MainLayout>
   );
