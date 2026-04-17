@@ -112,14 +112,14 @@ const SearchPage = () => {
         {/* Results grid */}
         {!loading && results.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-            {results.map((service) => {
+            {results.map((service, idx) => {
               const disc = discount(service.original_price, service.price);
               return (
                 <Link key={service.id} to={`/service/${service.id}`} className="group">
                   <div className="rounded-xl overflow-hidden border bg-card hover:shadow-md transition-shadow">
                     <div className="aspect-[4/3] bg-secondary overflow-hidden">
                       {service.thumbnail ? (
-                        <img src={service.thumbnail} alt={localize(service, "title")} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={service.thumbnail} alt={localize(service, "title")} loading={idx < 8 ? "eager" : "lazy"} decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">{t("search.noImage")}</div>
                       )}
