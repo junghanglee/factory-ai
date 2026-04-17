@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Store, ShieldCheck } from "lucide-react";
+import { useFeatureFlag } from "@/hooks/useSiteSettings";
 
 interface SellerBadgeProps {
   sellerId: string | null;
@@ -12,8 +13,11 @@ interface SellerBadgeProps {
 /**
  * Displays seller origin: "AI팩토리" for in-house (no seller_id) or
  * "인증 판매자" with link for external sellers.
+ * Hidden entirely when the certified_sellers_enabled flag is OFF.
  */
 const SellerBadge = ({ sellerId, sellerName, variant = "badge" }: SellerBadgeProps) => {
+  const enabled = useFeatureFlag("certified_sellers_enabled");
+  if (!enabled) return null;
   const isInHouse = !sellerId;
 
   if (variant === "inline") {
