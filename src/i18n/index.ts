@@ -14,8 +14,9 @@ i18n
     },
     fallbackLng: "ko",
     interpolation: { escapeValue: false },
+    lng: typeof window !== "undefined" && window.localStorage.getItem("i18nextLng") ? undefined : "ko",
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       caches: ["localStorage"],
     },
   });

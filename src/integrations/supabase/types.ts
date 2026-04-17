@@ -412,18 +412,21 @@ export type Database = {
           group_id: string
           id: string
           name: string
+          name_en: string | null
           sort_order: number
         }
         Insert: {
           group_id: string
           id?: string
           name: string
+          name_en?: string | null
           sort_order?: number
         }
         Update: {
           group_id?: string
           id?: string
           name?: string
+          name_en?: string | null
           sort_order?: number
         }
         Relationships: [
@@ -492,6 +495,7 @@ export type Database = {
           id: string
           sort_order: number
           title: string
+          title_en: string | null
           updated_at: string
         }
         Insert: {
@@ -503,6 +507,7 @@ export type Database = {
           id?: string
           sort_order?: number
           title: string
+          title_en?: string | null
           updated_at?: string
         }
         Update: {
@@ -514,6 +519,7 @@ export type Database = {
           id?: string
           sort_order?: number
           title?: string
+          title_en?: string | null
           updated_at?: string
         }
         Relationships: []
