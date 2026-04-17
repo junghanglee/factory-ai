@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isReady: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
