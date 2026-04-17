@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export type SiteSettings = {
   certified_sellers_enabled: boolean;
@@ -10,8 +11,9 @@ const DEFAULTS: SiteSettings = {
   certified_sellers_enabled: false,
 };
 
-/** Fetches all site_settings as a flat object. Cached for 5min. */
+/** Fetches all site_settings as a flat object. Cached for 10min. */
 export function useSiteSettings() {
+  const { isReady } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["site_settings"],
     queryFn: async (): Promise<SiteSettings> => {
@@ -28,7 +30,8 @@ export function useSiteSettings() {
       });
       return map;
     },
-    staleTime: 5 * 60 * 1000,
+    enabled: isReady,
+    staleTime: 10 * 60 * 1000,
   });
   return { settings: data ?? DEFAULTS, isLoading };
 }
