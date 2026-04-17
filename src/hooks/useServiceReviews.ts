@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export interface ServiceReview {
   id: string;
@@ -14,8 +15,9 @@ export interface ServiceReview {
   updated_at: string;
 }
 
-export const useServiceReviews = (serviceId?: string) =>
-  useQuery({
+export const useServiceReviews = (serviceId?: string) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["service_reviews", serviceId],
     queryFn: async () => {
       if (!serviceId) return [];
@@ -27,11 +29,14 @@ export const useServiceReviews = (serviceId?: string) =>
       if (error) throw error;
       return data as ServiceReview[];
     },
-    enabled: !!serviceId,
+    enabled: isReady && !!serviceId,
+    staleTime: 2 * 60 * 1000,
   });
+};
 
-export const useRecentReviews = (limit = 6) =>
-  useQuery({
+export const useRecentReviews = (limit = 6) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["recent_reviews_random", limit],
     queryFn: async () => {
       // Fetch more reviews and pick random ones
@@ -46,12 +51,14 @@ export const useRecentReviews = (limit = 6) =>
       const shuffled = [...all].sort(() => Math.random() - 0.5);
       return shuffled.slice(0, limit);
     },
-    staleTime: 0,
-    gcTime: 0,
+    enabled: isReady,
+    staleTime: 60 * 1000,
   });
+};
 
-export const useAllReviewsByService = (serviceId: string) =>
-  useQuery({
+export const useAllReviewsByService = (serviceId: string) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["all_reviews_service", serviceId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -62,5 +69,7 @@ export const useAllReviewsByService = (serviceId: string) =>
       if (error) throw error;
       return data as ServiceReview[];
     },
-    enabled: !!serviceId,
+    enabled: isReady && !!serviceId,
+    staleTime: 2 * 60 * 1000,
   });
+};
