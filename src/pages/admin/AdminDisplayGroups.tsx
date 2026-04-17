@@ -164,6 +164,7 @@ const AdminDisplayGroups = () => {
     mutationFn: async () => {
       const payload = {
         title: formTitle,
+        title_en: formTitleEn || null,
         active: formActive,
         font_size: formFontSize || 26,
         font_color: formFontColor || null,
