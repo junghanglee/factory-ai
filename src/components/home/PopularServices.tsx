@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { localize } from "@/utils/localize";
 import { formatPrice } from "@/utils/formatPrice";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ServicePackage {
   id: string;
