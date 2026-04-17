@@ -209,6 +209,7 @@ function DisplayGroupSection({ group, filters, groupServices, allServices }: {
 }
 
 const PopularServices = () => {
+  const { isReady } = useAuth();
   const { data: groups = [] } = useQuery({
     queryKey: ["display_groups_public"],
     queryFn: async () => {
@@ -216,6 +217,8 @@ const PopularServices = () => {
       if (error) throw error;
       return data as DisplayGroup[];
     },
+    enabled: isReady,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: filters = [] } = useQuery({
@@ -225,6 +228,8 @@ const PopularServices = () => {
       if (error) throw error;
       return data as DisplayFilter[];
     },
+    enabled: isReady,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: groupServices = [] } = useQuery({
@@ -234,6 +239,8 @@ const PopularServices = () => {
       if (error) throw error;
       return data as DisplayGroupService[];
     },
+    enabled: isReady,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: allServices = [] } = useQuery({
@@ -248,6 +255,8 @@ const PopularServices = () => {
         first_package: (pkgs as ServicePackage[]).find(p => p.service_id === s.id) || null,
       }));
     },
+    enabled: isReady,
+    staleTime: 2 * 60 * 1000,
   });
 
   if (groups.length === 0) return null;
