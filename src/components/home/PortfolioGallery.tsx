@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { localize } from "@/utils/localize";
+import { useAuth } from "@/hooks/useAuth";
 
 const PortfolioGallery = () => {
   const { t } = useTranslation();
+  const { isReady } = useAuth();
   const { data: items = [] } = useQuery({
     queryKey: ["portfolio_public"],
     queryFn: async () => {
@@ -13,6 +15,8 @@ const PortfolioGallery = () => {
       if (error) throw error;
       return data ?? [];
     },
+    enabled: isReady,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (items.length === 0) return null;

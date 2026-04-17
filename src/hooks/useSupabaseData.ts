@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { getBannerDisplayImageUrl } from "@/lib/heroBanners";
+import { useAuth } from "./useAuth";
 
 export type DbCategory = Tables<"categories">;
 export type DbService = Tables<"services">;
@@ -17,8 +18,9 @@ const normalizeBannerImages = (banners: DbBanner[]) =>
     image_url: getBannerDisplayImageUrl(banner.image_url),
   })) as DbBanner[];
 
-export const useBanners = () =>
-  useQuery({
+export const useBanners = () => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["banners"],
     queryFn: async () => {
       if (HERO_CONTENT_ENDPOINT) {
@@ -61,12 +63,15 @@ export const useBanners = () =>
       if (error) throw error;
       return normalizeBannerImages((data ?? []) as DbBanner[]);
     },
+    enabled: isReady,
     retry: 2,
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
   });
+};
 
-export const useCategories = () =>
-  useQuery({
+export const useCategories = () => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -76,11 +81,14 @@ export const useCategories = () =>
       if (error) throw error;
       return data as DbCategory[];
     },
-    staleTime: 5 * 60 * 1000,
+    enabled: isReady,
+    staleTime: 10 * 60 * 1000,
   });
+};
 
-export const useServices = (categoryId?: string) =>
-  useQuery({
+export const useServices = (categoryId?: string) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["services", categoryId],
     queryFn: async () => {
       let query = supabase.from("services").select("*, seller_profiles:seller_id(id, business_name, status)").order("created_at", { ascending: false });
@@ -89,10 +97,14 @@ export const useServices = (categoryId?: string) =>
       if (error) throw error;
       return data;
     },
+    enabled: isReady,
+    staleTime: 2 * 60 * 1000,
   });
+};
 
-export const useService = (id?: string) =>
-  useQuery({
+export const useService = (id?: string) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["service", id],
     queryFn: async () => {
       if (!id) return null;
@@ -104,11 +116,14 @@ export const useService = (id?: string) =>
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: isReady && !!id,
+    staleTime: 2 * 60 * 1000,
   });
+};
 
-export const useServicePackages = (serviceId?: string) =>
-  useQuery({
+export const useServicePackages = (serviceId?: string) => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["service_packages", serviceId],
     queryFn: async () => {
       if (!serviceId) return [];
@@ -120,11 +135,14 @@ export const useServicePackages = (serviceId?: string) =>
       if (error) throw error;
       return data as DbServicePackage[];
     },
-    enabled: !!serviceId,
+    enabled: isReady && !!serviceId,
+    staleTime: 2 * 60 * 1000,
   });
+};
 
-export const useAllServicesWithPackages = () =>
-  useQuery({
+export const useAllServicesWithPackages = () => {
+  const { isReady } = useAuth();
+  return useQuery({
     queryKey: ["services_with_packages"],
     queryFn: async () => {
       const { data: services, error: sErr } = await supabase
@@ -152,4 +170,7 @@ export const useAllServicesWithPackages = () =>
         feedback_count: (feedbackFields as any[]).filter((f) => f.service_id === s.id || (f.category_id === s.category_id && !f.service_id)).length,
       }));
     },
+    enabled: isReady,
+    staleTime: 2 * 60 * 1000,
   });
+};

@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isReady: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const initializedRef = useRef(false);
@@ -46,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(nextSession);
     setUser(nextUser);
     setLoading(false);
+    setIsReady(true);
 
     if (!nextUser) {
       setIsAdmin(false);
@@ -64,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!initializedRef.current) return;
 
         applySession(session);
+        // Invalidate auth-dependent queries to refetch with new session
         void queryClient.invalidateQueries();
       }
     );
@@ -72,7 +76,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       applySession(session);
       initializedRef.current = true;
+      // Refetch any queries that may have been gated on isReady
       void queryClient.invalidateQueries();
+    }).catch((err) => {
+      console.error("Auth getSession failed:", err);
+      // Even on failure, mark ready so public queries can run
+      setLoading(false);
+      setIsReady(true);
+      initializedRef.current = true;
     });
 
     return () => subscription.unsubscribe();
@@ -101,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isReady, isAdmin, isSuperAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
