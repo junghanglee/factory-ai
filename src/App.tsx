@@ -48,6 +48,7 @@ const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage"));
 const AdminSellers = lazy(() => import("./pages/admin/AdminSellers"));
 const AdminSettlements = lazy(() => import("./pages/admin/AdminSettlements"));
 const AdminFeatureSettings = lazy(() => import("./pages/admin/AdminFeatureSettings"));
+const AdminRefunds = lazy(() => import("./pages/admin/AdminRefunds"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
