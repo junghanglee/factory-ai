@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { formatPrice, isEnglishMode } from "@/utils/formatPrice";
 import { openPaddleCheckout } from "@/lib/paddle";
 import { useAuth } from "@/hooks/useAuth";
+import { convertKrwToUsd } from "@/hooks/useExchangeRate";
 import type { ChatMessage } from "@/hooks/useChat";
 
 interface QuoteDetails {
@@ -65,8 +66,8 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
       toast.error("로그인이 필요합니다.");
       return;
     }
-    // Paddle은 KRW 미지원 → USD로 결제 (USD 가격 우선, 없으면 환율 1300으로 변환)
-    const amountUsd = quote!.priceUsd ?? Number((quote!.price / 1300).toFixed(2));
+    // Paddle은 KRW 미지원 → USD로 결제 (USD 가격 우선, 없으면 실시간 환율로 변환)
+    const amountUsd = quote!.priceUsd ?? (await convertKrwToUsd(quote!.price));
     if (!amountUsd || amountUsd <= 0) {
       toast.error("결제 금액이 올바르지 않습니다.");
       return;
