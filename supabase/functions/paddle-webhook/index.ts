@@ -61,7 +61,16 @@ serve(async (req) => {
 
   const valid = await verifyPaddleSignature(rawBody, signature);
   if (!valid) {
-    console.error("Paddle webhook: invalid signature");
+    // 디버그: 실제 secret 값은 노출하지 않고 메타정보만 로깅
+    const secretLen = NOTIFICATION_SECRET?.length ?? 0;
+    const secretPrefix = NOTIFICATION_SECRET?.slice(0, 8) ?? "(none)";
+    console.error("Paddle webhook: invalid signature", {
+      hasSignature: !!signature,
+      signatureSample: signature?.slice(0, 40),
+      secretLen,
+      secretPrefix,
+      bodyLen: rawBody.length,
+    });
     return new Response("Invalid signature", { status: 400 });
   }
 
