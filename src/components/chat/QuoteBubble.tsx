@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle, CreditCard, Clock, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { formatPrice, getCurrency, isEnglishMode } from "@/utils/formatPrice";
+import { formatPrice, isEnglishMode } from "@/utils/formatPrice";
+import { openPaddleCheckout } from "@/lib/paddle";
+import { useAuth } from "@/hooks/useAuth";
 import type { ChatMessage } from "@/hooks/useChat";
 
 interface QuoteDetails {
@@ -33,8 +34,9 @@ function formatTime(dateStr: string) {
 }
 
 export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onConfirmPayment, projectId }: QuoteBubbleProps) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [paying, setPaying] = useState(false);
 
   let quote: QuoteDetails | null = null;
   try {
@@ -54,29 +56,41 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
 
   const status = statusLabels[paymentStatus || "견적발송"] || statusLabels["견적발송"];
 
-  const handleCardPayment = () => {
+  const handleCardPayment = async () => {
     if (!projectId) {
       toast.error("프로젝트 정보를 찾을 수 없습니다.");
       return;
     }
-    const title = quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
-    const currency = getCurrency();
-    let amount: number;
-    if (currency === "usd" && quote!.priceUsd != null) {
-      amount = Math.round(quote!.priceUsd * 100); // cents
-    } else {
-      amount = quote!.price;
+    if (!user) {
+      toast.error("로그인이 필요합니다.");
+      return;
     }
-    const params = new URLSearchParams({
-      project_id: projectId,
-      amount: amount.toString(),
-      currency,
-      title,
-    });
-    if (quote?.packageId) {
-      params.set("package_id", quote.packageId);
+    // Paddle은 KRW 미지원 → USD로 결제 (USD 가격 우선, 없으면 환율 1300으로 변환)
+    const amountUsd = quote!.priceUsd ?? Number((quote!.price / 1300).toFixed(2));
+    if (!amountUsd || amountUsd <= 0) {
+      toast.error("결제 금액이 올바르지 않습니다.");
+      return;
     }
-    navigate(`/checkout?${params.toString()}`);
+    const productName = quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
+    setPaying(true);
+    try {
+      await openPaddleCheckout({
+        amountUsd,
+        productName,
+        email: user.email ?? undefined,
+        customData: {
+          project_id: projectId,
+          user_id: user.id,
+          ...(quote!.packageId ? { package_id: quote!.packageId } : {}),
+          ...(quote!.orderNumber ? { order_number: quote!.orderNumber } : {}),
+        },
+      });
+    } catch (err: any) {
+      console.error("Paddle checkout open failed:", err);
+      toast.error("결제창을 열지 못했습니다: " + (err?.message ?? "알 수 없는 오류"));
+    } finally {
+      setPaying(false);
+    }
   };
 
   const canPay = !isMine && !isAdmin && (paymentStatus === "견적발송" || paymentStatus === "입금대기");
@@ -137,8 +151,13 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
                   size="sm"
                   className="w-full text-xs bg-green-600 hover:bg-green-700"
                   onClick={handleCardPayment}
+                  disabled={paying}
                 >
-                  <CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기
+                  {paying ? (
+                    <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> 결제창 여는 중…</>
+                  ) : (
+                    <><CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기</>
+                  )}
                 </Button>
               )}
               {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
