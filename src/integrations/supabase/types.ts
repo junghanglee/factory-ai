@@ -683,7 +683,12 @@ export type Database = {
           currency: string
           environment: string
           id: string
+          paddle_checkout_id: string | null
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
+          paddle_transaction_id: string | null
           project_id: string
+          provider: string
           status: string
           stripe_payment_intent: string | null
           stripe_session_id: string | null
@@ -696,7 +701,12 @@ export type Database = {
           currency?: string
           environment?: string
           id?: string
+          paddle_checkout_id?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          paddle_transaction_id?: string | null
           project_id: string
+          provider?: string
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -709,7 +719,12 @@ export type Database = {
           currency?: string
           environment?: string
           id?: string
+          paddle_checkout_id?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          paddle_transaction_id?: string | null
           project_id?: string
+          provider?: string
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
