@@ -49,7 +49,13 @@ const ServiceDetailPage = () => {
   }
 
   const category = categories.find((c) => c.id === service.category_id);
-  const defaultTab = packages.length > 1 ? packages[Math.min(1, packages.length - 1)].name : packages[0]?.name || "Basic";
+  // Deduplicate packages defensively (in case of dirty data) by name
+  const uniquePackages = packages.filter(
+    (p, idx, arr) => arr.findIndex((x) => x.name === p.name) === idx
+  );
+  const defaultTab = uniquePackages.length > 1
+    ? uniquePackages[Math.min(1, uniquePackages.length - 1)].id
+    : uniquePackages[0]?.id || "";
 
   const discountRate = service.original_price > 0 && service.price < service.original_price
     ? Math.round((1 - service.price / service.original_price) * 100)
@@ -163,7 +169,7 @@ const ServiceDetailPage = () => {
   };
 
   const renderPackageSidebar = () => {
-    if (packages.length === 0) {
+    if (uniquePackages.length === 0) {
       return (
         <div className="p-5 space-y-4">
           <span className="text-3xl font-bold text-foreground">{formatPrice(service.price, service.price_usd)}</span>
@@ -176,8 +182,8 @@ const ServiceDetailPage = () => {
       );
     }
 
-    if (packages.length === 1) {
-      const pkg = packages[0];
+    if (uniquePackages.length === 1) {
+      const pkg = uniquePackages[0];
       return (
         <div className="p-5 space-y-4">
           <div className="text-center">
@@ -217,15 +223,15 @@ const ServiceDetailPage = () => {
 
     return (
       <Tabs defaultValue={defaultTab}>
-        <TabsList className={`w-full rounded-none border-b ${packages.length > 3 ? 'flex-wrap h-auto' : ''}`}>
-          {packages.map((pkg) => (
-            <TabsTrigger key={pkg.id} value={pkg.name} className={`text-xs sm:text-sm ${packages.length > 3 ? 'flex-1 min-w-0 px-2' : 'flex-1'}`}>
+        <TabsList className={`w-full rounded-none border-b ${uniquePackages.length > 3 ? 'flex-wrap h-auto' : ''}`}>
+          {uniquePackages.map((pkg) => (
+            <TabsTrigger key={pkg.id} value={pkg.id} className={`text-xs sm:text-sm ${uniquePackages.length > 3 ? 'flex-1 min-w-0 px-2' : 'flex-1'}`}>
               {localize(pkg, "name")}
             </TabsTrigger>
           ))}
         </TabsList>
-        {packages.map((pkg) => (
-          <TabsContent key={pkg.id} value={pkg.name} className="p-5 space-y-4">
+        {uniquePackages.map((pkg) => (
+          <TabsContent key={pkg.id} value={pkg.id} className="p-5 space-y-4">
             <div>
               <span className="text-3xl font-bold text-foreground">{displayServicePrice(pkg)}</span>
               {!(pkg as any).price_text && service.original_price > pkg.price && (
