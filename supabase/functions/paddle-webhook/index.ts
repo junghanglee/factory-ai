@@ -80,6 +80,10 @@ serve(async (req) => {
       case "transaction.paid":
         await handleTransactionCompleted(event.data);
         break;
+      case "adjustment.created":
+      case "adjustment.updated":
+        await handleAdjustment(event.data);
+        break;
       default:
         console.log("Unhandled event:", event.event_type);
     }
