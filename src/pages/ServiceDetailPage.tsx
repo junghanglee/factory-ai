@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import OrderRequestDialog, { OrderFormData } from "@/components/chat/OrderRequestDialog";
+import { openPaddleCheckout } from "@/lib/paddle";
+import { convertKrwToUsd } from "@/hooks/useExchangeRate";
 
 const ServiceDetailPage = () => {
   const { id } = useParams();
@@ -132,19 +134,31 @@ const ServiceDetailPage = () => {
 
       if (error || !project) throw error;
 
-      const { amount, currency } = getPaymentAmount(pkg);
-      const title = `${service.title} - ${pkg.name}`;
-      const params = new URLSearchParams({
-        project_id: project.id,
-        amount: amount.toString(),
-        currency,
-        title,
-        package_id: pkg.id,
+      // Paddle은 KRW 미지원 → USD 결제 (USD가격 우선, 없으면 실시간 환율 변환)
+      const amountUsd =
+        (pkg as any).price_usd && (pkg as any).price_usd > 0
+          ? Number((pkg as any).price_usd)
+          : await convertKrwToUsd(pkg.price);
+
+      if (!amountUsd || amountUsd <= 0) {
+        toast.error("결제 금액이 올바르지 않습니다.");
+        return;
+      }
+
+      await openPaddleCheckout({
+        amountUsd,
+        productName: `${service.title} - ${pkg.name}`,
+        email: user.email ?? undefined,
+        customData: {
+          project_id: project.id,
+          user_id: user.id,
+          package_id: pkg.id,
+          order_number: orderNumber,
+        },
       });
-      navigate(`/checkout?${params.toString()}`);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Direct payment error:", e);
-      toast.error("결제 준비 중 오류가 발생했습니다.");
+      toast.error("결제창을 열지 못했습니다: " + (e?.message ?? "알 수 없는 오류"));
     }
   };
 
