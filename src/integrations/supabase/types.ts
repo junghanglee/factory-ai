@@ -689,6 +689,8 @@ export type Database = {
           paddle_transaction_id: string | null
           project_id: string
           provider: string
+          refund_status: string | null
+          refunded_amount: number
           status: string
           stripe_payment_intent: string | null
           stripe_session_id: string | null
@@ -707,6 +709,8 @@ export type Database = {
           paddle_transaction_id?: string | null
           project_id: string
           provider?: string
+          refund_status?: string | null
+          refunded_amount?: number
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -725,6 +729,8 @@ export type Database = {
           paddle_transaction_id?: string | null
           project_id?: string
           provider?: string
+          refund_status?: string | null
+          refunded_amount?: number
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -967,6 +973,81 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      refunds: {
+        Row: {
+          admin_memo: string | null
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          paddle_adjustment_id: string | null
+          paddle_status: string | null
+          paddle_transaction_id: string | null
+          payment_id: string
+          processed_at: string | null
+          project_id: string
+          reason: string | null
+          refund_type: string
+          requested_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_memo?: string | null
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paddle_adjustment_id?: string | null
+          paddle_status?: string | null
+          paddle_transaction_id?: string | null
+          payment_id: string
+          processed_at?: string | null
+          project_id: string
+          reason?: string | null
+          refund_type?: string
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_memo?: string | null
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paddle_adjustment_id?: string | null
+          paddle_status?: string | null
+          paddle_transaction_id?: string | null
+          payment_id?: string
+          processed_at?: string | null
+          project_id?: string
+          reason?: string | null
+          refund_type?: string
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seller_notifications: {
         Row: {
