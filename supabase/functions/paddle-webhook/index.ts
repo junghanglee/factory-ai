@@ -196,3 +196,133 @@ async function handleTransactionCompleted(tx: any) {
 
   console.log("Paddle transaction processed:", tx.id);
 }
+
+/**
+ * adjustment.created / adjustment.updated 처리
+ * Paddle adjustment 객체: { id, action: 'refund'|'chargeback'|..., status, transaction_id, items[], totals: { total }, currency_code, reason }
+ */
+async function handleAdjustment(adj: any) {
+  if (!adj?.id) return;
+
+  // 환불(refund/chargeback)만 처리
+  const action = adj.action as string | undefined;
+  if (action !== "refund" && action !== "chargeback" && action !== "credit") {
+    console.log("Skip non-refund adjustment:", action);
+    return;
+  }
+
+  const transactionId = adj.transaction_id as string | undefined;
+  if (!transactionId) {
+    console.error("Adjustment without transaction_id:", adj.id);
+    return;
+  }
+
+  // 원 결제 조회
+  const { data: payment } = await supabase
+    .from("payments")
+    .select("id, project_id, user_id, amount, currency, refunded_amount")
+    .eq("paddle_transaction_id", transactionId)
+    .maybeSingle();
+
+  if (!payment) {
+    console.error("Payment not found for transaction:", transactionId);
+    return;
+  }
+
+  const totalMinor = parseInt(adj.totals?.total ?? "0", 10);
+  const currency = (adj.currency_code || payment.currency || "USD").toUpperCase();
+  const status = adj.status as string | undefined; // pending_approval | approved | rejected | reversed
+
+  // 우리 시스템 상태 매핑
+  let mappedStatus = "pending";
+  if (status === "approved") mappedStatus = "completed";
+  else if (status === "rejected" || status === "reversed") mappedStatus = "failed";
+  else if (status === "pending_approval") mappedStatus = "pending";
+
+  // upsert (paddle_adjustment_id unique)
+  const { data: existing } = await supabase
+    .from("refunds")
+    .select("id, status")
+    .eq("paddle_adjustment_id", adj.id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from("refunds")
+      .update({
+        status: mappedStatus,
+        paddle_status: status,
+        processed_at: mappedStatus === "completed" ? new Date().toISOString() : null,
+      })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("refunds").insert({
+      payment_id: payment.id,
+      project_id: payment.project_id,
+      user_id: payment.user_id,
+      paddle_adjustment_id: adj.id,
+      paddle_transaction_id: transactionId,
+      amount: totalMinor,
+      currency,
+      reason: adj.reason ?? null,
+      refund_type: action,
+      status: mappedStatus,
+      paddle_status: status,
+      processed_at: mappedStatus === "completed" ? new Date().toISOString() : null,
+    });
+  }
+
+  // 환불 완료 시 결제/프로젝트 상태 동기화
+  if (mappedStatus === "completed") {
+    const newRefunded = Number(payment.refunded_amount || 0) + totalMinor;
+    const fullyRefunded = newRefunded >= Number(payment.amount || 0);
+
+    await supabase
+      .from("payments")
+      .update({
+        refunded_amount: newRefunded,
+        refund_status: fullyRefunded ? "refunded" : "partially_refunded",
+        status: fullyRefunded ? "refunded" : "completed",
+      })
+      .eq("id", payment.id);
+
+    if (fullyRefunded) {
+      await supabase
+        .from("projects")
+        .update({ payment_status: "환불", status: "취소" })
+        .eq("id", payment.project_id);
+
+      // 채팅방 시스템 메시지
+      const { data: room } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .eq("project_id", payment.project_id)
+        .maybeSingle();
+      if (room) {
+        await supabase.from("chat_messages").insert({
+          room_id: room.id,
+          sender_id: payment.user_id || "00000000-0000-0000-0000-000000000000",
+          message: "💸 결제가 환불되었습니다.",
+          message_type: "system",
+        });
+        await supabase
+          .from("chat_rooms")
+          .update({
+            last_message: "💸 결제가 환불되었습니다.",
+            last_message_at: new Date().toISOString(),
+          })
+          .eq("id", room.id);
+      }
+
+      // 관리자 알림
+      await supabase.from("admin_notifications").insert({
+        title: "환불 완료",
+        message: `Paddle 환불이 완료되었습니다 (${currency} ${(totalMinor / 100).toFixed(2)})`,
+        type: "refund_completed",
+        metadata: { project_id: payment.project_id, adjustment_id: adj.id },
+      });
+    }
+  }
+
+  console.log("Paddle adjustment processed:", adj.id, mappedStatus);
+}
