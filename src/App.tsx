@@ -28,8 +28,6 @@ const SellerApplyPage = lazy(() => import("./pages/SellerApplyPage"));
 const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
 const SellerProfilePage = lazy(() => import("./pages/SellerProfilePage"));
 const PortfolioDetailPage = lazy(() => import("./pages/PortfolioDetailPage"));
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const CheckoutReturnPage = lazy(() => import("./pages/CheckoutReturnPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
@@ -128,9 +126,6 @@ const App = () => (
             <Route path="/admin/feature-settings" element={<ProtectedRoute requireAdmin><AdminFeatureSettings /></ProtectedRoute>} />
             <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/checkout/return" element={<CheckoutReturnPage />} />
-            <Route path="*" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
