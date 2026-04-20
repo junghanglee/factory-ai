@@ -75,6 +75,7 @@ const navGroupsDef: NavGroup[] = [
     items: [
       { to: "/admin/projects", icon: FolderKanban, labelKey: "admin.projectManage" },
       { to: "/admin/settlements", icon: Wallet, labelKey: "admin.settlementManage" },
+      { to: "/admin/refunds", icon: Undo2, labelKey: "환불 관리" },
     ],
   },
   {
