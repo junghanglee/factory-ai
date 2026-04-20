@@ -49,7 +49,13 @@ const ServiceDetailPage = () => {
   }
 
   const category = categories.find((c) => c.id === service.category_id);
-  const defaultTab = packages.length > 1 ? packages[Math.min(1, packages.length - 1)].name : packages[0]?.name || "Basic";
+  // Deduplicate packages defensively (in case of dirty data) by name
+  const uniquePackages = packages.filter(
+    (p, idx, arr) => arr.findIndex((x) => x.name === p.name) === idx
+  );
+  const defaultTab = uniquePackages.length > 1
+    ? uniquePackages[Math.min(1, uniquePackages.length - 1)].id
+    : uniquePackages[0]?.id || "";
 
   const discountRate = service.original_price > 0 && service.price < service.original_price
     ? Math.round((1 - service.price / service.original_price) * 100)
