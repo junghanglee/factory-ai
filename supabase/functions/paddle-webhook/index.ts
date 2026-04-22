@@ -48,6 +48,34 @@ async function verifyPaddleSignature(rawBody: string, signatureHeader: string | 
   return diff === 0;
 }
 
+async function logWebhookEvent(args: {
+  rawBody: string;
+  signatureValid: boolean;
+  parsed: any | null;
+  status: "received" | "processed" | "ignored" | "error" | "invalid_signature" | "invalid_json";
+  error?: string;
+}) {
+  const { parsed, signatureValid, status, error } = args;
+  const data = parsed?.data ?? {};
+  try {
+    await supabase.from("paddle_webhook_events").insert({
+      event_id: parsed?.event_id ?? null,
+      event_type: parsed?.event_type ?? "unknown",
+      paddle_transaction_id: data?.id && parsed?.event_type?.startsWith("transaction.") ? data.id : data?.transaction_id ?? null,
+      paddle_adjustment_id: data?.id && parsed?.event_type?.startsWith("adjustment.") ? data.id : null,
+      paddle_subscription_id: data?.subscription_id ?? null,
+      paddle_customer_id: data?.customer_id ?? null,
+      signature_valid: signatureValid,
+      processing_status: status,
+      processing_error: error ?? null,
+      payload: parsed ?? { raw: args.rawBody.slice(0, 5000) },
+      processed_at: status === "processed" || status === "ignored" ? new Date().toISOString() : null,
+    });
+  } catch (logErr) {
+    console.error("Failed to log webhook event:", logErr);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -61,7 +89,6 @@ serve(async (req) => {
 
   const valid = await verifyPaddleSignature(rawBody, signature);
   if (!valid) {
-    // 디버그: 실제 secret 값은 노출하지 않고 메타정보만 로깅
     const secretLen = NOTIFICATION_SECRET?.length ?? 0;
     const secretPrefix = NOTIFICATION_SECRET?.slice(0, 8) ?? "(none)";
     console.error("Paddle webhook: invalid signature", {
@@ -71,6 +98,15 @@ serve(async (req) => {
       secretPrefix,
       bodyLen: rawBody.length,
     });
+    let parsed: any = null;
+    try { parsed = JSON.parse(rawBody); } catch { /* ignore */ }
+    await logWebhookEvent({
+      rawBody,
+      signatureValid: false,
+      parsed,
+      status: "invalid_signature",
+      error: "HMAC signature mismatch",
+    });
     return new Response("Invalid signature", { status: 400 });
   }
 
@@ -78,12 +114,20 @@ serve(async (req) => {
   try {
     event = JSON.parse(rawBody);
   } catch {
+    await logWebhookEvent({
+      rawBody,
+      signatureValid: true,
+      parsed: null,
+      status: "invalid_json",
+      error: "Body is not valid JSON",
+    });
     return new Response("Invalid JSON", { status: 400 });
   }
 
   console.log("Paddle event:", event.event_type);
 
   try {
+    let handled = true;
     switch (event.event_type) {
       case "transaction.completed":
       case "transaction.paid":
@@ -95,9 +139,23 @@ serve(async (req) => {
         break;
       default:
         console.log("Unhandled event:", event.event_type);
+        handled = false;
     }
+    await logWebhookEvent({
+      rawBody,
+      signatureValid: true,
+      parsed: event,
+      status: handled ? "processed" : "ignored",
+    });
   } catch (e) {
     console.error("Webhook handler error:", e);
+    await logWebhookEvent({
+      rawBody,
+      signatureValid: true,
+      parsed: event,
+      status: "error",
+      error: e instanceof Error ? e.message : String(e),
+    });
     return new Response("Handler error", { status: 500 });
   }
 
