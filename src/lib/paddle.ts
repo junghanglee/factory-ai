@@ -37,9 +37,11 @@ export function loadPaddle(): Promise<any> {
         window.Paddle.Initialize({
           token: clientToken,
           eventCallback: (data: any) => {
-            // Paddle 이벤트를 콘솔에 모두 출력 → 디버깅용
             // eslint-disable-next-line no-console
             console.log("[Paddle event]", data?.name, data);
+            try {
+              recordPaddleEvent(data);
+            } catch { /* ignore storage errors */ }
             if (data?.name === "checkout.error" || data?.name === "checkout.warning") {
               // eslint-disable-next-line no-console
               console.error("[Paddle checkout error]", data);
