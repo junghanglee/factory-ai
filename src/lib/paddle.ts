@@ -107,6 +107,19 @@ export function clearPaddleEventLog() {
 
 // ───────────────── 결제 결과 안내 모달 디스패치 ─────────────────
 let lastCheckoutAttempt: (() => Promise<void>) | null = null;
+let lastCheckoutAmounts: { amountUsd: number; amountKrw?: number } | null = null;
+
+/** 현재 결제 시도의 금액을 사람이 읽기 좋은 양 통화 문자열로 반환 */
+function formatLastAmountBilingual(): string | null {
+  const amounts = lastCheckoutAmounts;
+  if (!amounts) return null;
+  const usdStr = formatUsd(amounts.amountUsd);
+  if (amounts.amountKrw && amounts.amountKrw > 0) {
+    const krwStr = formatKrw(amounts.amountKrw);
+    return i18n.language === "en" ? `${usdStr} (≈ ${krwStr})` : `${krwStr} (≈ ${usdStr})`;
+  }
+  return usdStr;
+}
 
 function getRetryHandler(): (() => void) | undefined {
   const attempt = lastCheckoutAttempt;
