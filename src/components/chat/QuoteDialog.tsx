@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, User, Package, Pencil, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+type QuoteSource = "user" | "package" | "manual";
 
 interface ServicePackage {
   id: string;
@@ -49,7 +51,7 @@ export default function QuoteDialog({
   hasExistingPayment = false,
 }: QuoteDialogProps) {
   const [quoteType, setQuoteType] = useState<"new" | "addon">(hasExistingPayment ? "addon" : "new");
-  const [mode, setMode] = useState<"package" | "manual">("manual");
+  const [source, setSource] = useState<QuoteSource>("manual");
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [selectedPkgId, setSelectedPkgId] = useState<string>("");
 
@@ -60,6 +62,9 @@ export default function QuoteDialog({
   const [deliveryDays, setDeliveryDays] = useState(String(defaultDeliveryDays));
   const [memo, setMemo] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const hasUserSubmitted = defaultPrice > 0;
 
   // Reset and reload when dialog opens
   useEffect(() => {
@@ -72,8 +77,10 @@ export default function QuoteDialog({
     setPackageName("");
     setMemo("");
     setSelectedPkgId("");
-    setMode(serviceId ? "package" : "manual");
-  }, [open, hasExistingPayment, defaultServiceTitle, defaultPrice, defaultDeliveryDays, serviceId]);
+    setShowConfirm(false);
+    // Default source: prefer user-submitted if exists, else package if loaded later, else manual
+    setSource(hasUserSubmitted ? "user" : (serviceId ? "package" : "manual"));
+  }, [open, hasExistingPayment, defaultServiceTitle, defaultPrice, defaultDeliveryDays, serviceId, hasUserSubmitted]);
 
   // Load packages when service_id is provided
   useEffect(() => {
@@ -88,9 +95,22 @@ export default function QuoteDialog({
         .eq("service_id", serviceId)
         .order("sort_order");
       setPackages(data || []);
-      if (data && data.length > 0) setMode("package");
     })();
   }, [open, serviceId]);
+
+  // When source changes, prefill values appropriately
+  useEffect(() => {
+    if (source === "user" && hasUserSubmitted) {
+      setPrice(String(defaultPrice));
+      setDeliveryDays(String(defaultDeliveryDays));
+      setPackageName("");
+      setSelectedPkgId("");
+      setPriceUsd("");
+    } else if (source === "manual") {
+      setSelectedPkgId("");
+    }
+    // package mode handled by handleSelectPackage
+  }, [source, defaultPrice, defaultDeliveryDays, hasUserSubmitted]);
 
   // Auto-fill when a package is selected
   const handleSelectPackage = (pkgId: string) => {
@@ -103,9 +123,11 @@ export default function QuoteDialog({
     setDeliveryDays(String(pkg.delivery_days));
   };
 
+  const priceNum = parseInt(price) || 0;
+  const canSend = !!serviceTitle.trim() && priceNum > 0 && (source !== "package" || !!selectedPkgId);
+
   const handleSubmit = async () => {
-    const priceNum = parseInt(price) || 0;
-    if (!serviceTitle.trim() || priceNum <= 0) return;
+    if (!canSend) return;
     setSubmitting(true);
     try {
       await onSubmit({
@@ -121,11 +143,18 @@ export default function QuoteDialog({
       onOpenChange(false);
     } finally {
       setSubmitting(false);
+      setShowConfirm(false);
     }
   };
 
-  const titleText = quoteType === "addon" ? "추가금 청구서 발송" : "견적서 발송";
-  const submitText = quoteType === "addon" ? "추가금 발송" : "견적서 발송";
+  const titleText = quoteType === "addon" ? "추가금 청구서 발송" : "확정 견적 발송";
+  const submitText = quoteType === "addon" ? "추가금 발송" : "확정 견적 발송";
+
+  const sourceLabel: Record<QuoteSource, string> = {
+    user: "사용자 신청 금액",
+    package: "상품 패키지",
+    manual: "직접 입력",
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,18 +181,66 @@ export default function QuoteDialog({
           </p>
         )}
 
-        {/* 입력 모드 토글: 패키지 선택 vs 직접 입력 */}
-        {packages.length > 0 && quoteType === "new" && (
-          <Tabs value={mode} onValueChange={(v) => setMode(v as "package" | "manual")} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="package">상품 패키지 선택</TabsTrigger>
-              <TabsTrigger value="manual">직접 입력</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        {/* 견적 출처 선택 (신규 견적일 때만) */}
+        {quoteType === "new" && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">견적 금액 출처</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => hasUserSubmitted && setSource("user")}
+                disabled={!hasUserSubmitted}
+                className={`flex flex-col items-center gap-1 p-2 rounded-md border text-xs transition-colors ${
+                  source === "user"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background hover:bg-accent"
+                } ${!hasUserSubmitted ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <User className="h-4 w-4" />
+                <span>신청 금액</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => packages.length > 0 && setSource("package")}
+                disabled={packages.length === 0}
+                className={`flex flex-col items-center gap-1 p-2 rounded-md border text-xs transition-colors ${
+                  source === "package"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background hover:bg-accent"
+                } ${packages.length === 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <Package className="h-4 w-4" />
+                <span>패키지 선택</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSource("manual")}
+                className={`flex flex-col items-center gap-1 p-2 rounded-md border text-xs transition-colors ${
+                  source === "manual"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background hover:bg-accent"
+                }`}
+              >
+                <Pencil className="h-4 w-4" />
+                <span>직접 입력</span>
+              </button>
+            </div>
+
+            {/* 사용자 신청 금액 안내 */}
+            {source === "user" && hasUserSubmitted && (
+              <div className="text-xs bg-muted/60 border rounded-md p-2 flex items-start gap-2">
+                <User className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
+                <div>
+                  사용자가 처음 신청한 금액 <span className="font-semibold">{defaultPrice.toLocaleString()}원</span>을 그대로 확정 견적으로 보냅니다. 필요하면 아래에서 수정 가능합니다.
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
+
         <div className="space-y-3 py-1">
-          {mode === "package" && packages.length > 0 && quoteType === "new" && (
+          {source === "package" && packages.length > 0 && quoteType === "new" && (
             <div>
               <label className="text-sm font-medium mb-1.5 block">패키지 선택 *</label>
               <Select value={selectedPkgId} onValueChange={handleSelectPackage}>
@@ -209,6 +286,14 @@ export default function QuoteDialog({
                 placeholder="0"
                 min="0"
               />
+              {quoteType === "new" && hasUserSubmitted && priceNum !== defaultPrice && priceNum > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  사용자 신청: {defaultPrice.toLocaleString()}원
+                  {priceNum > defaultPrice
+                    ? ` (+${(priceNum - defaultPrice).toLocaleString()})`
+                    : ` (-${(defaultPrice - priceNum).toLocaleString()})`}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">금액 (USD)</label>
@@ -242,13 +327,43 @@ export default function QuoteDialog({
             />
           </div>
         </div>
+
+        {/* 확정 견적 미리보기 (확인 단계) */}
+        {showConfirm && (
+          <div className="border-2 border-primary/50 rounded-lg p-3 bg-primary/5 space-y-1.5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary mb-1">
+              <CheckCircle2 className="h-4 w-4" />
+              확정 견적 미리보기
+            </div>
+            <div className="text-xs space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">출처</span><span className="font-medium">{sourceLabel[source]}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">서비스</span><span className="font-medium">{serviceTitle}</span></div>
+              {packageName && <div className="flex justify-between"><span className="text-muted-foreground">{quoteType === "addon" ? "항목" : "패키지"}</span><span>{packageName}</span></div>}
+              <div className="flex justify-between"><span className="text-muted-foreground">금액</span><span className="font-bold text-primary">{priceNum.toLocaleString()}원{priceUsd ? ` (≈ $${priceUsd})` : ""}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">납기</span><span>{deliveryDays}일</span></div>
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !serviceTitle.trim() || !(parseInt(price) > 0)}>
-            {submitting ? "발송중..." : submitText}
-          </Button>
+          {showConfirm ? (
+            <>
+              <Button variant="outline" onClick={() => setShowConfirm(false)} disabled={submitting}>← 수정</Button>
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "발송중..." : `✓ ${submitText}`}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
+              <Button onClick={() => setShowConfirm(true)} disabled={!canSend}>
+                다음: 미리보기
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
