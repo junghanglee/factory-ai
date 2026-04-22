@@ -82,28 +82,28 @@
     "guide": "이용 가이드"
   },
   "hero": {
-    "title1": "AI콘텐츠 해외생산기지",
-    "title2": "압도적인 가성비",
-    "title3": "로 제작!",
-    "searchPlaceholder": "어떤 서비스 찾으시나요?",
-    "learnMore": "자세히 보기 →",
-    "aifactory": "AI팩토리",
-    "fallback1Title": "에이전시 반값!",
-    "fallback1Sub": "AI 콘텐츠 제작\n지금 바로 시작하세요",
-    "fallback2Title": "대량생산 가능",
-    "fallback2Sub": "수백 개의 콘텐츠도\n균일한 퀄리티로",
-    "fallback3Title": "빠른 납기",
-    "fallback3Sub": "AI 자동화로\n3~5배 빠르게 납품"
+    "title1": "검증된 크리에이터의 AI 콘텐츠를",
+    "title2": "마켓플레이스",
+    "title3": "에서 바로 만나보세요",
+    "searchPlaceholder": "어떤 셀러의 서비스를 찾으시나요?",
+    "learnMore": "리스팅 보기 →",
+    "aifactory": "AI팩토리 마켓",
+    "fallback1Title": "셀러가 직접 등록한 서비스",
+    "fallback1Sub": "수많은 크리에이터의\nAI 콘텐츠 리스팅을 둘러보세요",
+    "fallback2Title": "안전결제로 바로 주문",
+    "fallback2Sub": "패키지를 선택하고\n에스크로 안전결제로 주문하세요",
+    "fallback3Title": "리뷰와 평점으로 비교",
+    "fallback3Sub": "실제 구매자 리뷰로\n신뢰할 수 있는 셀러 선택"
   },
   "usp": {
-    "cost": "에이전시 반값수준의 비용",
-    "costDesc": "해외생산기지 설립으로 압도적가성비",
-    "quality": "높은 퀄리티",
-    "qualityDesc": "한국인 관리자가 높은 기준으로 QC",
-    "speed": "빠른 납기/수정",
-    "speedDesc": "전담자 배정을 통해 빠른 업무처리",
-    "mass": "대량생산 가능",
-    "massDesc": "균일한 퀄리티로 대량생산(계약)가능"
+    "cost": "검증된 셀러 마켓플레이스",
+    "costDesc": "신원·역량 검증을 통과한 크리에이터만 입점",
+    "quality": "안전결제 보호",
+    "qualityDesc": "구매자 보호를 위한 에스크로 결제 시스템",
+    "speed": "투명한 리뷰와 평점",
+    "speedDesc": "실제 구매자가 남긴 리뷰로 셀러 비교",
+    "mass": "다양한 카테고리",
+    "massDesc": "이미지·영상·글·음악·웹툰 등 7개 카테고리"
   },
   "reviews": {
     "title": "고객 후기",

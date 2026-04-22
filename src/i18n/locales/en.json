@@ -82,28 +82,28 @@
     "guide": "User Guide"
   },
   "hero": {
-    "title1": "AI Content Production Hub",
-    "title2": "Unbeatable Value",
-    "title3": " — Made with AI!",
-    "searchPlaceholder": "What service are you looking for?",
-    "learnMore": "Learn More →",
-    "aifactory": "AI Factory",
-    "fallback1Title": "Half the Agency Cost!",
-    "fallback1Sub": "AI Content Production\nStart Now",
-    "fallback2Title": "Mass Production",
-    "fallback2Sub": "Hundreds of content pieces\nwith consistent quality",
-    "fallback3Title": "Fast Delivery",
-    "fallback3Sub": "3~5x faster delivery\nwith AI automation"
+    "title1": "Discover AI content services from",
+    "title2": "verified creators",
+    "title3": " on our marketplace",
+    "searchPlaceholder": "Which seller's service are you looking for?",
+    "learnMore": "Browse listings →",
+    "aifactory": "AI Factory Market",
+    "fallback1Title": "Listings posted by sellers",
+    "fallback1Sub": "Browse AI content services\nlisted by independent creators",
+    "fallback2Title": "Order with secure checkout",
+    "fallback2Sub": "Pick a package and order\nwith escrow-protected payments",
+    "fallback3Title": "Compare with reviews & ratings",
+    "fallback3Sub": "Real buyer reviews help you\npick a trustworthy seller"
   },
   "usp": {
-    "cost": "Half the Agency Cost",
-    "costDesc": "Unbeatable pricing with overseas production",
-    "quality": "High Quality",
-    "qualityDesc": "Korean managers ensure high QC standards",
-    "speed": "Fast Delivery & Revisions",
-    "speedDesc": "Dedicated managers for quick turnaround",
-    "mass": "Mass Production Ready",
-    "massDesc": "Consistent quality at scale (contracts available)"
+    "cost": "Vetted seller marketplace",
+    "costDesc": "Only creators who pass identity & skill checks can list",
+    "quality": "Buyer-protected checkout",
+    "qualityDesc": "Escrow-style payment protection on every order",
+    "speed": "Transparent reviews & ratings",
+    "speedDesc": "Compare sellers using verified buyer reviews",
+    "mass": "Wide service catalog",
+    "massDesc": "7 categories: image, video, writing, music, webtoon and more"
   },
   "reviews": {
     "title": "Customer Reviews",
