@@ -159,9 +159,11 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
                 <span>{quote.packageName}</span>
               </div>
             )}
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start gap-2">
               <span className="text-muted-foreground">{isEnglishMode() ? "Amount" : "금액"}</span>
-              <span className="font-bold text-primary">{formatPrice(quote.price, quote.priceUsd)}</span>
+              <span className="font-bold text-primary text-right">
+                {formatPriceBilingual(quote.price, quote.priceUsd)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">납기일</span>
