@@ -153,6 +153,7 @@ const ServiceDetailPage = () => {
 
       await openPaddleCheckout({
         amountUsd,
+        amountKrw: pkg.price,
         productName: `${service.title} - ${pkg.name}`,
         email: user.email ?? undefined,
         customData: {

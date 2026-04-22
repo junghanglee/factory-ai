@@ -1,8 +1,10 @@
 // src/lib/paddle.ts
 // Paddle.js 동적 로더 + 체크아웃 오버레이 헬퍼
 
+import i18n from "i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { showPaddleOutcome } from "@/components/PaddleOutcomeDialog";
+import { formatKrw, formatUsd } from "@/utils/formatPrice";
 
 declare global {
   interface Window {
@@ -105,6 +107,19 @@ export function clearPaddleEventLog() {
 
 // ───────────────── 결제 결과 안내 모달 디스패치 ─────────────────
 let lastCheckoutAttempt: (() => Promise<void>) | null = null;
+let lastCheckoutAmounts: { amountUsd: number; amountKrw?: number } | null = null;
+
+/** 현재 결제 시도의 금액을 사람이 읽기 좋은 양 통화 문자열로 반환 */
+function formatLastAmountBilingual(): string | null {
+  const amounts = lastCheckoutAmounts;
+  if (!amounts) return null;
+  const usdStr = formatUsd(amounts.amountUsd);
+  if (amounts.amountKrw && amounts.amountKrw > 0) {
+    const krwStr = formatKrw(amounts.amountKrw);
+    return i18n.language === "en" ? `${usdStr} (≈ ${krwStr})` : `${krwStr} (≈ ${usdStr})`;
+  }
+  return usdStr;
+}
 
 function getRetryHandler(): (() => void) | undefined {
   const attempt = lastCheckoutAttempt;
@@ -129,10 +144,13 @@ function dispatchOutcomeFromEvent(evt: any) {
   if (!name) return;
 
   if (name === "checkout.completed") {
+    const amountStr = formatLastAmountBilingual();
     showPaddleOutcome({
       kind: "success",
       title: "결제가 완료되었습니다",
-      reason: "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
+      reason: amountStr
+        ? `결제 금액 ${amountStr} 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.`
+        : "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
     });
     return;
   }
@@ -284,6 +302,12 @@ export interface OpenCheckoutParams {
   email?: string;
   /** 웹훅에서 식별하기 위한 메타데이터 */
   customData: Record<string, string>;
+  /**
+   * 사용자에게 표시할 KRW 환산 금액 (선택).
+   * Paddle 체크아웃은 USD 단일 통화로만 표시되므로,
+   * 결제 완료/안내 모달에서 KRW도 함께 보여주기 위해 사용한다.
+   */
+  amountKrw?: number;
 }
 
 /**
@@ -291,8 +315,9 @@ export interface OpenCheckoutParams {
  * Sandbox는 inline price를 거부하므로 엣지 함수에서 price를 먼저 생성해 priceId로 연다.
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
-  // Remember last attempt so the outcome dialog can offer "재시도".
+  // Remember last attempt + amounts so the outcome dialog can offer "재시도" + 양 통화 표시.
   lastCheckoutAttempt = () => openPaddleCheckout(params);
+  lastCheckoutAmounts = { amountUsd: params.amountUsd, amountKrw: params.amountKrw };
 
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
 
@@ -317,12 +342,18 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     throw new Error(`Paddle price 생성 실패: ${detail ?? "알 수 없는 오류"}`);
   }
 
+  // 사용자 언어에 맞춰 Paddle 체크아웃 UI 로케일 결정.
+  // (Paddle은 KRW 결제 통화는 지원하지 않지만 UI 언어는 한국어로 표시 가능)
+  const checkoutLocale = i18n.language === "en" ? "en" : "ko";
+
   // eslint-disable-next-line no-console
   console.log("[Paddle] opening checkout", {
     env: environment,
     amountUsd: params.amountUsd,
+    amountKrw: params.amountKrw,
     productName: params.productName,
     priceId,
+    locale: checkoutLocale,
     customData: params.customData,
   });
 
@@ -333,7 +364,7 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     settings: {
       displayMode: "overlay",
       theme: "light",
-      locale: "en",
+      locale: checkoutLocale,
       ...(params.successUrl ? { successUrl: params.successUrl } : {}),
     },
   });
