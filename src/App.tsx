@@ -94,6 +94,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <SellerLoginNotifications />
+          <PaddleOutcomeDialog />
           <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
