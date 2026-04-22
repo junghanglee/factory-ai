@@ -1,7 +1,27 @@
-const clientToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined;
+import { useEffect, useState } from "react";
+
+import { getPaddleEnvironment } from "@/lib/paddle";
 
 export function PaymentTestModeBanner() {
-  if (!clientToken?.startsWith("test_")) return null;
+  const [isSandbox, setIsSandbox] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    getPaddleEnvironment()
+      .then((environment) => {
+        if (mounted) setIsSandbox(environment === "sandbox");
+      })
+      .catch(() => {
+        if (mounted) setIsSandbox(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!isSandbox) return null;
 
   return (
     <div className="w-full bg-orange-100 border-b border-orange-300 px-4 py-2 text-center text-sm text-orange-800">
