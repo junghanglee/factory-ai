@@ -185,7 +185,7 @@ function ResourceTable({ resource, columns }: { resource: Resource; columns: { k
 }
 
 export default function AdminPaddle() {
-  const [tab, setTab] = useState<Resource>("transactions");
+  const [tab, setTab] = useState<Resource>("payments");
 
   return (
     <AdminLayout>
