@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, User, Package, Pencil, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+type QuoteSource = "user" | "package" | "manual";
 
 interface ServicePackage {
   id: string;
