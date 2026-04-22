@@ -315,8 +315,9 @@ export interface OpenCheckoutParams {
  * Sandbox는 inline price를 거부하므로 엣지 함수에서 price를 먼저 생성해 priceId로 연다.
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
-  // Remember last attempt so the outcome dialog can offer "재시도".
+  // Remember last attempt + amounts so the outcome dialog can offer "재시도" + 양 통화 표시.
   lastCheckoutAttempt = () => openPaddleCheckout(params);
+  lastCheckoutAmounts = { amountUsd: params.amountUsd, amountKrw: params.amountKrw };
 
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
 
@@ -341,12 +342,18 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     throw new Error(`Paddle price 생성 실패: ${detail ?? "알 수 없는 오류"}`);
   }
 
+  // 사용자 언어에 맞춰 Paddle 체크아웃 UI 로케일 결정.
+  // (Paddle은 KRW 결제 통화는 지원하지 않지만 UI 언어는 한국어로 표시 가능)
+  const checkoutLocale = i18n.language === "en" ? "en" : "ko";
+
   // eslint-disable-next-line no-console
   console.log("[Paddle] opening checkout", {
     env: environment,
     amountUsd: params.amountUsd,
+    amountKrw: params.amountKrw,
     productName: params.productName,
     priceId,
+    locale: checkoutLocale,
     customData: params.customData,
   });
 
@@ -357,8 +364,9 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     settings: {
       displayMode: "overlay",
       theme: "light",
-      locale: "en",
+      locale: checkoutLocale,
       ...(params.successUrl ? { successUrl: params.successUrl } : {}),
     },
   });
+}
 }
