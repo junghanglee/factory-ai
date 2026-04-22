@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Star, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import SellerBadge from "@/components/SellerBadge";
+// SellerBadge removed: first-party only store
 import { useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import LazyMount from "@/components/LazyMount";
@@ -101,8 +101,7 @@ const CategoryPage = () => {
                     </div>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-xs text-muted-foreground">{service.seller}</p>
-                        <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
+                        <p className="text-xs text-muted-foreground">LINKTO Factory</p>
                       </div>
                       <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
                       <div className="flex items-center gap-1 mb-2">
@@ -159,8 +158,7 @@ const CategoryPage = () => {
                         </div>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-xs text-muted-foreground">{service.seller}</p>
-                            <SellerBadge sellerId={(service as any).seller_id} sellerName={service.seller} />
+                            <p className="text-xs text-muted-foreground">LINKTO Factory</p>
                           </div>
                           <h3 className="text-sm font-medium line-clamp-2 mb-2 min-h-[2.5rem]">{localize(service, "title")}</h3>
                           <div className="flex items-center gap-1 mb-2">

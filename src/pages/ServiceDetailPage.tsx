@@ -4,7 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, Clock, MessageCircle, ShoppingCart, ChevronRight, TrendingDown, Zap, User, Store, ShieldCheck, CreditCard, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import SellerBadge from "@/components/SellerBadge";
+// SellerBadge removed: first-party only store
 import { localize } from "@/utils/localize";
 import { formatPrice, displayServicePrice, formatOriginalPrice, getPaymentAmount } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
@@ -301,8 +301,11 @@ const ServiceDetailPage = () => {
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-3">{localize(service, "title")}</h1>
               <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                <span className="font-medium text-foreground">{service.seller}</span>
-                <SellerBadge sellerId={(service as any).seller_id} sellerName={(service as any).seller_profiles?.business_name || service.seller} />
+                <span className="font-medium text-foreground">LINKTO Factory</span>
+                <span className="flex items-center gap-1 text-xs text-primary font-medium">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  자체 제작 콘텐츠
+                </span>
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   {avgRating} ({reviews.length}개 리뷰)
@@ -312,31 +315,6 @@ const ServiceDetailPage = () => {
                   {t("serviceDetail.avgDays", { days: service.delivery_days })}
                 </span>
               </div>
-
-              {/* Seller info card */}
-              {(service as any).seller_profiles && (
-                <div className="mt-4 p-4 border rounded-lg bg-card flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    {(service as any).seller_profiles.profile_image ? (
-                      <img src={(service as any).seller_profiles.profile_image} alt="" className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      <Store className="h-6 w-6 text-primary" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{(service as any).seller_profiles.business_name}</span>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{t("serviceDetail.verified")}</span>
-                    </div>
-                    {(service as any).seller_profiles.bio && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{(service as any).seller_profiles.bio}</p>
-                    )}
-                  </div>
-                  <Link to={`/seller/${(service as any).seller_profiles.id}`} className="text-sm text-primary hover:underline shrink-0">
-                    {t("serviceDetail.viewProfile")}
-                  </Link>
-                </div>
-              )}
             </div>
 
             <div>
