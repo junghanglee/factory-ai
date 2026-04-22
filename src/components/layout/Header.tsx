@@ -79,7 +79,7 @@ const Header = () => {
                       {myPageMenuItems.map((item) => (
                          <Link
                           key={item.id}
-                          to={`/mypage?tab=${item.id}`}
+                          to={item.id === "payments" ? "/orders" : `/mypage?tab=${item.id}`}
                           className="flex items-center gap-3 px-4 py-2.5 text-[14px] hover:bg-secondary transition-colors"
                           onClick={() => setMyPageMenuOpen(false)}
                         >
