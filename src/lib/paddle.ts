@@ -138,6 +138,11 @@ export async function loadPaddle(): Promise<any> {
             } catch {
               /* ignore storage errors */
             }
+            try {
+              dispatchOutcomeFromEvent(data);
+            } catch {
+              /* ignore outcome dispatch errors */
+            }
             if (data?.name === "checkout.error" || data?.name === "checkout.warning") {
               // eslint-disable-next-line no-console
               console.error("[Paddle checkout error]", data);
