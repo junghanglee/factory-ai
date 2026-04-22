@@ -365,21 +365,100 @@ export default function QuoteDialog({
         </div>
 
         {/* 확정 견적 미리보기 (확인 단계) */}
-        {showConfirm && (
-          <div className="border-2 border-primary/50 rounded-lg p-3 bg-primary/5 space-y-1.5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary mb-1">
-              <CheckCircle2 className="h-4 w-4" />
-              확정 견적 미리보기
+        {showConfirm && (() => {
+          // 근거 산출
+          const selectedPkg = packages.find((p) => p.id === selectedPkgId);
+          const basePrice =
+            source === "user" ? defaultPrice :
+            source === "package" ? (selectedPkg?.price ?? 0) :
+            0;
+          const baseDelivery =
+            source === "user" ? defaultDeliveryDays :
+            source === "package" ? (selectedPkg?.delivery_days ?? 0) :
+            0;
+          const priceDiff = basePrice > 0 ? priceNum - basePrice : 0;
+          const deliveryDiff = baseDelivery > 0 ? (parseInt(deliveryDays) || 0) - baseDelivery : 0;
+          const sourceDetail =
+            source === "user" ? "사용자가 채팅에서 처음 신청한 금액/납기" :
+            source === "package" ? (selectedPkg ? `상품 패키지 「${selectedPkg.name}」` : "상품 패키지") :
+            "관리자가 직접 입력한 금액";
+
+          return (
+            <div className="border-2 border-primary/50 rounded-lg p-3 bg-primary/5 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <CheckCircle2 className="h-4 w-4" />
+                확정 견적 최종 확인
+              </div>
+
+              {/* 1. 근거 */}
+              <div className="rounded-md bg-background/70 border p-2.5 space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {source === "user" ? <User className="h-3 w-3" /> : source === "package" ? <Package className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
+                  견적 근거
+                </div>
+                <div className="text-xs font-medium">{sourceLabel[source]}</div>
+                <div className="text-[11px] text-muted-foreground leading-snug">{sourceDetail}</div>
+              </div>
+
+              {/* 2. 변경 내역 (근거가 있는 경우만) */}
+              {(source === "user" || source === "package") && basePrice > 0 && (
+                <div className="rounded-md bg-background/70 border p-2.5 space-y-1.5">
+                  <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">변경 내역</div>
+                  {priceDiff === 0 && deliveryDiff === 0 ? (
+                    <div className="text-xs text-muted-foreground">변경 없음 — 근거 그대로 발송됩니다.</div>
+                  ) : (
+                    <div className="text-xs space-y-1">
+                      {priceDiff !== 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">금액</span>
+                          <span className="font-mono">
+                            {basePrice.toLocaleString()}원
+                            <span className="mx-1 text-muted-foreground">→</span>
+                            <span className="font-semibold">{priceNum.toLocaleString()}원</span>
+                            <span className={`ml-1.5 font-semibold ${priceDiff > 0 ? "text-destructive" : "text-success"}`}>
+                              ({priceDiff > 0 ? "+" : ""}{priceDiff.toLocaleString()})
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      {deliveryDiff !== 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">납기</span>
+                          <span className="font-mono">
+                            {baseDelivery}일
+                            <span className="mx-1 text-muted-foreground">→</span>
+                            <span className="font-semibold">{deliveryDays}일</span>
+                            <span className={`ml-1.5 font-semibold ${deliveryDiff > 0 ? "text-destructive" : "text-success"}`}>
+                              ({deliveryDiff > 0 ? "+" : ""}{deliveryDiff}일)
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 3. 최종 확정 내용 */}
+              <div className="rounded-md bg-background/70 border p-2.5 space-y-1">
+                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">최종 확정 내용</div>
+                <div className="text-xs space-y-1 pt-0.5">
+                  <div className="flex justify-between"><span className="text-muted-foreground">유형</span><span className="font-medium">{quoteType === "addon" ? `추가금 (${addonMode === "merge" ? "기존 합산" : "별도 청구"})` : "신규 확정 견적"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">서비스</span><span className="font-medium">{serviceTitle}</span></div>
+                  {packageName && <div className="flex justify-between"><span className="text-muted-foreground">{quoteType === "addon" ? "항목" : "패키지"}</span><span>{packageName}</span></div>}
+                  <div className="flex justify-between"><span className="text-muted-foreground">금액</span><span className="font-bold text-primary">{priceNum.toLocaleString()}원{priceUsd ? ` (≈ $${priceUsd})` : ""}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">납기</span><span>{deliveryDays}일</span></div>
+                  {memo && (
+                    <div className="pt-1 mt-1 border-t">
+                      <div className="text-muted-foreground mb-0.5">메모</div>
+                      <div className="text-[11px] whitespace-pre-wrap leading-snug">{memo}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="text-xs space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">출처</span><span className="font-medium">{sourceLabel[source]}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">서비스</span><span className="font-medium">{serviceTitle}</span></div>
-              {packageName && <div className="flex justify-between"><span className="text-muted-foreground">{quoteType === "addon" ? "항목" : "패키지"}</span><span>{packageName}</span></div>}
-              <div className="flex justify-between"><span className="text-muted-foreground">금액</span><span className="font-bold text-primary">{priceNum.toLocaleString()}원{priceUsd ? ` (≈ $${priceUsd})` : ""}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">납기</span><span>{deliveryDays}일</span></div>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         <DialogFooter>
           {showConfirm ? (
