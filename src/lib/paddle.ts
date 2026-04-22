@@ -369,4 +369,3 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     },
   });
 }
-}
