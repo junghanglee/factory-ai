@@ -291,6 +291,9 @@ export interface OpenCheckoutParams {
  * Sandbox는 inline price를 거부하므로 엣지 함수에서 price를 먼저 생성해 priceId로 연다.
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
+  // Remember last attempt so the outcome dialog can offer "재시도".
+  lastCheckoutAttempt = () => openPaddleCheckout(params);
+
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
 
   const { data, error } = await supabase.functions.invoke("paddle-create-price", {
