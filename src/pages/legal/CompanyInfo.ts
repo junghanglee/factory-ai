@@ -5,7 +5,7 @@ export const COMPANY = {
   representative: "이정행",
   bizNumber: "888-88-03588",
   address: "경기도 용인시 수지구 대지로 36",
-  email: "linktoclaw@gmail.com",
+  email: "junghanglee@gmail.com",
   brand: "LINKTO Factory",
   domain: "linktofactory.com",
   effectiveDate: "2026-04-22",

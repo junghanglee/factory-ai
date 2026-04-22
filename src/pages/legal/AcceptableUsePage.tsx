@@ -4,9 +4,9 @@ import EnglishSummary from "@/components/legal/EnglishSummary";
 const AcceptableUsePage = () => (
   <LegalLayout
     title="서비스 이용 정책 (Acceptable Use Policy)"
-    intro="LINKTO Factory에서 주문·요청할 수 없는 콘텐츠와 행위를 명시합니다. 본 정책 위반 시 주문 취소, 거래 거절, 계정 정지가 적용될 수 있습니다. 신고 및 문의는 linktoclaw@gmail.com으로 연락 주시기 바랍니다."
+    intro="LINKTO Factory에서 주문·요청할 수 없는 콘텐츠와 행위를 명시합니다. 본 정책 위반 시 주문 취소, 거래 거절, 계정 정지가 적용될 수 있습니다. 신고 및 문의는 junghanglee@gmail.com으로 연락 주시기 바랍니다."
   >
-    <EnglishSummary summary="This Acceptable Use Policy lists content and activities that are NOT permitted on LINKTO Factory and aligns with Paddle's Acceptable Use Policy. Prohibited content includes: adult / sexually explicit material, copyright or trademark infringement, gambling, illegal drugs, weapons, financial fraud, hate or discriminatory content, third-party personal data, and malware or phishing material. Prohibited behaviour includes: fake reviews, payment circumvention, off-platform payment, scraping/bots, and unauthorised access attempts. IP infringement notices are reviewed within 3 business days and infringing content is removed immediately. Report violations to linktoclaw@gmail.com." />
+    <EnglishSummary summary="This Acceptable Use Policy lists content and activities that are NOT permitted on LINKTO Factory and aligns with Paddle's Acceptable Use Policy. Prohibited content includes: adult / sexually explicit material, copyright or trademark infringement, gambling, illegal drugs, weapons, financial fraud, hate or discriminatory content, third-party personal data, and malware or phishing material. Prohibited behaviour includes: fake reviews, payment circumvention, off-platform payment, scraping/bots, and unauthorised access attempts. IP infringement notices are reviewed within 3 business days and infringing content is removed immediately. Report violations to junghanglee@gmail.com." />
     <h2>1. 주문/요청이 금지되는 콘텐츠</h2>
     <ul>
       <li>음란물, 노골적인 성적 콘텐츠, 아동 관련 부적절한 콘텐츠</li>
@@ -28,7 +28,7 @@ const AcceptableUsePage = () => (
 
     <h2>3. 지적재산권 침해 신고 (IP Infringement Notice)</h2>
     <p>
-      회사가 제공하는 콘텐츠 또는 이용자가 업로드한 자료가 귀하의 저작권·상표권·기타 지적재산권을 침해한다고 판단될 경우, <a href="mailto:linktoclaw@gmail.com">linktoclaw@gmail.com</a>으로 다음 정보를 포함한 침해 신고서를 제출해 주세요:
+      회사가 제공하는 콘텐츠 또는 이용자가 업로드한 자료가 귀하의 저작권·상표권·기타 지적재산권을 침해한다고 판단될 경우, <a href="mailto:junghanglee@gmail.com">junghanglee@gmail.com</a>으로 다음 정보를 포함한 침해 신고서를 제출해 주세요:
     </p>
     <ol>
       <li>침해 주장 권리자의 이름·연락처·주소</li>
@@ -42,7 +42,7 @@ const AcceptableUsePage = () => (
 
     <h2>4. 위반 신고 및 처리</h2>
     <p>
-      위반 사항을 발견하면 <a href="mailto:linktoclaw@gmail.com">linktoclaw@gmail.com</a>로 신고해 주세요. 회사는 24시간 이내 검토를 시작하며, 사실 확인 시 콘텐츠 삭제·계정 정지·환불·법적 조치를 취합니다.
+      위반 사항을 발견하면 <a href="mailto:junghanglee@gmail.com">junghanglee@gmail.com</a>로 신고해 주세요. 회사는 24시간 이내 검토를 시작하며, 사실 확인 시 콘텐츠 삭제·계정 정지·환불·법적 조치를 취합니다.
     </p>
 
     <h2>5. 정책의 변경</h2>
