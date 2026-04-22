@@ -27,6 +27,7 @@ export interface QuoteSubmitParams {
   deliveryDays: number;
   memo: string;
   quoteType: "new" | "addon"; // 신규 견적 / 추가금
+  addonMode?: "separate" | "merge"; // 추가금: 별도 청구서 vs 기존 결제건에 합산
 }
 
 interface QuoteDialogProps {
@@ -51,6 +52,7 @@ export default function QuoteDialog({
   hasExistingPayment = false,
 }: QuoteDialogProps) {
   const [quoteType, setQuoteType] = useState<"new" | "addon">(hasExistingPayment ? "addon" : "new");
+  const [addonMode, setAddonMode] = useState<"separate" | "merge">("separate");
   const [source, setSource] = useState<QuoteSource>("manual");
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [selectedPkgId, setSelectedPkgId] = useState<string>("");
@@ -70,6 +72,7 @@ export default function QuoteDialog({
   useEffect(() => {
     if (!open) return;
     setQuoteType(hasExistingPayment ? "addon" : "new");
+    setAddonMode("separate");
     setServiceTitle(defaultServiceTitle);
     setPrice(defaultPrice ? String(defaultPrice) : "");
     setDeliveryDays(String(defaultDeliveryDays));
@@ -139,6 +142,7 @@ export default function QuoteDialog({
         deliveryDays: parseInt(deliveryDays) || 7,
         memo: memo.trim(),
         quoteType,
+        addonMode: quoteType === "addon" ? addonMode : undefined,
       });
       onOpenChange(false);
     } finally {
@@ -176,9 +180,41 @@ export default function QuoteDialog({
           </TabsList>
         </Tabs>
         {quoteType === "addon" && (
-          <p className="text-xs text-warning-foreground bg-warning/10 border border-warning/30 rounded-md p-2">
-            ⚡ 추가금은 별도 결제건으로 처리되며, 사용자에게 추가 결제 버튼이 표시됩니다.
-          </p>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">추가금 처리 방식</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAddonMode("separate")}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-md border text-left transition-colors ${
+                  addonMode === "separate"
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background hover:bg-accent"
+                }`}
+              >
+                <span className="text-xs font-semibold">별도 청구서</span>
+                <span className="text-[10px] text-muted-foreground leading-tight">새 결제건(ADD-)으로 분리. 환불·정산이 독립적</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddonMode("merge")}
+                disabled={!hasExistingPayment}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-md border text-left transition-colors ${
+                  addonMode === "merge"
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background hover:bg-accent"
+                } ${!hasExistingPayment ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <span className="text-xs font-semibold">기존 결제건에 합산</span>
+                <span className="text-[10px] text-muted-foreground leading-tight">원 인보이스 금액 증액 + 차액만 결제 청구</span>
+              </button>
+            </div>
+            <p className="text-xs text-warning-foreground bg-warning/10 border border-warning/30 rounded-md p-2">
+              {addonMode === "separate"
+                ? "⚡ 별도 결제건으로 처리됩니다. 사용자에게 새 결제 버튼이 표시되며 환불·정산도 분리됩니다."
+                : "🔗 기존 인보이스 금액에 합산되고, 사용자에게는 차액만 결제 버튼으로 표시됩니다."}
+            </p>
+          </div>
         )}
 
         {/* 견적 출처 선택 (신규 견적일 때만) */}

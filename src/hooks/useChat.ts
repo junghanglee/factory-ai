@@ -427,16 +427,98 @@ export function useChat() {
   // Admin/Seller: Send quote (신규 또는 추가금)
   const sendQuote = useCallback(async (params: {
     serviceTitle: string; packageName: string; price: number; priceUsd?: number | null; deliveryDays: number; memo: string;
-    packageId?: string | null; quoteType?: "new" | "addon";
+    packageId?: string | null; quoteType?: "new" | "addon"; addonMode?: "separate" | "merge";
   }) => {
     if (!user || !selectedRoomId) return null;
     const isAddon = params.quoteType === "addon";
+    const isMerge = isAddon && params.addonMode === "merge";
+    const room = rooms.find(r => r.id === selectedRoomId);
+
+    // ─── 추가금: 기존 결제건에 합산 ───
+    if (isMerge) {
+      // 채팅방의 기본 project_id 또는 가장 최근의 메인(ORD-) 프로젝트를 기준으로 합산
+      let baseProjectId = room?.project_id || null;
+      if (!baseProjectId && room?.customer_id) {
+        const { data: latest } = await supabase.from("projects")
+          .select("id, price")
+          .eq("customer_id", room.customer_id)
+          .like("order_number", "ORD-%")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        baseProjectId = latest?.id || null;
+      }
+      if (!baseProjectId) {
+        toast.error("합산할 기존 결제건을 찾지 못했습니다. '별도 청구서'로 발송해주세요.");
+        return null;
+      }
+      const { data: baseProj } = await supabase.from("projects")
+        .select("id, order_number, service_title, price, payment_status, quote_details")
+        .eq("id", baseProjectId).maybeSingle();
+      if (!baseProj) { toast.error("기존 결제건 정보를 불러올 수 없습니다."); return null; }
+
+      const previousPrice = baseProj.price || 0;
+      const newTotalPrice = previousPrice + params.price;
+      const oldDetails = (baseProj.quote_details as any) || {};
+      const addonHistory = Array.isArray(oldDetails.addonHistory) ? oldDetails.addonHistory : [];
+      addonHistory.push({
+        addedAt: new Date().toISOString(),
+        amount: params.price,
+        amountUsd: params.priceUsd ?? null,
+        reason: params.serviceTitle,
+        memo: params.memo || null,
+      });
+      const updatedDetails = {
+        ...oldDetails,
+        price: newTotalPrice,
+        previousPrice,
+        addonHistory,
+      };
+
+      // 원 프로젝트 금액을 합산값으로 갱신 (결제 상태는 유지하지 않고 차액 결제 대기로 전환)
+      await supabase.from("projects").update({
+        price: newTotalPrice,
+        payment_status: "입금대기",
+        quote_details: updatedDetails,
+        notes: (baseProj as any).notes ? `${(baseProj as any).notes}\n[추가금 합산] +${params.price.toLocaleString()}원 - ${params.serviceTitle}` : `[추가금 합산] +${params.price.toLocaleString()}원 - ${params.serviceTitle}`,
+      }).eq("id", baseProjectId);
+
+      // 차액 결제용 견적 메시지 (기존 프로젝트에 연결)
+      const mergeQuoteDetails = {
+        serviceTitle: params.serviceTitle,
+        packageName: params.packageName || undefined,
+        price: params.price,
+        priceUsd: params.priceUsd ?? undefined,
+        deliveryDays: params.deliveryDays,
+        memo: params.memo || undefined,
+        orderNumber: baseProj.order_number,
+        isAddon: true,
+        isMerged: true,
+        previousPrice,
+        newTotalPrice,
+      };
+      await supabase.from("chat_messages").insert({
+        room_id: selectedRoomId, sender_id: user.id,
+        message: `🔗 추가금이 기존 결제건에 합산되었습니다.\n항목: ${params.serviceTitle}\n추가금: ${params.price.toLocaleString()}원${params.priceUsd ? ` ($${params.priceUsd})` : ""}\n총 결제 금액: ${previousPrice.toLocaleString()}원 → ${newTotalPrice.toLocaleString()}원`,
+        message_type: "quote", file_name: JSON.stringify(mergeQuoteDetails),
+      });
+      await supabase.from("chat_rooms").update({
+        last_message: `🔗 추가금 합산: +${params.price.toLocaleString()}원`,
+        last_message_at: new Date().toISOString(),
+      }).eq("id", selectedRoomId);
+
+      toast.success("기존 결제건에 추가금이 합산되었습니다.");
+      await fetchProject(selectedRoomId);
+      await fetchRooms();
+      return baseProj as Project;
+    }
+
+    // ─── 신규 견적 또는 별도 추가금 ───
     const orderPrefix = isAddon ? "ADD" : "ORD";
     const orderNumber = `${orderPrefix}-${Date.now().toString(36).toUpperCase()}`;
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + params.deliveryDays);
     let sellerId: string | null = null;
-    const room = rooms.find(r => r.id === selectedRoomId);
     if (room?.service_id) {
       const { data: svc } = await supabase.from("services").select("seller_id").eq("id", room.service_id).maybeSingle();
       if (svc?.seller_id) sellerId = svc.seller_id;
@@ -486,7 +568,7 @@ export function useChat() {
     toast.success(`${labelText}가 발송되었습니다.`);
     await fetchRooms();
     return proj as Project;
-  }, [user, selectedRoomId, rooms, fetchRooms]);
+  }, [user, selectedRoomId, rooms, fetchRooms, fetchProject]);
 
   // Admin/Seller: Confirm payment
   const confirmPayment = useCallback(async () => {

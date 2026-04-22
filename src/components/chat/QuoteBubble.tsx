@@ -20,6 +20,9 @@ interface QuoteDetails {
   orderNumber?: string;
   packageId?: string;
   isAddon?: boolean;
+  isMerged?: boolean;
+  previousPrice?: number;
+  newTotalPrice?: number;
 }
 
 interface QuoteBubbleProps {
@@ -125,6 +128,8 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
 
   const canPay = !isMine && !isAdmin && (effectiveStatus === "견적발송" || effectiveStatus === "입금대기");
 
+  const isMerged = isAddon && !!quote.isMerged;
+
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2`}>
       <div className="max-w-[360px] w-full">
@@ -134,11 +139,11 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
             <div className="flex items-center gap-2">
               {isAddon ? <Plus className="h-4 w-4 text-amber-600" /> : <FileText className="h-4 w-4 text-primary" />}
               <span className="font-semibold text-sm">
-                {isAddon ? "추가금 청구서" : "견적서"}
+                {isMerged ? "추가금 (기존 결제건 합산)" : isAddon ? "추가금 청구서" : "견적서"}
               </span>
               {isAddon && (
                 <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100">
-                  ADDON
+                  {isMerged ? "MERGED" : "ADDON"}
                 </span>
               )}
             </div>
@@ -160,11 +165,23 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
               </div>
             )}
             <div className="flex justify-between items-start gap-2">
-              <span className="text-muted-foreground">{isEnglishMode() ? "Amount" : "금액"}</span>
+              <span className="text-muted-foreground">{isMerged ? "추가 금액" : isEnglishMode() ? "Amount" : "금액"}</span>
               <span className="font-bold text-primary text-right">
-                {formatPriceBilingual(quote.price, quote.priceUsd)}
+                {isMerged ? "+" : ""}{formatPriceBilingual(quote.price, quote.priceUsd)}
               </span>
             </div>
+            {isMerged && quote.previousPrice !== undefined && quote.newTotalPrice !== undefined && (
+              <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">기존 결제 금액</span>
+                  <span>{quote.previousPrice.toLocaleString()}원</span>
+                </div>
+                <div className="flex justify-between font-semibold text-amber-900 dark:text-amber-100">
+                  <span>합산 후 총 결제 금액</span>
+                  <span>{quote.newTotalPrice.toLocaleString()}원</span>
+                </div>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">납기일</span>
               <span>{quote.deliveryDays}일</span>
@@ -195,7 +212,7 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
                   {paying ? (
                     <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> 결제창 여는 중…</>
                   ) : (
-                    <><CreditCard className="h-3.5 w-3.5 mr-1" /> {isAddon ? "추가금 결제하기" : "카드결제하기"}</>
+                    <><CreditCard className="h-3.5 w-3.5 mr-1" /> {isMerged ? "차액 결제하기" : isAddon ? "추가금 결제하기" : "카드결제하기"}</>
                   )}
                 </Button>
               )}
@@ -212,3 +229,4 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
     </div>
   );
 }
+
