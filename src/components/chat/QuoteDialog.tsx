@@ -72,6 +72,7 @@ export default function QuoteDialog({
   useEffect(() => {
     if (!open) return;
     setQuoteType(hasExistingPayment ? "addon" : "new");
+    setAddonMode("separate");
     setServiceTitle(defaultServiceTitle);
     setPrice(defaultPrice ? String(defaultPrice) : "");
     setDeliveryDays(String(defaultDeliveryDays));
