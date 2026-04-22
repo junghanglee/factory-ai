@@ -31,6 +31,10 @@ const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
 const SellerProfilePage = lazy(() => import("./pages/SellerProfilePage"));
 const PortfolioDetailPage = lazy(() => import("./pages/PortfolioDetailPage"));
 const PaddlePaymentLinkPage = lazy(() => import("./pages/PaddlePaymentLinkPage"));
+const TermsPage = lazy(() => import("./pages/legal/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/legal/PrivacyPage"));
+const RefundPolicyPage = lazy(() => import("./pages/legal/RefundPolicyPage"));
+const AcceptableUsePage = lazy(() => import("./pages/legal/AcceptableUsePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
@@ -105,6 +109,10 @@ const App = () => (
             <Route path="/category/:id" element={<CategoryPage />} />
             <Route path="/service/:id" element={<ServiceDetailPage />} />
             <Route path="/pay" element={<PaddlePaymentLinkPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
+            <Route path="/acceptable-use" element={<AcceptableUsePage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/order" element={<OrderPage />} />
             <Route path="/my-projects" element={<MyProjectsPage />} />
