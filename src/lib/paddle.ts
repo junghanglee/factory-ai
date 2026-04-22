@@ -108,6 +108,8 @@ export function clearPaddleEventLog() {
 // ───────────────── 결제 결과 안내 모달 디스패치 ─────────────────
 let lastCheckoutAttempt: (() => Promise<void>) | null = null;
 let lastCheckoutAmounts: { amountUsd: number; amountKrw?: number } | null = null;
+let lastCheckoutEmail: string | null = null;
+let lastCheckoutCustomData: Record<string, string> | null = null;
 
 /** 현재 결제 시도의 금액을 사람이 읽기 좋은 양 통화 문자열로 반환 */
 function formatLastAmountBilingual(): string | null {
@@ -145,12 +147,17 @@ function dispatchOutcomeFromEvent(evt: any) {
 
   if (name === "checkout.completed") {
     const amountStr = formatLastAmountBilingual();
+    const email: string | undefined =
+      evt?.data?.customer?.email || lastCheckoutEmail || undefined;
+    const projectId: string | undefined =
+      evt?.data?.custom_data?.project_id || lastCheckoutCustomData?.project_id;
     showPaddleOutcome({
       kind: "success",
       title: "결제가 완료되었습니다",
-      reason: amountStr
-        ? `결제 금액 ${amountStr} 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.`
-        : "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
+      reason: "결제가 정상적으로 완료되었습니다.",
+      amountStr: amountStr ?? undefined,
+      email,
+      projectId,
     });
     return;
   }
