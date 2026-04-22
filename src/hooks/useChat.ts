@@ -424,12 +424,15 @@ export function useChat() {
     }).eq("id", selectedRoomId);
   }, [project, selectedRoomId, user, fetchProject]);
 
-  // Admin/Seller: Send quote
+  // Admin/Seller: Send quote (신규 또는 추가금)
   const sendQuote = useCallback(async (params: {
     serviceTitle: string; packageName: string; price: number; priceUsd?: number | null; deliveryDays: number; memo: string;
+    packageId?: string | null; quoteType?: "new" | "addon";
   }) => {
     if (!user || !selectedRoomId) return null;
-    const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+    const isAddon = params.quoteType === "addon";
+    const orderPrefix = isAddon ? "ADD" : "ORD";
+    const orderNumber = `${orderPrefix}-${Date.now().toString(36).toUpperCase()}`;
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + params.deliveryDays);
     let sellerId: string | null = null;
@@ -438,31 +441,49 @@ export function useChat() {
       const { data: svc } = await supabase.from("services").select("seller_id").eq("id", room.service_id).maybeSingle();
       if (svc?.seller_id) sellerId = svc.seller_id;
     }
-    const quoteDetails = { serviceTitle: params.serviceTitle, packageName: params.packageName || undefined, price: params.price, priceUsd: params.priceUsd ?? undefined, deliveryDays: params.deliveryDays, memo: params.memo || undefined, orderNumber };
+    const quoteDetails = {
+      serviceTitle: params.serviceTitle,
+      packageName: params.packageName || undefined,
+      packageId: params.packageId || undefined,
+      price: params.price,
+      priceUsd: params.priceUsd ?? undefined,
+      deliveryDays: params.deliveryDays,
+      memo: params.memo || undefined,
+      orderNumber,
+      isAddon,
+    };
     const { data: proj, error } = await supabase.from("projects").insert({
-      order_number: orderNumber, service_title: params.serviceTitle, package_name: params.packageName || null,
+      order_number: orderNumber,
+      service_title: isAddon ? `[추가금] ${params.serviceTitle}` : params.serviceTitle,
+      package_name: params.packageName || null,
       customer: room?.title || "고객", customer_id: room?.customer_id || null, price: params.price,
       status: "대기", payment_status: "견적발송", quote_details: quoteDetails,
       due_date: dueDate.toISOString().split("T")[0], notes: params.memo || null, seller_id: sellerId,
     }).select().single();
     if (error || !proj) { console.error(error); toast.error("견적서 발송에 실패했습니다."); return null; }
-    await supabase.from("chat_rooms").update({ project_id: proj.id }).eq("id", selectedRoomId);
+    // 신규 견적인 경우에만 채팅방의 기본 project_id 갱신 (추가금은 별도 건으로 유지)
+    if (!isAddon) {
+      await supabase.from("chat_rooms").update({ project_id: proj.id }).eq("id", selectedRoomId);
+    }
+    const labelEmoji = isAddon ? "💳" : "📋";
+    const labelText = isAddon ? "추가금 청구서" : "견적서";
     await supabase.from("chat_messages").insert({
       room_id: selectedRoomId, sender_id: user.id,
-      message: `📋 견적서가 발송되었습니다.\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원${params.priceUsd ? ` ($${params.priceUsd})` : ''}`,
+      message: `${labelEmoji} ${labelText}가 발송되었습니다.\n서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원${params.priceUsd ? ` ($${params.priceUsd})` : ''}`,
       message_type: "quote", file_name: JSON.stringify(quoteDetails),
     });
     await supabase.from("chat_rooms").update({
-      last_message: `📋 견적서: ${params.price.toLocaleString()}원`, last_message_at: new Date().toISOString(),
+      last_message: `${labelEmoji} ${labelText}: ${params.price.toLocaleString()}원`, last_message_at: new Date().toISOString(),
     }).eq("id", selectedRoomId);
     if (sellerId) {
       await supabase.from("seller_notifications").insert({
-        seller_id: sellerId, type: "quote_sent", title: "견적서가 발송되었습니다",
+        seller_id: sellerId, type: isAddon ? "addon_quote_sent" : "quote_sent",
+        title: isAddon ? "추가금 청구서가 발송되었습니다" : "견적서가 발송되었습니다",
         message: `서비스: ${params.serviceTitle}\n금액: ${params.price.toLocaleString()}원`,
-        metadata: { project_id: proj.id, order_number: orderNumber },
+        metadata: { project_id: proj.id, order_number: orderNumber, is_addon: isAddon },
       });
     }
-    toast.success("견적서가 발송되었습니다.");
+    toast.success(`${labelText}가 발송되었습니다.`);
     await fetchRooms();
     return proj as Project;
   }, [user, selectedRoomId, rooms, fetchRooms]);
