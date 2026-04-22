@@ -13,6 +13,49 @@ const environment: "sandbox" | "production" =
 
 let loadPromise: Promise<any> | null = null;
 
+// ───────────────── Paddle 이벤트 로깅 (관리자 진단용) ─────────────────
+const EVENT_LOG_KEY = "paddle_event_log";
+const MAX_EVENTS = 30;
+
+export interface PaddleEventLogEntry {
+  ts: string;
+  name: string;
+  data: any;
+}
+
+function recordPaddleEvent(evt: any) {
+  if (typeof window === "undefined") return;
+  const entry: PaddleEventLogEntry = {
+    ts: new Date().toISOString(),
+    name: evt?.name ?? "unknown",
+    data: evt,
+  };
+  try {
+    const raw = window.localStorage.getItem(EVENT_LOG_KEY);
+    const list: PaddleEventLogEntry[] = raw ? JSON.parse(raw) : [];
+    list.unshift(entry);
+    window.localStorage.setItem(EVENT_LOG_KEY, JSON.stringify(list.slice(0, MAX_EVENTS)));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getPaddleEventLog(): PaddleEventLogEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(EVENT_LOG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function clearPaddleEventLog() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(EVENT_LOG_KEY);
+}
+
+
 /** Paddle.js를 동적으로 로드하고 초기화한다. */
 export function loadPaddle(): Promise<any> {
   if (typeof window === "undefined") {
