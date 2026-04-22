@@ -347,9 +347,10 @@ export default function AdminPaddle() {
             <CardTitle className="text-base">안내</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>• <strong>결제 내역</strong> 탭에서 우리 DB에 기록된 결제건을 조회하고 환불 요청을 보낼 수 있습니다.</p>
             <p>• 데이터는 Paddle API에서 <strong>실시간으로</strong> 가져옵니다 (캐시 60초).</p>
             <p>• 환경(Sandbox/Live)은 등록된 <code className="px-1 bg-muted rounded">PADDLE_API_KEY</code> 에 따라 자동 결정됩니다.</p>
-            <p>• 환불 처리·웹훅 재전송 같은 쓰기 작업은 보안상 Paddle 공식 대시보드에서 직접 진행해 주세요.</p>
+            <p>• 환불은 Paddle API로 즉시 요청되며 결과는 웹훅으로 자동 반영됩니다.</p>
             <p>• 행 우측 👁 아이콘을 클릭하면 전체 JSON 응답을 확인할 수 있습니다.</p>
           </CardContent>
         </Card>
