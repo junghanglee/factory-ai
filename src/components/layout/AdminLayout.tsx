@@ -4,7 +4,7 @@ import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor, Store, Wallet,
-  LogOut, Settings, User, SlidersHorizontal, Undo2,
+  LogOut, Settings, User, SlidersHorizontal, Undo2, CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,6 +76,7 @@ const navGroupsDef: NavGroup[] = [
       { to: "/admin/projects", icon: FolderKanban, labelKey: "admin.projectManage" },
       { to: "/admin/settlements", icon: Wallet, labelKey: "admin.settlementManage" },
       { to: "/admin/refunds", icon: Undo2, labelKey: "환불 관리" },
+      { to: "/admin/paddle", icon: CreditCard, labelKey: "Paddle 결제" },
     ],
   },
   {
