@@ -2,6 +2,7 @@
 // Paddle.js 동적 로더 + 체크아웃 오버레이 헬퍼
 
 import { supabase } from "@/integrations/supabase/client";
+import { showPaddleOutcome } from "@/components/PaddleOutcomeDialog";
 
 declare global {
   interface Window {
