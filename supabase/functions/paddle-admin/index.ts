@@ -28,21 +28,24 @@ const ALLOWED_RESOURCES = new Set([
   "subscriptions",
 ]);
 
-async function isAdmin(token: string): Promise<boolean> {
+async function isAdmin(token: string): Promise<{ ok: boolean; reason?: string; uid?: string }> {
   try {
-    const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const { data: userRes } = await supa.auth.getUser(token);
+    const supa = createClient(SUPABASE_URL, SERVICE_ROLE, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: userRes, error: userErr } = await supa.auth.getUser(token);
+    if (userErr) return { ok: false, reason: `auth: ${userErr.message}` };
     const uid = userRes.user?.id;
-    if (!uid) return false;
-    const { data } = await supa
+    if (!uid) return { ok: false, reason: "no user from token" };
+    const { data, error } = await supa
       .from("user_roles")
       .select("role")
       .eq("user_id", uid)
-      .in("role", ["admin", "super_admin"])
-      .maybeSingle();
-    return !!data;
-  } catch {
-    return false;
+      .in("role", ["admin", "super_admin"]);
+    if (error) return { ok: false, reason: `roles: ${error.message}`, uid };
+    return { ok: (data?.length ?? 0) > 0, uid, reason: data?.length ? undefined : "no admin role" };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -59,8 +62,12 @@ Deno.serve(async (req) => {
     // Auth check (admin only)
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace(/^Bearer\s+/i, "");
-    if (!token) return json({ error: "Unauthorized" }, 401);
-    if (!(await isAdmin(token))) return json({ error: "Forbidden" }, 403);
+    if (!token) return json({ error: "Unauthorized: missing bearer token" }, 401);
+    const adminCheck = await isAdmin(token);
+    console.log("admin check:", adminCheck);
+    if (!adminCheck.ok) {
+      return json({ error: "Forbidden", reason: adminCheck.reason, uid: adminCheck.uid }, 403);
+    }
 
     const url = new URL(req.url);
     const resource = url.searchParams.get("resource") ?? "transactions";
