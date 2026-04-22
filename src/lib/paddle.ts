@@ -190,35 +190,37 @@ export interface OpenCheckoutParams {
 }
 
 /**
- * Paddle.js 오버레이 체크아웃을 띄운다 (동적 가격 / Custom Price).
+ * Paddle.js 오버레이 체크아웃을 띄운다.
+ * Sandbox는 inline price를 거부하므로 엣지 함수에서 price를 먼저 생성해 priceId로 연다.
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
+
+  const { data, error } = await supabase.functions.invoke("paddle-create-price", {
+    body: {
+      amountUsd: params.amountUsd,
+      productName: params.productName,
+      description: params.productName,
+    },
+  });
+
+  const priceId = (data as { priceId?: string } | null)?.priceId;
+  if (error || !priceId) {
+    const detail = (data as { error?: string; detail?: unknown } | null)?.error ?? error?.message;
+    throw new Error(`Paddle price 생성 실패: ${detail ?? "알 수 없는 오류"}`);
+  }
 
   // eslint-disable-next-line no-console
   console.log("[Paddle] opening checkout", {
     env: environment,
     amountUsd: params.amountUsd,
     productName: params.productName,
+    priceId,
     customData: params.customData,
   });
 
   Paddle.Checkout.open({
-    items: [
-      {
-        quantity: 1,
-        price: {
-          description: params.productName,
-          name: params.productName,
-          tax_mode: "account_setting",
-          unit_price: {
-            amount: Math.round(params.amountUsd * 100).toString(),
-            currency_code: "USD",
-          },
-          quantity: { minimum: 1, maximum: 1 },
-        },
-      },
-    ],
+    items: [{ priceId, quantity: 1 }],
     customer: params.email ? { email: params.email } : undefined,
     customData: params.customData,
     settings: {
