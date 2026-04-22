@@ -298,6 +298,27 @@ export async function getPaddleEnvironment(): Promise<PaddleEnvironment> {
   return config.environment;
 }
 
+function isPreviewCheckoutHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return host.endsWith("lovableproject.com") || host.includes("-preview--");
+}
+
+function assertSupportedCheckoutOrigin(environment: PaddleEnvironment) {
+  if (typeof window === "undefined" || environment !== "production") return;
+
+  if (!isPreviewCheckoutHost(window.location.hostname)) return;
+
+  showPaddleOutcome({
+    kind: "error",
+    title: "실결제는 배포된 주소에서 진행해 주세요",
+    reason:
+      "현재 미리보기 주소에서는 Paddle 라이브 결제가 검증(validation) 단계에서 차단됩니다. 게시된 주소 또는 연결된 커스텀 도메인에서 다시 시도해 주세요.",
+    rawDetail: `현재 주소: ${window.location.origin}`,
+  });
+
+  throw new Error("라이브 결제는 미리보기 도메인에서 사용할 수 없습니다.");
+}
+
 export interface OpenCheckoutParams {
   /** USD 단위 금액 (소수점 두 자리). 예: 49.99 */
   amountUsd: number;
@@ -329,6 +350,8 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
   lastCheckoutCustomData = params.customData ?? null;
 
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
+
+  assertSupportedCheckoutOrigin(environment);
 
   const { data, error } = await supabase.functions.invoke("paddle-create-price", {
     body: {
