@@ -165,7 +165,7 @@ export default function PaddleOutcomeDialog() {
 
           <DialogFooter className="flex-col sm:flex-col gap-2 sm:gap-2">
             <Button asChild className="w-full justify-between" onClick={close}>
-              <Link to={chatHref}>
+              <Link to="/chat">
                 <span className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
                   채팅방으로 이동
