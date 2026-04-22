@@ -17,7 +17,17 @@ const LegalLayout = ({ title, intro, children }: LegalLayoutProps) => (
         {intro && <p className="mt-3 text-sm leading-6 text-muted-foreground">{intro}</p>}
         <p className="mt-3 text-xs text-muted-foreground">시행일: {COMPANY.effectiveDate}</p>
       </header>
-      <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-semibold prose-h2:mt-10 prose-h2:text-xl prose-h3:mt-6 prose-h3:text-base prose-p:leading-7 prose-li:my-1">
+      <div
+        className="space-y-4 text-sm leading-7 text-foreground/90
+          [&_h2]:mt-10 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground
+          [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground
+          [&_p]:leading-7
+          [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1.5
+          [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-1.5
+          [&_li]:leading-7
+          [&_a]:text-primary [&_a]:underline-offset-4 hover:[&_a]:underline
+          [&_strong]:font-semibold [&_strong]:text-foreground"
+      >
         {children}
       </div>
       <footer className="mt-10 rounded-lg border border-border bg-muted/30 p-4 text-xs text-muted-foreground">
