@@ -19,6 +19,19 @@ interface PaddleConfig {
   environment: PaddleEnvironment;
 }
 
+interface PaddleDiagnosticsResponse {
+  environment: "sandbox" | "live";
+  client_token_prefix: string | null;
+  api_key_prefix: string;
+  api_key_valid: boolean;
+  api_key_error: unknown;
+  approved_domains: {
+    status: number;
+    ok: boolean;
+    data: any;
+  };
+}
+
 let loadPromise: Promise<any> | null = null;
 let configPromise: Promise<PaddleConfig> | null = null;
 let initializedToken: string | null = null;
@@ -40,6 +53,42 @@ function normalizeToken(token?: string | null) {
 
 function getEnvironmentFromToken(token: string): PaddleEnvironment {
   return token.startsWith("test_") ? "sandbox" : "production";
+}
+
+function extractApprovedDomains(result: PaddleDiagnosticsResponse | null): string[] {
+  const list = result?.approved_domains?.data?.data;
+  if (!Array.isArray(list)) return [];
+  return list.map((d: any) => d?.domain ?? d?.url ?? "").filter(Boolean);
+}
+
+async function getLiveCheckoutBlockHint() {
+  try {
+    const { data, error } = await supabase.functions.invoke("paddle-diagnostics");
+    if (error) return null;
+
+    const result = data as PaddleDiagnosticsResponse;
+    const approvedDomains = extractApprovedDomains(result);
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const domainApproved = approvedDomains.some(
+      (domain) => domain.includes(hostname) || hostname.includes(domain),
+    );
+
+    if (!domainApproved) {
+      return {
+        reason:
+          "현재 도메인이 Paddle 라이브 승인 목록에 없어서 실결제가 차단되고 있습니다. Paddle에서 linktofactory.com 또는 현재 도메인을 승인해 주세요.",
+        rawDetail: `현재 도메인: ${hostname || "unknown"} / 승인 도메인 조회 상태: ${result?.approved_domains?.status ?? "unknown"}`,
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return {
+    reason:
+      "현재 Paddle 판매자 계정에서 라이브 거래 생성이 차단되어 있습니다. 도메인 승인 또는 계정 검토가 완료되어야 실결제가 열립니다.",
+    rawDetail: "Paddle 응답: Transaction checkout creation is blocked for this vendor.",
+  };
 }
 
 async function getPaddleConfig(): Promise<PaddleConfig> {
@@ -174,12 +223,32 @@ function dispatchOutcomeFromEvent(evt: any) {
       evt?.detail ||
       evt?.data?.detail ||
       "결제 창에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    const code = evt?.code || evt?.data?.code;
+    const rawDetail = typeof evt?.data === "object" ? JSON.stringify(evt.data).slice(0, 240) : undefined;
+
+    if (
+      code === "validation" &&
+      /blocked for this vendor/i.test(`${detail} ${rawDetail ?? ""}`)
+    ) {
+      getLiveCheckoutBlockHint().then((hint) => {
+        showPaddleOutcome({
+          kind: "error",
+          title: "라이브 결제가 아직 승인되지 않았습니다",
+          reason: hint?.reason ?? detail,
+          code,
+          rawDetail: hint?.rawDetail ?? rawDetail,
+          onRetry: getRetryHandler(),
+        });
+      });
+      return;
+    }
+
     showPaddleOutcome({
       kind: "error",
       title: "결제 오류",
       reason: detail,
-      code: evt?.code || evt?.data?.code,
-      rawDetail: typeof evt?.data === "object" ? JSON.stringify(evt.data).slice(0, 240) : undefined,
+      code,
+      rawDetail,
       onRetry: getRetryHandler(),
     });
     return;
