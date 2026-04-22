@@ -46,14 +46,6 @@ async function getPaddleConfig(): Promise<PaddleConfig> {
   if (configPromise) return configPromise;
 
   configPromise = (async () => {
-    const envToken = normalizeToken(import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined);
-    if (envToken) {
-      return {
-        clientToken: envToken,
-        environment: getEnvironmentFromToken(envToken),
-      };
-    }
-
     const { data, error } = await supabase.functions.invoke("paddle-client-token");
     const runtimeToken = normalizeToken((data as { clientToken?: string } | null)?.clientToken);
 
