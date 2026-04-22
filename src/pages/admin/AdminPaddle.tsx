@@ -11,8 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, RefreshCw, ExternalLink, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
+import PaddleWebhookEventsTab from "@/components/admin/PaddleWebhookEventsTab";
 
-type Resource = "transactions" | "customers" | "adjustments" | "notifications" | "events" | "products" | "prices" | "subscriptions";
+type Resource = "transactions" | "customers" | "adjustments" | "notifications" | "events" | "products" | "prices" | "subscriptions" | "webhook_log";
 
 interface PaddleResponse {
   ok: boolean;
@@ -211,7 +212,8 @@ export default function AdminPaddle() {
           </CardHeader>
           <CardContent>
             <Tabs value={tab} onValueChange={(v) => setTab(v as Resource)}>
-              <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
+              <TabsList className="grid grid-cols-3 lg:grid-cols-9 w-full">
+                <TabsTrigger value="webhook_log">웹훅 로그</TabsTrigger>
                 <TabsTrigger value="transactions">거래내역</TabsTrigger>
                 <TabsTrigger value="adjustments">환불/조정</TabsTrigger>
                 <TabsTrigger value="customers">고객</TabsTrigger>
@@ -223,6 +225,10 @@ export default function AdminPaddle() {
               </TabsList>
 
               <div className="mt-4">
+                <TabsContent value="webhook_log">
+                  <PaddleWebhookEventsTab />
+                </TabsContent>
+
                 <TabsContent value="transactions">
                   <ResourceTable
                     resource="transactions"

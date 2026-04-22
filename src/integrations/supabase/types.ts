@@ -676,6 +676,54 @@ export type Database = {
           },
         ]
       }
+      paddle_webhook_events: {
+        Row: {
+          event_id: string | null
+          event_type: string
+          id: string
+          paddle_adjustment_id: string | null
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
+          paddle_transaction_id: string | null
+          payload: Json
+          processed_at: string | null
+          processing_error: string | null
+          processing_status: string
+          received_at: string
+          signature_valid: boolean
+        }
+        Insert: {
+          event_id?: string | null
+          event_type: string
+          id?: string
+          paddle_adjustment_id?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          paddle_transaction_id?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          processing_status?: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Update: {
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          paddle_adjustment_id?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          paddle_transaction_id?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          processing_status?: string
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
