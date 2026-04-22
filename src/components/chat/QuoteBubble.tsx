@@ -3,7 +3,7 @@ import { FileText, CheckCircle, CreditCard, Clock, Loader2, Plus } from "lucide-
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { formatPrice, isEnglishMode } from "@/utils/formatPrice";
+import { formatPrice, formatPriceBilingual, isEnglishMode } from "@/utils/formatPrice";
 import { openPaddleCheckout } from "@/lib/paddle";
 import { useAuth } from "@/hooks/useAuth";
 import { convertKrwToUsd } from "@/hooks/useExchangeRate";
@@ -104,6 +104,7 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
     try {
       await openPaddleCheckout({
         amountUsd,
+        amountKrw: quote!.price,
         productName,
         email: user.email ?? undefined,
         customData: {
