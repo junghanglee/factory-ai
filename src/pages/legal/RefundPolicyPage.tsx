@@ -1,10 +1,12 @@
 import LegalLayout from "./LegalLayout";
+import EnglishSummary from "@/components/legal/EnglishSummary";
 
 const RefundPolicyPage = () => (
   <LegalLayout
     title="환불 정책 (Refund Policy)"
     intro="LINKTO Factory에서 구매하신 회사 자체 제작 디지털 콘텐츠에 대한 환불 기준입니다. 본 정책은 Paddle.com Market Limited를 통한 모든 결제에 적용되며, 환불 관련 문의는 linktoclaw@gmail.com으로 연락 주시기 바랍니다."
   >
+    <EnglishSummary summary="This Refund Policy applies to all purchases on LINKTO Factory. Key points: (1) refund requests are accepted within 14 days of purchase; (2) 100% refund if production has not yet started; (3) pro-rated refund if production is partially completed; (4) once digital content is fully delivered, refunds are limited per Korea's E-Commerce Act art. 17(2)(5) and EU Consumer Rights Directive (2011/83/EU) art. 16(m), but defective deliverables qualify for rework or partial refund; (5) duplicate or system-error charges are auto-refunded; (6) refunds are processed via Paddle within 1–3 business days, then 5–10 business days to reach the cardholder. Contact: linktoclaw@gmail.com." />
     <h2>1. 환불 신청 가능 기간</h2>
     <p>
       이용자는 <strong>결제일로부터 14일 이내</strong>에 본 정책에 따라 환불을 신청할 수 있습니다. 단, 디지털 콘텐츠 특성상 아래 제2조의 기준에 따라 실제 환불 가능 금액이 결정됩니다.
