@@ -20,6 +20,9 @@ interface QuoteDetails {
   orderNumber?: string;
   packageId?: string;
   isAddon?: boolean;
+  isMerged?: boolean;
+  previousPrice?: number;
+  newTotalPrice?: number;
 }
 
 interface QuoteBubbleProps {
