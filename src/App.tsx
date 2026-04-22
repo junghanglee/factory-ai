@@ -21,6 +21,7 @@ const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const OrderPage = lazy(() => import("./pages/OrderPage"));
 const MyProjectsPage = lazy(() => import("./pages/MyProjectsPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const MyPage = lazy(() => import("./pages/MyPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
@@ -105,6 +106,7 @@ const App = () => (
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/order" element={<OrderPage />} />
             <Route path="/my-projects" element={<MyProjectsPage />} />
+            <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
             <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
