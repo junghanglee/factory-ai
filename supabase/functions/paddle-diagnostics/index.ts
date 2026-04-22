@@ -48,13 +48,9 @@ serve(async (req) => {
 
     const env = getPaddleApiBase().includes("sandbox") ? "sandbox" : "live";
 
-    // 1) 승인 도메인 (notification settings 아님, approved-domains 엔드포인트)
-    //    Paddle Billing은 /notification-settings 와 별개로
-    //    /event-types 등을 제공. 도메인 승인은 approved-domains 엔드포인트 사용.
-    const domainsRes = await paddleGet("/approved-domains?per_page=200");
-
-    // 2) 비즈니스/계정 정보 — Paddle Billing API에는 직접적인 'verification status'
-    //    엔드포인트는 공개되어 있지 않으므로, /event-types 를 ping해서 키 유효성만 확인
+    // 1) 비즈니스/계정 정보 — Paddle Billing API에는 직접적인
+    //    라이브 웹사이트 승인 상태 조회 엔드포인트가 공개되어 있지 않다.
+    //    따라서 API 키 유효성만 확인하고, 도메인 승인 자체는 대시보드 수동 확인으로 안내한다.
     const pingRes = await paddleGet("/event-types?per_page=1");
 
     return new Response(
@@ -65,9 +61,15 @@ serve(async (req) => {
         api_key_valid: pingRes.ok,
         api_key_error: pingRes.ok ? null : pingRes.body,
         approved_domains: {
-          status: domainsRes.status,
-          ok: domainsRes.ok,
-          data: domainsRes.body,
+          status: 501,
+          ok: false,
+          data: {
+            error: {
+              code: "dashboard_only",
+              detail:
+                "라이브 웹사이트 승인 상태는 공개 API로 조회/추가할 수 없어 Paddle 대시보드에서 직접 승인 요청해야 합니다.",
+            },
+          },
         },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
