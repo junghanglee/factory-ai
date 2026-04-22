@@ -80,7 +80,7 @@ export default function PurchaseConfirmBubble({ msg, isMine, canConfirm, onConfi
             </DialogHeader>
             <div className="py-4 space-y-2 text-sm">
               <p>• 구매확정 후에는 수정 요청이 불가합니다.</p>
-              <p>• 판매자에게 대금이 정산됩니다.</p>
+              <p>• 결제가 최종 확정됩니다.</p>
               <p>• 리뷰를 작성할 수 있습니다.</p>
             </div>
             <DialogFooter>

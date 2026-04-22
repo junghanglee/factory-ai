@@ -8,7 +8,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { lazy, Suspense } from "react";
-import SellerLoginNotifications from "./components/seller/SellerLoginNotifications";
 import PaddleOutcomeDialog from "./components/PaddleOutcomeDialog";
 
 // Eagerly loaded (landing page)
@@ -26,9 +25,6 @@ const MyPage = lazy(() => import("./pages/MyPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
-const SellerApplyPage = lazy(() => import("./pages/SellerApplyPage"));
-const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
-const SellerProfilePage = lazy(() => import("./pages/SellerProfilePage"));
 const PortfolioDetailPage = lazy(() => import("./pages/PortfolioDetailPage"));
 const PaddlePaymentLinkPage = lazy(() => import("./pages/PaddlePaymentLinkPage"));
 const TermsPage = lazy(() => import("./pages/legal/TermsPage"));
@@ -99,7 +95,6 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <SellerLoginNotifications />
           <PaddleOutcomeDialog />
           <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -120,9 +115,6 @@ const App = () => (
             <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/seller/apply" element={<SellerApplyPage />} />
-            <Route path="/seller/dashboard" element={<SellerDashboard />} />
-            <Route path="/seller/:id" element={<SellerProfilePage />} />
             {/* Admin login */}
             <Route path="/admin" element={<AdminLoginPage />} />
             {/* Admin routes - require admin role */}
