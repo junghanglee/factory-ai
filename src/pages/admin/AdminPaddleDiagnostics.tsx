@@ -22,6 +22,8 @@ interface DiagnosticsResult {
   };
 }
 
+const PADDLE_DOMAIN_REQUEST_URL = "https://vendors.paddle.com/request-domain-approval";
+
 const REQUIRED_DOMAINS = [
   "linktofactory.com",
   "factory-ai.lovable.app",
@@ -153,10 +155,39 @@ export default function AdminPaddleDiagnostics() {
             <div className="text-sm text-destructive flex items-start gap-2 mb-3">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
-                Paddle API 응답 오류 (status {result.approved_domains.status}). API 키 권한을 확인하세요.
+                승인 도메인 자동 조회가 실패했습니다 (status {result.approved_domains.status}). 현재 API로는 자동 승인 처리가 불가능하므로 Paddle 관리자 화면에서 직접 승인 요청이 필요합니다.
               </span>
             </div>
           )}
+
+          <div className="rounded-lg border bg-muted/40 px-3 py-3 text-sm space-y-2 mb-4">
+            <p className="font-medium text-foreground">라이브 도메인 승인 안내</p>
+            <p className="text-muted-foreground leading-relaxed">
+              Paddle 라이브 계정은 웹사이트 승인이 완료되어야 거래 생성이 열립니다. 특히 <code className="bg-muted px-1 rounded">linktofactory.com</code> 을 결제용 웹사이트로 승인 요청해야 합니다.
+            </p>
+            <div className="flex flex-wrap gap-3 text-xs">
+              <a
+                href={PADDLE_DOMAIN_REQUEST_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                도메인 승인 요청 열기 <ExternalLink className="h-3 w-3" />
+              </a>
+              <a
+                href={
+                  result?.environment === "sandbox"
+                    ? "https://sandbox-vendors.paddle.com/checkout-settings"
+                    : "https://vendors.paddle.com/checkout-settings"
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                Default payment link 설정 <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
 
           {/* 필수 도메인 체크 */}
           <div className="space-y-2 mb-4">
@@ -200,18 +231,28 @@ export default function AdminPaddleDiagnostics() {
             )}
           </div>
 
-          <a
-            href={
-              result?.environment === "sandbox"
-                ? "https://sandbox-vendors.paddle.com/checkout-settings"
-                : "https://vendors.paddle.com/checkout-settings"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-4"
-          >
-            Paddle 대시보드에서 도메인 추가 <ExternalLink className="h-3 w-3" />
-          </a>
+          <div className="flex flex-wrap gap-3 pt-4 text-xs">
+            <a
+              href={PADDLE_DOMAIN_REQUEST_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              Paddle 도메인 승인 요청 <ExternalLink className="h-3 w-3" />
+            </a>
+            <a
+              href={
+                result?.environment === "sandbox"
+                  ? "https://sandbox-vendors.paddle.com/checkout-settings"
+                  : "https://vendors.paddle.com/checkout-settings"
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              Paddle 기본 결제 링크 설정 <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
         </Card>
 
         {/* 최근 체크아웃 에러 */}
