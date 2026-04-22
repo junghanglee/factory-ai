@@ -478,10 +478,10 @@ const AboutPage = () => {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="일반 문의">{t("about.contact.typeGeneral")}</SelectItem>
-                      <SelectItem value="구매자 문의">{t("about.contact.typeVideo")}</SelectItem>
-                      <SelectItem value="셀러 입점 문의">{t("about.contact.typeAutomation")}</SelectItem>
-                      <SelectItem value="리스팅/카테고리 문의">{t("about.contact.typeMarketing")}</SelectItem>
-                      <SelectItem value="분쟁/환불 문의">{t("about.contact.typeAcademy")}</SelectItem>
+                      <SelectItem value="구매/주문 문의">{t("about.contact.typeVideo")}</SelectItem>
+                      <SelectItem value="콘텐츠 제작 문의">{t("about.contact.typeAutomation")}</SelectItem>
+                      <SelectItem value="기술 지원 문의">{t("about.contact.typeMarketing")}</SelectItem>
+                      <SelectItem value="환불/분쟁 문의">{t("about.contact.typeAcademy")}</SelectItem>
                       <SelectItem value="B2B 파트너십">{t("about.contact.typePartnership")}</SelectItem>
                       <SelectItem value="기타">{t("about.contact.typeOther")}</SelectItem>
                     </SelectContent>
