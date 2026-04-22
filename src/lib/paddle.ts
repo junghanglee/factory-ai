@@ -144,10 +144,13 @@ function dispatchOutcomeFromEvent(evt: any) {
   if (!name) return;
 
   if (name === "checkout.completed") {
+    const amountStr = formatLastAmountBilingual();
     showPaddleOutcome({
       kind: "success",
       title: "결제가 완료되었습니다",
-      reason: "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
+      reason: amountStr
+        ? `결제 금액 ${amountStr} 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.`
+        : "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
     });
     return;
   }
