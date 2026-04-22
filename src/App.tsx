@@ -21,6 +21,7 @@ const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const OrderPage = lazy(() => import("./pages/OrderPage"));
 const MyProjectsPage = lazy(() => import("./pages/MyProjectsPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const MyPage = lazy(() => import("./pages/MyPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
