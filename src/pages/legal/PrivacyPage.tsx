@@ -4,9 +4,9 @@ import EnglishSummary from "@/components/legal/EnglishSummary";
 const PrivacyPage = () => (
   <LegalLayout
     title="개인정보처리방침 (Privacy Policy)"
-    intro="링크투홀딩스(주)는 개인정보보호법, GDPR 및 관련 법령에 따라 이용자의 개인정보를 안전하게 처리하기 위해 본 방침을 수립합니다. 개인정보 관련 문의는 linktoclaw@gmail.com으로 연락 주시기 바랍니다."
+    intro="링크투홀딩스(주)는 개인정보보호법, GDPR 및 관련 법령에 따라 이용자의 개인정보를 안전하게 처리하기 위해 본 방침을 수립합니다. 개인정보 관련 문의는 junghanglee@gmail.com으로 연락 주시기 바랍니다."
   >
-    <EnglishSummary summary="This Privacy Policy explains how we collect, use and protect personal data in compliance with Korea's PIPA, the EU GDPR and similar regulations. Key points: (1) we collect only the data necessary to provide our content (account info, payment metadata, support messages); (2) payment card data is collected directly by Paddle, not by us; (3) we do NOT knowingly collect data from anyone under the age of 14; (4) data may be transferred to and processed in the UK, US, EU and Asia (Paddle, Supabase, Google Cloud) under SOC 2 / ISO 27001 / GDPR safeguards; (5) you may request access, correction, deletion or portability at any time via linktoclaw@gmail.com." />
+    <EnglishSummary summary="This Privacy Policy explains how we collect, use and protect personal data in compliance with Korea's PIPA, the EU GDPR and similar regulations. Key points: (1) we collect only the data necessary to provide our content (account info, payment metadata, support messages); (2) payment card data is collected directly by Paddle, not by us; (3) we do NOT knowingly collect data from anyone under the age of 14; (4) data may be transferred to and processed in the UK, US, EU and Asia (Paddle, Supabase, Google Cloud) under SOC 2 / ISO 27001 / GDPR safeguards; (5) you may request access, correction, deletion or portability at any time via junghanglee@gmail.com." />
     <h2>1. 수집하는 개인정보 항목</h2>
     <ul>
       <li>회원가입: 이메일, 비밀번호(해시), 이름, 휴대전화 번호(선택)</li>
@@ -25,7 +25,7 @@ const PrivacyPage = () => (
 
     <h2>3. 미성년자 개인정보 보호</h2>
     <p>
-      회사는 <strong>만 14세 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</strong> 만 14세 미만 아동의 가입 시도가 확인될 경우 즉시 계정을 삭제하고 관련 데이터를 파기합니다. 보호자가 자녀의 개인정보 수집 사실을 인지한 경우 <a href="mailto:linktoclaw@gmail.com">linktoclaw@gmail.com</a>으로 삭제를 요청할 수 있습니다.
+      회사는 <strong>만 14세 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</strong> 만 14세 미만 아동의 가입 시도가 확인될 경우 즉시 계정을 삭제하고 관련 데이터를 파기합니다. 보호자가 자녀의 개인정보 수집 사실을 인지한 경우 <a href="mailto:junghanglee@gmail.com">junghanglee@gmail.com</a>으로 삭제를 요청할 수 있습니다.
     </p>
 
     <h2>4. 보유 및 파기</h2>
@@ -60,12 +60,12 @@ const PrivacyPage = () => (
 
     <h2>8. 이용자의 권리</h2>
     <p>
-      이용자는 언제든지 자신의 개인정보 열람·정정·삭제·처리정지·이전(데이터 이동권)을 요청할 수 있으며, 마이페이지에서 직접 처리하거나 <a href="mailto:linktoclaw@gmail.com">linktoclaw@gmail.com</a>로 요청할 수 있습니다. 회사는 요청 접수 후 영업일 기준 30일 이내 처리합니다.
+      이용자는 언제든지 자신의 개인정보 열람·정정·삭제·처리정지·이전(데이터 이동권)을 요청할 수 있으며, 마이페이지에서 직접 처리하거나 <a href="mailto:junghanglee@gmail.com">junghanglee@gmail.com</a>로 요청할 수 있습니다. 회사는 요청 접수 후 영업일 기준 30일 이내 처리합니다.
     </p>
 
     <h2>9. 개인정보 보호 책임자</h2>
     <p>
-      이름: 이정행 / 이메일: <a href="mailto:linktoclaw@gmail.com">linktoclaw@gmail.com</a>
+      이름: 이정행 / 이메일: <a href="mailto:junghanglee@gmail.com">junghanglee@gmail.com</a>
     </p>
 
     <h2>10. 본 방침의 변경</h2>
