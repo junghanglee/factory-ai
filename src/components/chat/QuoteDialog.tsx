@@ -240,7 +240,7 @@ export default function QuoteDialog({
 
 
         <div className="space-y-3 py-1">
-          {mode === "package" && packages.length > 0 && quoteType === "new" && (
+          {source === "package" && packages.length > 0 && quoteType === "new" && (
             <div>
               <label className="text-sm font-medium mb-1.5 block">패키지 선택 *</label>
               <Select value={selectedPkgId} onValueChange={handleSelectPackage}>
@@ -286,6 +286,14 @@ export default function QuoteDialog({
                 placeholder="0"
                 min="0"
               />
+              {quoteType === "new" && hasUserSubmitted && priceNum !== defaultPrice && priceNum > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  사용자 신청: {defaultPrice.toLocaleString()}원
+                  {priceNum > defaultPrice
+                    ? ` (+${(priceNum - defaultPrice).toLocaleString()})`
+                    : ` (-${(defaultPrice - priceNum).toLocaleString()})`}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">금액 (USD)</label>
@@ -319,13 +327,43 @@ export default function QuoteDialog({
             />
           </div>
         </div>
+
+        {/* 확정 견적 미리보기 (확인 단계) */}
+        {showConfirm && (
+          <div className="border-2 border-primary/50 rounded-lg p-3 bg-primary/5 space-y-1.5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary mb-1">
+              <CheckCircle2 className="h-4 w-4" />
+              확정 견적 미리보기
+            </div>
+            <div className="text-xs space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">출처</span><span className="font-medium">{sourceLabel[source]}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">서비스</span><span className="font-medium">{serviceTitle}</span></div>
+              {packageName && <div className="flex justify-between"><span className="text-muted-foreground">{quoteType === "addon" ? "항목" : "패키지"}</span><span>{packageName}</span></div>}
+              <div className="flex justify-between"><span className="text-muted-foreground">금액</span><span className="font-bold text-primary">{priceNum.toLocaleString()}원{priceUsd ? ` (≈ $${priceUsd})` : ""}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">납기</span><span>{deliveryDays}일</span></div>
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
-          <Button onClick={handleSubmit} disabled={submitting || !serviceTitle.trim() || !(parseInt(price) > 0)}>
-            {submitting ? "발송중..." : submitText}
-          </Button>
+          {showConfirm ? (
+            <>
+              <Button variant="outline" onClick={() => setShowConfirm(false)} disabled={submitting}>← 수정</Button>
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "발송중..." : `✓ ${submitText}`}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
+              <Button onClick={() => setShowConfirm(true)} disabled={!canSend}>
+                다음: 미리보기
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
