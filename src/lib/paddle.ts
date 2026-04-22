@@ -34,7 +34,18 @@ export function loadPaddle(): Promise<any> {
         if (environment === "sandbox") {
           window.Paddle.Environment.set("sandbox");
         }
-        window.Paddle.Initialize({ token: clientToken });
+        window.Paddle.Initialize({
+          token: clientToken,
+          eventCallback: (data: any) => {
+            // Paddle 이벤트를 콘솔에 모두 출력 → 디버깅용
+            // eslint-disable-next-line no-console
+            console.log("[Paddle event]", data?.name, data);
+            if (data?.name === "checkout.error" || data?.name === "checkout.warning") {
+              // eslint-disable-next-line no-console
+              console.error("[Paddle checkout error]", data);
+            }
+          },
+        });
         resolve(window.Paddle);
       } catch (e) {
         reject(e);
@@ -78,6 +89,13 @@ export interface OpenCheckoutParams {
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
   const Paddle = await loadPaddle();
+  // eslint-disable-next-line no-console
+  console.log("[Paddle] opening checkout", {
+    env: environment,
+    amountUsd: params.amountUsd,
+    productName: params.productName,
+    customData: params.customData,
+  });
   Paddle.Checkout.open({
     items: [
       {
@@ -86,8 +104,6 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
           description: params.productName,
           name: params.productName,
           tax_mode: "account_setting",
-          billing_cycle: null,
-          trial_period: null,
           unit_price: {
             amount: Math.round(params.amountUsd * 100).toString(),
             currency_code: "USD",
