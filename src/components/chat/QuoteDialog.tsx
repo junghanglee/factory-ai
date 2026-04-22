@@ -142,6 +142,7 @@ export default function QuoteDialog({
         deliveryDays: parseInt(deliveryDays) || 7,
         memo: memo.trim(),
         quoteType,
+        addonMode: quoteType === "addon" ? addonMode : undefined,
       });
       onOpenChange(false);
     } finally {
