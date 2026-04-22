@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FileText, CheckCircle, CreditCard, Clock, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FileText, CheckCircle, CreditCard, Clock, Loader2, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { formatPrice, isEnglishMode } from "@/utils/formatPrice";
 import { openPaddleCheckout } from "@/lib/paddle";
 import { useAuth } from "@/hooks/useAuth";
 import { convertKrwToUsd } from "@/hooks/useExchangeRate";
+import { supabase } from "@/integrations/supabase/client";
 import type { ChatMessage } from "@/hooks/useChat";
 
 interface QuoteDetails {
@@ -18,6 +19,7 @@ interface QuoteDetails {
   memo?: string;
   orderNumber?: string;
   packageId?: string;
+  isAddon?: boolean;
 }
 
 interface QuoteBubbleProps {
@@ -46,7 +48,33 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
     quote = null;
   }
 
+  const isAddon = !!quote?.isAddon;
+
+  // 추가금 견적은 별도 프로젝트라 채팅방의 paymentStatus를 사용할 수 없음 → 자체 조회
+  const [addonProjectId, setAddonProjectId] = useState<string | null>(null);
+  const [addonPaymentStatus, setAddonPaymentStatus] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!isAddon || !quote?.orderNumber) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("id, payment_status")
+        .eq("order_number", quote.orderNumber)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      setAddonProjectId(data.id);
+      setAddonPaymentStatus(data.payment_status);
+    })();
+    return () => { cancelled = true; };
+  }, [isAddon, quote?.orderNumber]);
+
   if (!quote) return null;
+
+  // 추가금 견적은 자체 조회한 상태/projectId를 우선 사용
+  const effectiveStatus = isAddon ? (addonPaymentStatus ?? "견적발송") : (paymentStatus || "견적발송");
+  const effectiveProjectId = isAddon ? (addonProjectId || undefined) : projectId;
 
   const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     "견적발송": { label: t("quote.sent", "견적 발송됨"), color: "text-blue-600 bg-blue-50", icon: <FileText className="h-3.5 w-3.5" /> },
@@ -55,10 +83,10 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
     "구매확정": { label: t("quote.confirmed", "구매 확정됨"), color: "text-primary bg-primary/10", icon: <CheckCircle className="h-3.5 w-3.5" /> },
   };
 
-  const status = statusLabels[paymentStatus || "견적발송"] || statusLabels["견적발송"];
+  const status = statusLabels[effectiveStatus] || statusLabels["견적발송"];
 
   const handleCardPayment = async () => {
-    if (!projectId) {
+    if (!effectiveProjectId) {
       toast.error("프로젝트 정보를 찾을 수 없습니다.");
       return;
     }
@@ -66,13 +94,12 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
       toast.error("로그인이 필요합니다.");
       return;
     }
-    // Paddle은 KRW 미지원 → USD로 결제 (USD 가격 우선, 없으면 실시간 환율로 변환)
     const amountUsd = quote!.priceUsd ?? (await convertKrwToUsd(quote!.price));
     if (!amountUsd || amountUsd <= 0) {
       toast.error("결제 금액이 올바르지 않습니다.");
       return;
     }
-    const productName = quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
+    const productName = (isAddon ? "[추가금] " : "") + quote!.serviceTitle + (quote!.packageName ? ` - ${quote!.packageName}` : "");
     setPaying(true);
     try {
       await openPaddleCheckout({
@@ -80,10 +107,11 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
         productName,
         email: user.email ?? undefined,
         customData: {
-          project_id: projectId,
+          project_id: effectiveProjectId,
           user_id: user.id,
           ...(quote!.packageId ? { package_id: quote!.packageId } : {}),
           ...(quote!.orderNumber ? { order_number: quote!.orderNumber } : {}),
+          ...(isAddon ? { is_addon: "true" } : {}),
         },
       });
     } catch (err: any) {
@@ -94,17 +122,24 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
     }
   };
 
-  const canPay = !isMine && !isAdmin && (paymentStatus === "견적발송" || paymentStatus === "입금대기");
+  const canPay = !isMine && !isAdmin && (effectiveStatus === "견적발송" || effectiveStatus === "입금대기");
 
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"} gap-2`}>
       <div className="max-w-[360px] w-full">
-        <div className="border rounded-xl overflow-hidden bg-card shadow-sm">
+        <div className={`border rounded-xl overflow-hidden bg-card shadow-sm ${isAddon ? "border-amber-300 dark:border-amber-700" : ""}`}>
           {/* Header */}
-          <div className="bg-primary/5 px-4 py-3 border-b flex items-center justify-between">
+          <div className={`px-4 py-3 border-b flex items-center justify-between ${isAddon ? "bg-amber-50 dark:bg-amber-950/30" : "bg-primary/5"}`}>
             <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">견적서</span>
+              {isAddon ? <Plus className="h-4 w-4 text-amber-600" /> : <FileText className="h-4 w-4 text-primary" />}
+              <span className="font-semibold text-sm">
+                {isAddon ? "추가금 청구서" : "견적서"}
+              </span>
+              {isAddon && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100">
+                  ADDON
+                </span>
+              )}
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${status.color}`}>
               {status.icon} {status.label}
@@ -114,12 +149,12 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
           {/* Body */}
           <div className="px-4 py-3 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">서비스</span>
+              <span className="text-muted-foreground">{isAddon ? "항목" : "서비스"}</span>
               <span className="font-medium text-right max-w-[200px] truncate">{quote.serviceTitle}</span>
             </div>
             {quote.packageName && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">패키지</span>
+                <span className="text-muted-foreground">{isAddon ? "세부" : "패키지"}</span>
                 <span>{quote.packageName}</span>
               </div>
             )}
@@ -145,23 +180,23 @@ export default function QuoteBubble({ msg, isMine, paymentStatus, isAdmin, onCon
           </div>
 
           {/* Actions */}
-          {(canPay || (isAdmin && paymentStatus === "견적발송")) && (
+          {(canPay || (isAdmin && effectiveStatus === "견적발송")) && (
             <div className="px-4 py-3 border-t bg-muted/30 space-y-2">
-              {canPay && projectId && (
+              {canPay && effectiveProjectId && (
                 <Button
                   size="sm"
-                  className="w-full text-xs bg-green-600 hover:bg-green-700"
+                  className={`w-full text-xs ${isAddon ? "bg-amber-600 hover:bg-amber-700" : "bg-green-600 hover:bg-green-700"}`}
                   onClick={handleCardPayment}
                   disabled={paying}
                 >
                   {paying ? (
                     <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> 결제창 여는 중…</>
                   ) : (
-                    <><CreditCard className="h-3.5 w-3.5 mr-1" /> 카드결제하기</>
+                    <><CreditCard className="h-3.5 w-3.5 mr-1" /> {isAddon ? "추가금 결제하기" : "카드결제하기"}</>
                   )}
                 </Button>
               )}
-              {isAdmin && paymentStatus === "견적발송" && onConfirmPayment && (
+              {isAdmin && effectiveStatus === "견적발송" && onConfirmPayment && !isAddon && (
                 <Button size="sm" className="w-full text-xs" onClick={onConfirmPayment}>
                   <CreditCard className="h-3.5 w-3.5 mr-1" /> 입금 확인 처리
                 </Button>
