@@ -307,6 +307,13 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
   const priceId = (data as { priceId?: string } | null)?.priceId;
   if (error || !priceId) {
     const detail = (data as { error?: string; detail?: unknown } | null)?.error ?? error?.message;
+    showPaddleOutcome({
+      kind: "error",
+      title: "결제 창을 열 수 없습니다",
+      reason: "결제 정보를 준비하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      rawDetail: typeof detail === "string" ? detail : JSON.stringify(detail ?? {}),
+      onRetry: getRetryHandler(),
+    });
     throw new Error(`Paddle price 생성 실패: ${detail ?? "알 수 없는 오류"}`);
   }
 
