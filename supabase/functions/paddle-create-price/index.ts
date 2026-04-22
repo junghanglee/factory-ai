@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
   const productRes = await paddlePost("/products", {
     name: productName,
     tax_category: "standard",
-    type: "service",
+    type: "standard",
   });
 
   if (!productRes.ok) {
