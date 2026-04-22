@@ -325,6 +325,8 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
   // Remember last attempt + amounts so the outcome dialog can offer "재시도" + 양 통화 표시.
   lastCheckoutAttempt = () => openPaddleCheckout(params);
   lastCheckoutAmounts = { amountUsd: params.amountUsd, amountKrw: params.amountKrw };
+  lastCheckoutEmail = params.email ?? null;
+  lastCheckoutCustomData = params.customData ?? null;
 
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
 
