@@ -89,6 +89,13 @@ export interface OpenCheckoutParams {
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
   const Paddle = await loadPaddle();
+  // eslint-disable-next-line no-console
+  console.log("[Paddle] opening checkout", {
+    env: environment,
+    amountUsd: params.amountUsd,
+    productName: params.productName,
+    customData: params.customData,
+  });
   Paddle.Checkout.open({
     items: [
       {
@@ -97,8 +104,6 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
           description: params.productName,
           name: params.productName,
           tax_mode: "account_setting",
-          billing_cycle: null,
-          trial_period: null,
           unit_price: {
             amount: Math.round(params.amountUsd * 100).toString(),
             currency_code: "USD",
