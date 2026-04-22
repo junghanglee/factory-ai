@@ -147,7 +147,7 @@ export default function QuoteDialog({
           </TabsList>
         </Tabs>
         {quoteType === "addon" && (
-          <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-md p-2">
+          <p className="text-xs text-warning-foreground bg-warning/10 border border-warning/30 rounded-md p-2">
             ⚡ 추가금은 별도 결제건으로 처리되며, 사용자에게 추가 결제 버튼이 표시됩니다.
           </p>
         )}
