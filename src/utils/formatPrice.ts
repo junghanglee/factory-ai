@@ -50,3 +50,38 @@ export function displayServicePrice(pkg: any): string {
 export function formatOriginalPrice(service: any): string {
   return formatPrice(service.original_price, service.original_price_usd);
 }
+
+/**
+ * Format a USD value as "$xx.xx".
+ */
+export function formatUsd(usd: number): string {
+  return `$${usd.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * Format a KRW value as "xx,xxx원".
+ */
+export function formatKrw(krw: number): string {
+  return `${Math.round(krw).toLocaleString("ko-KR")}원`;
+}
+
+/**
+ * Bilingual price string. Always returns BOTH currencies so users see what they
+ * will be charged in USD (Paddle) alongside their local KRW reference.
+ *
+ * - English mode → "$xx.xx (≈ ₩xx,xxx)"
+ * - Korean mode  → "xx,xxx원 (≈ $xx.xx)"
+ *
+ * If only one side is provided (no usd), the secondary part is omitted.
+ */
+export function formatPriceBilingual(krwPrice: number, usdPrice?: number | null): string {
+  const hasUsd = usdPrice != null && usdPrice > 0;
+  const hasKrw = krwPrice > 0;
+  if (isEnglishMode()) {
+    if (!hasUsd) return formatKrw(krwPrice);
+    return hasKrw ? `${formatUsd(usdPrice!)} (≈ ${formatKrw(krwPrice)})` : formatUsd(usdPrice!);
+  }
+  // Korean mode
+  if (!hasKrw && hasUsd) return formatUsd(usdPrice!);
+  return hasUsd ? `${formatKrw(krwPrice)} (≈ ${formatUsd(usdPrice!)})` : formatKrw(krwPrice);
+}
