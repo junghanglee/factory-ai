@@ -3,9 +3,9 @@ import LegalLayout from "./LegalLayout";
 const AcceptableUsePage = () => (
   <LegalLayout
     title="서비스 이용 정책 (Acceptable Use Policy)"
-    intro="LINKTO Factory에서 등록·거래·요청할 수 없는 콘텐츠와 행위를 명시합니다. 본 정책 위반 시 게시물 삭제, 거래 취소, 계정 정지가 적용될 수 있습니다."
+    intro="LINKTO Factory에서 주문·요청할 수 없는 콘텐츠와 행위를 명시합니다. 본 정책 위반 시 주문 취소, 거래 거절, 계정 정지가 적용될 수 있습니다."
   >
-    <h2>1. 금지 콘텐츠</h2>
+    <h2>1. 주문/요청이 금지되는 콘텐츠</h2>
     <ul>
       <li>음란물, 노골적인 성적 콘텐츠, 아동 관련 부적절한 콘텐츠</li>
       <li>저작권·상표권·초상권을 침해하는 콘텐츠</li>
@@ -18,7 +18,7 @@ const AcceptableUsePage = () => (
     <ul>
       <li>허위 리뷰 작성, 평점 조작</li>
       <li>결제 우회, 가짜 환불 청구, 결제 사기</li>
-      <li>서비스 외부 결제 유도 (예: 직거래 강요)</li>
+      <li>서비스 외부 결제 유도</li>
       <li>크롤링·자동화 봇을 통한 비정상 접근</li>
     </ul>
 
