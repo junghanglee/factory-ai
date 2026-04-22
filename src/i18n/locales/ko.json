@@ -82,26 +82,26 @@
     "guide": "이용 가이드"
   },
   "hero": {
-    "title1": "검증된 크리에이터의 AI 콘텐츠를",
-    "title2": "마켓플레이스",
-    "title3": "에서 바로 만나보세요",
-    "searchPlaceholder": "어떤 셀러의 서비스를 찾으시나요?",
-    "learnMore": "리스팅 보기 →",
-    "aifactory": "AI팩토리 마켓",
-    "fallback1Title": "셀러가 직접 등록한 서비스",
-    "fallback1Sub": "수많은 크리에이터의\nAI 콘텐츠 리스팅을 둘러보세요",
-    "fallback2Title": "안전결제로 바로 주문",
-    "fallback2Sub": "패키지를 선택하고\n에스크로 안전결제로 주문하세요",
+    "title1": "LINKTO Factory가 직접 제작한",
+    "title2": "AI 디지털 콘텐츠",
+    "title3": "를 바로 만나보세요",
+    "searchPlaceholder": "어떤 AI 콘텐츠를 찾으시나요?",
+    "learnMore": "콘텐츠 둘러보기 →",
+    "aifactory": "LINKTO Factory 디지털 스토어",
+    "fallback1Title": "자체 제작 AI 콘텐츠",
+    "fallback1Sub": "LINKTO Factory가 직접 기획·제작한\nAI 디지털 콘텐츠를 둘러보세요",
+    "fallback2Title": "Paddle 안전 결제",
+    "fallback2Sub": "글로벌 결제대행 Paddle로\nUSD 결제·영수증·세무까지 한 번에",
     "fallback3Title": "리뷰와 평점으로 비교",
-    "fallback3Sub": "실제 구매자 리뷰로\n신뢰할 수 있는 셀러 선택"
+    "fallback3Sub": "실제 구매자 리뷰로\n신뢰할 수 있는 콘텐츠 선택"
   },
   "usp": {
-    "cost": "검증된 셀러 마켓플레이스",
-    "costDesc": "신원·역량 검증을 통과한 크리에이터만 입점",
-    "quality": "안전결제 보호",
-    "qualityDesc": "구매자 보호를 위한 에스크로 결제 시스템",
+    "cost": "자체 제작 디지털 콘텐츠 스토어",
+    "costDesc": "LINKTO Factory가 직접 기획·제작·판매하는 First-party 디지털 콘텐츠",
+    "quality": "Paddle 안전 결제",
+    "qualityDesc": "Paddle.com Market Limited(영국)이 등록 판매자(MoR)로서 결제·세무 처리",
     "speed": "투명한 리뷰와 평점",
-    "speedDesc": "실제 구매자가 남긴 리뷰로 셀러 비교",
+    "speedDesc": "실제 구매자가 남긴 리뷰로 콘텐츠 검증",
     "mass": "다양한 카테고리",
     "massDesc": "이미지·영상·글·음악·웹툰 등 7개 카테고리"
   },
@@ -123,7 +123,7 @@
     "finalOutputs": "최종 결과물"
   },
   "serviceCard": {
-    "verifiedSeller": "인증판매자",
+    "verifiedSeller": "LINKTO Factory 자체 제작",
     "noServices": "등록된 서비스가 없습니다."
   },
   "serviceDetail": {

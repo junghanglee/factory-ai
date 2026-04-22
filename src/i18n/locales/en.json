@@ -82,27 +82,27 @@
     "guide": "User Guide"
   },
   "hero": {
-    "title1": "Discover AI content services from",
-    "title2": "verified creators",
-    "title3": " on our marketplace",
-    "searchPlaceholder": "Which seller's service are you looking for?",
-    "learnMore": "Browse listings →",
-    "aifactory": "AI Factory Market",
-    "fallback1Title": "Listings posted by sellers",
-    "fallback1Sub": "Browse AI content services\nlisted by independent creators",
-    "fallback2Title": "Order with secure checkout",
-    "fallback2Sub": "Pick a package and order\nwith escrow-protected payments",
+    "title1": "Discover AI digital content",
+    "title2": "produced in-house",
+    "title3": " by LINKTO Factory",
+    "searchPlaceholder": "Which AI content are you looking for?",
+    "learnMore": "Browse content →",
+    "aifactory": "LINKTO Factory Digital Store",
+    "fallback1Title": "First-party AI content",
+    "fallback1Sub": "Browse AI digital content\ndesigned and produced by LINKTO Factory",
+    "fallback2Title": "Secure checkout via Paddle",
+    "fallback2Sub": "Pay in USD with receipts and tax\nhandled by Paddle (Merchant of Record)",
     "fallback3Title": "Compare with reviews & ratings",
-    "fallback3Sub": "Real buyer reviews help you\npick a trustworthy seller"
+    "fallback3Sub": "Real buyer reviews help you\nchoose the content you need"
   },
   "usp": {
-    "cost": "Vetted seller marketplace",
-    "costDesc": "Only creators who pass identity & skill checks can list",
-    "quality": "Buyer-protected checkout",
-    "qualityDesc": "Escrow-style payment protection on every order",
+    "cost": "First-party digital content store",
+    "costDesc": "All AI content is designed, produced and sold directly by LINKTO Factory — not a third-party marketplace",
+    "quality": "Secure checkout via Paddle",
+    "qualityDesc": "Paddle.com Market Limited (UK) is the Merchant of Record for billing, tax and receipts",
     "speed": "Transparent reviews & ratings",
-    "speedDesc": "Compare sellers using verified buyer reviews",
-    "mass": "Wide service catalog",
+    "speedDesc": "Verify content quality with real buyer reviews",
+    "mass": "Wide content catalog",
     "massDesc": "7 categories: image, video, writing, music, webtoon and more"
   },
   "reviews": {
@@ -123,7 +123,7 @@
     "finalOutputs": "Final Outputs"
   },
   "serviceCard": {
-    "verifiedSeller": "Verified Seller",
+    "verifiedSeller": "Produced by LINKTO Factory",
     "noServices": "No services available."
   },
   "serviceDetail": {
