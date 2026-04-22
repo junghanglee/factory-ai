@@ -95,12 +95,6 @@ const Header = () => {
                     </div>
                   )}
                 </div>
-                <Link to="/seller/dashboard">
-                  <Button variant="ghost" size="sm" className="gap-1.5">
-                    <Store className="h-3.5 w-3.5" />
-                    {t("header.sellerCenter")}
-                  </Button>
-                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm" className="rounded-full gap-1.5">

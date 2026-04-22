@@ -69,16 +69,9 @@ const ServiceCard = ({ service }: { service: Service }) => {
         loading="lazy"
       />
       <div className="absolute top-2 left-2">
-        {!service.seller_id ? (
-          <span className="flex items-center gap-0.5 bg-primary/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <ShieldCheck className="h-3 w-3" />
-          </span>
-        ) : (
-          <span className="flex items-center gap-0.5 bg-emerald-600/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <Store className="h-3 w-3" />
-            {t("serviceCard.verifiedSeller")}
-          </span>
-        )}
+        <span className="flex items-center gap-0.5 bg-primary/90 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+          <ShieldCheck className="h-3 w-3" />
+        </span>
       </div>
     </div>
     <h3 className="text-[14px] text-foreground leading-snug line-clamp-2 mb-2 min-h-[2.5rem] font-normal">
@@ -97,10 +90,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
           : `${formatPrice(service.price, service.price_usd)}~`}
     </p>
     <div className="flex items-center gap-1.5 mt-2">
-      <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-        {service.seller?.[0] || "A"}
-      </div>
-      <span className="text-[12px] text-muted-foreground">{service.seller}</span>
+      <span className="text-[12px] text-muted-foreground">LINKTO Factory</span>
     </div>
   </Link>
   );
