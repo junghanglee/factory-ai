@@ -111,12 +111,6 @@ export default function PaddleOutcomeDialog() {
 
   // ───── 성공: 결제완료 안내 + 다음 단계 가이드 ─────
   if (outcome.kind === "success") {
-    const chatHref = outcome.roomId
-      ? `/chat?room=${outcome.roomId}`
-      : outcome.projectId
-        ? `/chat?project=${outcome.projectId}`
-        : "/chat";
-
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
