@@ -106,7 +106,7 @@ export default function AdminPaddleDiagnostics() {
               <div>
                 <p className="text-muted-foreground text-xs mb-1">API Key 유효성</p>
                 {result.api_key_valid ? (
-                  <Badge className="bg-green-600">
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600">
                     <CheckCircle2 className="h-3 w-3 mr-1" /> 유효함
                   </Badge>
                 ) : (
@@ -167,7 +167,7 @@ export default function AdminPaddleDiagnostics() {
                 <div key={d} className="flex items-center justify-between border rounded px-3 py-2">
                   <code className="text-xs">{d}</code>
                   {approved ? (
-                    <Badge className="bg-green-600">
+                    <Badge className="bg-emerald-600 hover:bg-emerald-600">
                       <CheckCircle2 className="h-3 w-3 mr-1" /> 승인됨
                     </Badge>
                   ) : (

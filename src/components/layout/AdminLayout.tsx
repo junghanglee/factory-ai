@@ -77,6 +77,7 @@ const navGroupsDef: NavGroup[] = [
       { to: "/admin/settlements", icon: Wallet, labelKey: "admin.settlementManage" },
       { to: "/admin/refunds", icon: Undo2, labelKey: "환불 관리" },
       { to: "/admin/paddle", icon: CreditCard, labelKey: "Paddle 결제" },
+      { to: "/admin/paddle/diagnostics", icon: AlertCircle, labelKey: "Paddle 진단" },
     ],
   },
   {
