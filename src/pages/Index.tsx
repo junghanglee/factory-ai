@@ -6,7 +6,6 @@ import HeroSection from "@/components/home/HeroSection";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import PopularServices from "@/components/home/PopularServices";
 import USPBanner from "@/components/home/USPBanner";
-import BusinessInfoSection from "@/components/home/BusinessInfoSection";
 import LazyMount from "@/components/LazyMount";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -58,7 +57,6 @@ const Index = () => {
           <PortfolioGallery />
         </Suspense>
       </LazyMount>
-      <BusinessInfoSection />
     </MainLayout>
   );
 };
