@@ -1,10 +1,12 @@
 import LegalLayout from "./LegalLayout";
+import EnglishSummary from "@/components/legal/EnglishSummary";
 
 const PrivacyPage = () => (
   <LegalLayout
     title="개인정보처리방침 (Privacy Policy)"
     intro="링크투홀딩스(주)는 개인정보보호법, GDPR 및 관련 법령에 따라 이용자의 개인정보를 안전하게 처리하기 위해 본 방침을 수립합니다. 개인정보 관련 문의는 linktoclaw@gmail.com으로 연락 주시기 바랍니다."
   >
+    <EnglishSummary summary="This Privacy Policy explains how we collect, use and protect personal data in compliance with Korea's PIPA, the EU GDPR and similar regulations. Key points: (1) we collect only the data necessary to provide our content (account info, payment metadata, support messages); (2) payment card data is collected directly by Paddle, not by us; (3) we do NOT knowingly collect data from anyone under the age of 14; (4) data may be transferred to and processed in the UK, US, EU and Asia (Paddle, Supabase, Google Cloud) under SOC 2 / ISO 27001 / GDPR safeguards; (5) you may request access, correction, deletion or portability at any time via linktoclaw@gmail.com." />
     <h2>1. 수집하는 개인정보 항목</h2>
     <ul>
       <li>회원가입: 이메일, 비밀번호(해시), 이름, 휴대전화 번호(선택)</li>

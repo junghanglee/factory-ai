@@ -1,10 +1,12 @@
 import LegalLayout from "./LegalLayout";
+import EnglishSummary from "@/components/legal/EnglishSummary";
 
 const TermsPage = () => (
   <LegalLayout
     title="이용약관 (Terms of Service)"
     intro="본 약관은 링크투홀딩스(주)(이하 '회사')가 운영하는 LINKTO Factory(linktofactory.com, 이하 '서비스')의 이용 조건과 책임을 규정합니다. 본 약관 관련 문의는 linktoclaw@gmail.com으로 연락 주시기 바랍니다."
   >
+    <EnglishSummary summary="These Terms of Service govern the use of LINKTO Factory. Key points: (1) we are a first-party digital content store, NOT a third-party marketplace; (2) all sales are processed in USD by Paddle.com Market Limited (UK) as Merchant of Record; (3) digital content is delivered electronically — standard items are delivered immediately, custom items within 3–14 business days; (4) refunds follow our Refund Policy; (5) governing law: Republic of Korea. Contact: linktoclaw@gmail.com." />
     <h2>1. 서비스 개요</h2>
     <p>
       서비스는 회사가 자체적으로 기획·제작하는 AI 기반 디지털 콘텐츠(이미지, 영상, 글, 음악, AI 비서, 웹툰/미니게임, 광고 콘텐츠 등)를 직접 판매하는 디지털 콘텐츠 스토어입니다. <strong>링크투홀딩스(주)는 모든 콘텐츠를 직접 제작·판매하는 판매자(First-party Seller)이며, 제3자 셀러의 콘텐츠 판매를 중개하는 마켓플레이스(Marketplace)가 아닙니다.</strong> 모든 콘텐츠와 결과물의 품질·납기·저작권에 대한 책임은 전적으로 회사에 있습니다.
