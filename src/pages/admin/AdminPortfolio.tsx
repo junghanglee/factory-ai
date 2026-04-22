@@ -322,12 +322,24 @@ const AdminPortfolio = () => {
             {/* 설명 */}
             <div>
               <Label>설명 (한국어, 50자 이내)</Label>
-              <Textarea value={form.description} onChange={(e) => { if (e.target.value.length <= 50) setForm({ ...form, description: e.target.value }); }} rows={2} placeholder="간단한 설명" />
+              <Textarea
+                value={form.description}
+                maxLength={50}
+                onChange={(e) => setForm({ ...form, description: e.target.value.slice(0, 50) })}
+                rows={2}
+                placeholder="간단한 설명"
+              />
               <p className="text-xs text-muted-foreground mt-1">{form.description.length}/50</p>
             </div>
             <div>
               <Label>Description (English, max 100 chars)</Label>
-              <Textarea value={form.description_en} onChange={(e) => { if (e.target.value.length <= 100) setForm({ ...form, description_en: e.target.value }); }} rows={2} placeholder="Short description in English" />
+              <Textarea
+                value={form.description_en}
+                maxLength={100}
+                onChange={(e) => setForm({ ...form, description_en: e.target.value.slice(0, 100) })}
+                rows={2}
+                placeholder="Short description in English"
+              />
               <p className="text-xs text-muted-foreground mt-1">{form.description_en.length}/100</p>
             </div>
 
