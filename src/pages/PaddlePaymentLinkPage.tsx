@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadPaddle, getPaddleEnvironment } from "@/lib/paddle";
 import { CheckCircle2, CreditCard, ExternalLink, Loader2, ShieldCheck, TriangleAlert } from "lucide-react";
+import { COMPANY } from "@/pages/legal/CompanyInfo";
 
 const PaddlePaymentLinkPage = () => {
   const [params] = useSearchParams();
@@ -130,6 +131,23 @@ const PaddlePaymentLinkPage = () => {
                   <p className="font-medium text-foreground">Paddle에 등록할 기본 결제 링크</p>
                   <p className="mt-1 break-all font-mono text-xs text-foreground">{window.location.origin}/pay</p>
                 </div>
+                <div className="rounded-lg border bg-muted/40 p-4 space-y-1 text-xs text-foreground">
+                  <p className="font-medium">{COMPANY.legalName}</p>
+                  <p className="text-muted-foreground">대표 {COMPANY.representative} · 사업자등록 {COMPANY.bizNumber}</p>
+                  <p className="text-muted-foreground">{COMPANY.address}</p>
+                  <p className="text-muted-foreground">
+                    문의:{" "}
+                    <a href={`mailto:${COMPANY.email}`} className="text-primary hover:underline">
+                      {COMPANY.email}
+                    </a>
+                  </p>
+                </div>
+                <nav className="flex flex-wrap gap-x-3 gap-y-2 text-xs">
+                  <Link to="/terms" className="text-primary hover:underline">이용약관</Link>
+                  <Link to="/privacy" className="text-primary hover:underline">개인정보처리방침</Link>
+                  <Link to="/refund-policy" className="text-primary hover:underline">환불 정책</Link>
+                  <Link to="/acceptable-use" className="text-primary hover:underline">이용 정책</Link>
+                </nav>
                 <a
                   href="https://vendors.paddle.com/checkout-settings"
                   target="_blank"
