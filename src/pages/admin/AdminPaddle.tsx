@@ -12,8 +12,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, RefreshCw, ExternalLink, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 import PaddleWebhookEventsTab from "@/components/admin/PaddleWebhookEventsTab";
+import AdminPaymentsTab from "@/components/admin/AdminPaymentsTab";
 
-type Resource = "transactions" | "customers" | "adjustments" | "notifications" | "events" | "products" | "prices" | "subscriptions" | "webhook_log";
+type Resource = "payments" | "transactions" | "customers" | "adjustments" | "notifications" | "events" | "products" | "prices" | "subscriptions" | "webhook_log";
 
 interface PaddleResponse {
   ok: boolean;
