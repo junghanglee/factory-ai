@@ -489,9 +489,11 @@ const AdminChat = () => {
         open={showQuoteDialog}
         onOpenChange={setShowQuoteDialog}
         onSubmit={async (q) => { await sendQuote(q); }}
-        defaultServiceTitle={(() => { const meta = selectedRoom?.metadata as any; return meta?.serviceTitle || ""; })()}
+        defaultServiceTitle={(() => { const meta = selectedRoom?.metadata as any; return meta?.serviceTitle || project?.service_title || ""; })()}
         defaultPrice={(() => { const meta = selectedRoom?.metadata as any; return meta?.price || 0; })()}
         defaultDeliveryDays={(() => { const meta = selectedRoom?.metadata as any; return meta?.deliveryDays || 7; })()}
+        serviceId={selectedRoom?.service_id || null}
+        hasExistingPayment={!!project && (project.payment_status === "입금완료" || project.payment_status === "구매확정")}
       />
     </AdminLayout>
   );
