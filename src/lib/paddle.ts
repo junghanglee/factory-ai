@@ -1,17 +1,24 @@
 // src/lib/paddle.ts
 // Paddle.js 동적 로더 + 체크아웃 오버레이 헬퍼
 
+import { supabase } from "@/integrations/supabase/client";
+
 declare global {
   interface Window {
     Paddle?: any;
   }
 }
 
-const clientToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined;
-const environment: "sandbox" | "production" =
-  clientToken?.startsWith("test_") ? "sandbox" : "production";
+type PaddleEnvironment = "sandbox" | "production";
+
+interface PaddleConfig {
+  clientToken: string;
+  environment: PaddleEnvironment;
+}
 
 let loadPromise: Promise<any> | null = null;
+let configPromise: Promise<PaddleConfig> | null = null;
+let initializedToken: string | null = null;
 
 // ───────────────── Paddle 이벤트 로깅 (관리자 진단용) ─────────────────
 const EVENT_LOG_KEY = "paddle_event_log";
@@ -21,6 +28,46 @@ export interface PaddleEventLogEntry {
   ts: string;
   name: string;
   data: any;
+}
+
+function normalizeToken(token?: string | null) {
+  const trimmed = token?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function getEnvironmentFromToken(token: string): PaddleEnvironment {
+  return token.startsWith("test_") ? "sandbox" : "production";
+}
+
+async function getPaddleConfig(): Promise<PaddleConfig> {
+  if (configPromise) return configPromise;
+
+  configPromise = (async () => {
+    const envToken = normalizeToken(import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined);
+    if (envToken) {
+      return {
+        clientToken: envToken,
+        environment: getEnvironmentFromToken(envToken),
+      };
+    }
+
+    const { data, error } = await supabase.functions.invoke("paddle-client-token");
+    const runtimeToken = normalizeToken((data as { clientToken?: string } | null)?.clientToken);
+
+    if (error || !runtimeToken) {
+      throw new Error(error?.message ?? "Paddle client token을 불러오지 못했습니다.");
+    }
+
+    return {
+      clientToken: runtimeToken,
+      environment: getEnvironmentFromToken(runtimeToken),
+    };
+  })().catch((error) => {
+    configPromise = null;
+    throw error;
+  });
+
+  return configPromise;
 }
 
 function recordPaddleEvent(evt: any) {
@@ -55,65 +102,78 @@ export function clearPaddleEventLog() {
   window.localStorage.removeItem(EVENT_LOG_KEY);
 }
 
-
 /** Paddle.js를 동적으로 로드하고 초기화한다. */
-export function loadPaddle(): Promise<any> {
+export async function loadPaddle(): Promise<any> {
   if (typeof window === "undefined") {
-    return Promise.reject(new Error("Paddle은 브라우저 환경에서만 사용할 수 있습니다."));
+    throw new Error("Paddle은 브라우저 환경에서만 사용할 수 있습니다.");
   }
-  if (window.Paddle) return Promise.resolve(window.Paddle);
-  if (loadPromise) return loadPromise;
 
-  if (!clientToken) {
-    return Promise.reject(new Error("VITE_PADDLE_CLIENT_TOKEN이 설정되지 않았습니다."));
+  const config = await getPaddleConfig();
+
+  if (window.Paddle && initializedToken === config.clientToken) {
+    return window.Paddle;
   }
+
+  if (loadPromise) return loadPromise;
 
   loadPromise = new Promise((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(
       'script[src="https://cdn.paddle.com/paddle/v2/paddle.js"]'
     );
+
     const onReady = () => {
       try {
-        if (environment === "sandbox") {
+        if (config.environment === "sandbox") {
           window.Paddle.Environment.set("sandbox");
         }
+
         window.Paddle.Initialize({
-          token: clientToken,
+          token: config.clientToken,
           eventCallback: (data: any) => {
             // eslint-disable-next-line no-console
             console.log("[Paddle event]", data?.name, data);
             try {
               recordPaddleEvent(data);
-            } catch { /* ignore storage errors */ }
+            } catch {
+              /* ignore storage errors */
+            }
             if (data?.name === "checkout.error" || data?.name === "checkout.warning") {
               // eslint-disable-next-line no-console
               console.error("[Paddle checkout error]", data);
             }
           },
         });
+
+        initializedToken = config.clientToken;
         resolve(window.Paddle);
-      } catch (e) {
-        reject(e);
+      } catch (error) {
+        reject(error);
       }
     };
+
     if (existing) {
       if (window.Paddle) onReady();
       else existing.addEventListener("load", onReady, { once: true });
       return;
     }
-    const s = document.createElement("script");
-    s.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
-    s.async = true;
-    s.onload = onReady;
-    s.onerror = () => reject(new Error("Paddle.js 로딩 실패"));
-    document.head.appendChild(s);
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+    script.async = true;
+    script.onload = onReady;
+    script.onerror = () => reject(new Error("Paddle.js 로딩 실패"));
+    document.head.appendChild(script);
+  }).catch((error) => {
+    loadPromise = null;
+    throw error;
   });
 
   return loadPromise;
 }
 
-export function getPaddleEnvironment(): "sandbox" | "production" {
-  return environment;
+export async function getPaddleEnvironment(): Promise<PaddleEnvironment> {
+  const config = await getPaddleConfig();
+  return config.environment;
 }
 
 export interface OpenCheckoutParams {
@@ -133,7 +193,8 @@ export interface OpenCheckoutParams {
  * Paddle.js 오버레이 체크아웃을 띄운다 (동적 가격 / Custom Price).
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
-  const Paddle = await loadPaddle();
+  const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
+
   // eslint-disable-next-line no-console
   console.log("[Paddle] opening checkout", {
     env: environment,
@@ -141,6 +202,7 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
     productName: params.productName,
     customData: params.customData,
   });
+
   Paddle.Checkout.open({
     items: [
       {
