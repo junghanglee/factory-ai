@@ -52,6 +52,7 @@ export default function QuoteDialog({
   hasExistingPayment = false,
 }: QuoteDialogProps) {
   const [quoteType, setQuoteType] = useState<"new" | "addon">(hasExistingPayment ? "addon" : "new");
+  const [addonMode, setAddonMode] = useState<"separate" | "merge">("separate");
   const [source, setSource] = useState<QuoteSource>("manual");
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [selectedPkgId, setSelectedPkgId] = useState<string>("");
