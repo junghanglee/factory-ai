@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import SellerLoginNotifications from "./components/seller/SellerLoginNotifications";
+import PaddleOutcomeDialog from "./components/PaddleOutcomeDialog";
 
 // Eagerly loaded (landing page)
 import Index from "./pages/Index";
@@ -93,6 +94,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <SellerLoginNotifications />
+          <PaddleOutcomeDialog />
           <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />

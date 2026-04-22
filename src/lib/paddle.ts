@@ -2,6 +2,7 @@
 // Paddle.js 동적 로더 + 체크아웃 오버레이 헬퍼
 
 import { supabase } from "@/integrations/supabase/client";
+import { showPaddleOutcome } from "@/components/PaddleOutcomeDialog";
 
 declare global {
   interface Window {
@@ -102,6 +103,97 @@ export function clearPaddleEventLog() {
   window.localStorage.removeItem(EVENT_LOG_KEY);
 }
 
+// ───────────────── 결제 결과 안내 모달 디스패치 ─────────────────
+let lastCheckoutAttempt: (() => Promise<void>) | null = null;
+
+function getRetryHandler(): (() => void) | undefined {
+  const attempt = lastCheckoutAttempt;
+  if (!attempt) return undefined;
+  return () => {
+    attempt().catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error("[Paddle] retry failed", err);
+      showPaddleOutcome({
+        kind: "error",
+        title: "재시도 실패",
+        reason: "결제 창을 다시 여는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        rawDetail: err instanceof Error ? err.message : String(err),
+        onRetry: getRetryHandler(),
+      });
+    });
+  };
+}
+
+function dispatchOutcomeFromEvent(evt: any) {
+  const name: string | undefined = evt?.name;
+  if (!name) return;
+
+  if (name === "checkout.completed") {
+    showPaddleOutcome({
+      kind: "success",
+      title: "결제가 완료되었습니다",
+      reason: "결제 처리가 완료되었습니다. 주문 내역에서 진행 상황을 확인하실 수 있습니다.",
+    });
+    return;
+  }
+
+  if (name === "checkout.payment.failed") {
+    const reason: string =
+      evt?.data?.payment?.error_message ||
+      evt?.data?.error?.detail ||
+      "카드사 승인에 실패했습니다. 카드 정보 또는 잔액을 확인하신 후 다시 시도해 주세요.";
+    showPaddleOutcome({
+      kind: "error",
+      title: "결제가 실패했습니다",
+      reason,
+      code: evt?.data?.payment?.method_details?.type || evt?.data?.error?.code,
+      onRetry: getRetryHandler(),
+    });
+    return;
+  }
+
+  if (name === "checkout.error") {
+    const detail: string =
+      evt?.detail ||
+      evt?.data?.detail ||
+      "결제 창에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    showPaddleOutcome({
+      kind: "error",
+      title: "결제 오류",
+      reason: detail,
+      code: evt?.code || evt?.data?.code,
+      rawDetail: typeof evt?.data === "object" ? JSON.stringify(evt.data).slice(0, 240) : undefined,
+      onRetry: getRetryHandler(),
+    });
+    return;
+  }
+
+  if (name === "checkout.warning") {
+    const detail: string =
+      evt?.detail || evt?.data?.detail || "결제 진행 중 경고가 발생했습니다.";
+    showPaddleOutcome({
+      kind: "warning",
+      title: "결제 진행 중 알림",
+      reason: detail,
+      onRetry: getRetryHandler(),
+    });
+    return;
+  }
+
+  if (name === "checkout.closed") {
+    // 결제 완료 후에도 closed 가 발생하므로, 미완료 상태일 때만 취소 안내.
+    const status: string | undefined = evt?.data?.status;
+    if (status && status !== "completed") {
+      showPaddleOutcome({
+        kind: "cancelled",
+        title: "결제가 취소되었습니다",
+        reason: "결제 창이 닫혔습니다. 다시 결제하시려면 아래 재시도 버튼을 눌러 주세요.",
+        onRetry: getRetryHandler(),
+      });
+    }
+  }
+}
+
 /** Paddle.js를 동적으로 로드하고 초기화한다. */
 export async function loadPaddle(): Promise<any> {
   if (typeof window === "undefined") {
@@ -136,6 +228,11 @@ export async function loadPaddle(): Promise<any> {
               recordPaddleEvent(data);
             } catch {
               /* ignore storage errors */
+            }
+            try {
+              dispatchOutcomeFromEvent(data);
+            } catch {
+              /* ignore outcome dispatch errors */
             }
             if (data?.name === "checkout.error" || data?.name === "checkout.warning") {
               // eslint-disable-next-line no-console
@@ -194,6 +291,9 @@ export interface OpenCheckoutParams {
  * Sandbox는 inline price를 거부하므로 엣지 함수에서 price를 먼저 생성해 priceId로 연다.
  */
 export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<void> {
+  // Remember last attempt so the outcome dialog can offer "재시도".
+  lastCheckoutAttempt = () => openPaddleCheckout(params);
+
   const [Paddle, environment] = await Promise.all([loadPaddle(), getPaddleEnvironment()]);
 
   const { data, error } = await supabase.functions.invoke("paddle-create-price", {
@@ -207,6 +307,13 @@ export async function openPaddleCheckout(params: OpenCheckoutParams): Promise<vo
   const priceId = (data as { priceId?: string } | null)?.priceId;
   if (error || !priceId) {
     const detail = (data as { error?: string; detail?: unknown } | null)?.error ?? error?.message;
+    showPaddleOutcome({
+      kind: "error",
+      title: "결제 창을 열 수 없습니다",
+      reason: "결제 정보를 준비하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      rawDetail: typeof detail === "string" ? detail : JSON.stringify(detail ?? {}),
+      onRetry: getRetryHandler(),
+    });
     throw new Error(`Paddle price 생성 실패: ${detail ?? "알 수 없는 오류"}`);
   }
 
