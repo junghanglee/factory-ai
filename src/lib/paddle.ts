@@ -1,8 +1,10 @@
 // src/lib/paddle.ts
 // Paddle.js 동적 로더 + 체크아웃 오버레이 헬퍼
 
+import i18n from "i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { showPaddleOutcome } from "@/components/PaddleOutcomeDialog";
+import { formatKrw, formatUsd } from "@/utils/formatPrice";
 
 declare global {
   interface Window {
@@ -284,6 +286,12 @@ export interface OpenCheckoutParams {
   email?: string;
   /** 웹훅에서 식별하기 위한 메타데이터 */
   customData: Record<string, string>;
+  /**
+   * 사용자에게 표시할 KRW 환산 금액 (선택).
+   * Paddle 체크아웃은 USD 단일 통화로만 표시되므로,
+   * 결제 완료/안내 모달에서 KRW도 함께 보여주기 위해 사용한다.
+   */
+  amountKrw?: number;
 }
 
 /**
