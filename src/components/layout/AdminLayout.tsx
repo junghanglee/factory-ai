@@ -4,7 +4,7 @@ import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor, Store, Wallet,
-  LogOut, Settings, User, SlidersHorizontal, Undo2, CreditCard,
+  LogOut, Settings, User, SlidersHorizontal, Undo2, CreditCard, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
