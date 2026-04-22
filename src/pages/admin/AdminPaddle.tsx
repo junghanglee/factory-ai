@@ -213,7 +213,8 @@ export default function AdminPaddle() {
           </CardHeader>
           <CardContent>
             <Tabs value={tab} onValueChange={(v) => setTab(v as Resource)}>
-              <TabsList className="grid grid-cols-3 lg:grid-cols-9 w-full">
+              <TabsList className="grid grid-cols-3 lg:grid-cols-10 w-full">
+                <TabsTrigger value="payments">결제 내역</TabsTrigger>
                 <TabsTrigger value="webhook_log">웹훅 로그</TabsTrigger>
                 <TabsTrigger value="transactions">거래내역</TabsTrigger>
                 <TabsTrigger value="adjustments">환불/조정</TabsTrigger>
@@ -226,6 +227,10 @@ export default function AdminPaddle() {
               </TabsList>
 
               <div className="mt-4">
+                <TabsContent value="payments">
+                  <AdminPaymentsTab />
+                </TabsContent>
+
                 <TabsContent value="webhook_log">
                   <PaddleWebhookEventsTab />
                 </TabsContent>
