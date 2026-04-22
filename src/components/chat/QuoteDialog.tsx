@@ -27,6 +27,7 @@ export interface QuoteSubmitParams {
   deliveryDays: number;
   memo: string;
   quoteType: "new" | "addon"; // 신규 견적 / 추가금
+  addonMode?: "separate" | "merge"; // 추가금: 별도 청구서 vs 기존 결제건에 합산
 }
 
 interface QuoteDialogProps {
