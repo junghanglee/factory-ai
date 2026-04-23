@@ -280,7 +280,8 @@ const ChatPage = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <MyPageSubNav />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">{t("chat.title")}</h1>
           <Button onClick={() => setShowServicePicker(true)} className="gap-1.5">
