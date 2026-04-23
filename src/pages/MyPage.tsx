@@ -133,6 +133,17 @@ const MyPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // 거래 상세 모달
+  const [detailTx, setDetailTx] = useState<TxDetail | null>(null);
+  const [detailKind, setDetailKind] = useState<"cash" | "point">("cash");
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openTxDetail = (tx: TxRow, kind: "cash" | "point") => {
+    setDetailTx(tx);
+    setDetailKind(kind);
+    setDetailOpen(true);
+  };
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
