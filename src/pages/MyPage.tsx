@@ -691,7 +691,7 @@ const MyPage = () => {
                     <p className="text-sm font-medium mb-1">이용 현황</p>
                     <div className="grid grid-cols-2 gap-4 mt-2 text-center">
                       <div>
-                        <p className="text-xl font-bold">{projects.length}</p>
+                        <p className="text-xl font-bold">{realProjects.length}</p>
                         <p className="text-xs text-muted-foreground">총 프로젝트</p>
                       </div>
                       <div>
