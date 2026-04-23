@@ -877,7 +877,11 @@ const MyPage = () => {
                       </thead>
                       <tbody>
                         {pointTx.map((tx) => (
-                          <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <tr
+                            key={tx.id}
+                            onClick={() => openTxDetail(tx, "point")}
+                            className="border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors"
+                          >
                             <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleString("ko-KR")}</td>
                             <td className="p-3">
                               <Badge variant="outline" className="text-xs">
