@@ -4,7 +4,7 @@ import aiFactoryLogo from "@/assets/ai-factory-logo.png";
 import {
   LayoutDashboard, Globe, Layers, Package, Image, Briefcase, Plus, Info, Inbox,
   Users, MessageCircle, FolderKanban, ChevronLeft, ChevronDown, ChevronRight, Menu, X, BotMessageSquare, ShieldCheck, Monitor, Store, Wallet,
-  LogOut, Settings, User, SlidersHorizontal, Undo2, CreditCard, AlertCircle,
+  LogOut, Settings, User, SlidersHorizontal, Undo2, CreditCard, AlertCircle, Ticket, Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +48,7 @@ const navGroupsDef: NavGroup[] = [
       { to: "/admin/services", icon: Package, labelKey: "admin.serviceManage" },
       { to: "/admin/services?action=new", icon: Plus, labelKey: "admin.serviceRegister" },
       { to: "/admin/banners", icon: Image, labelKey: "admin.bannerManage" },
+      { to: "/admin/popups", icon: Megaphone, labelKey: "팝업 관리" },
       { to: "/admin/portfolio", icon: Briefcase, labelKey: "admin.portfolioManage" },
       { to: "/admin/display-groups", icon: Monitor, labelKey: "admin.displayGroups" },
     ],
@@ -78,6 +79,7 @@ const navGroupsDef: NavGroup[] = [
       { to: "/admin/refunds", icon: Undo2, labelKey: "환불 관리" },
       { to: "/admin/paddle", icon: CreditCard, labelKey: "Paddle 결제" },
       { to: "/admin/paddle/diagnostics", icon: AlertCircle, labelKey: "Paddle 진단" },
+      { to: "/admin/coupons", icon: Ticket, labelKey: "쿠폰 관리" },
     ],
   },
   {

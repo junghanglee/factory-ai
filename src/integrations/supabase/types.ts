@@ -932,6 +932,78 @@ export type Database = {
         }
         Relationships: []
       }
+      popups: {
+        Row: {
+          active: boolean
+          attachment_name: string | null
+          attachment_url: string | null
+          content: string | null
+          created_at: string
+          end_at: string | null
+          height: number | null
+          id: string
+          image_url: string | null
+          link_url: string | null
+          offset_x: number
+          offset_y: number
+          position: string
+          show_close_button: boolean
+          show_pages: string[]
+          show_today_close: boolean
+          sort_order: number
+          start_at: string | null
+          title: string
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          active?: boolean
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content?: string | null
+          created_at?: string
+          end_at?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          offset_x?: number
+          offset_y?: number
+          position?: string
+          show_close_button?: boolean
+          show_pages?: string[]
+          show_today_close?: boolean
+          sort_order?: number
+          start_at?: string | null
+          title: string
+          updated_at?: string
+          width?: number
+        }
+        Update: {
+          active?: boolean
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content?: string | null
+          created_at?: string
+          end_at?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          offset_x?: number
+          offset_y?: number
+          position?: string
+          show_close_button?: boolean
+          show_pages?: string[]
+          show_today_close?: boolean
+          sort_order?: number
+          start_at?: string | null
+          title?: string
+          updated_at?: string
+          width?: number
+        }
+        Relationships: []
+      }
       portfolio_items: {
         Row: {
           active: boolean
@@ -1870,6 +1942,15 @@ export type Database = {
       }
     }
     Functions: {
+      admin_adjust_balance: {
+        Args: {
+          _amount: number
+          _description?: string
+          _kind: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       charge_cash: {
         Args: {
           _amount: number

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Search, Eye, MessageSquare, Store } from "lucide-react";
+import { Search, Eye, MessageSquare, Store, Wallet } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
+import MemberBalanceDialog from "@/components/admin/MemberBalanceDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,13 @@ const AdminMembers = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [balanceOpen, setBalanceOpen] = useState(false);
+  const [balanceMember, setBalanceMember] = useState<MemberRow | null>(null);
+
+  const openBalance = (m: MemberRow) => {
+    setBalanceMember(m);
+    setBalanceOpen(true);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -232,8 +240,11 @@ const AdminMembers = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)} title="상세">
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openBalance(member)} title="캐시/포인트">
+                            <Wallet className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openChatWithMember(member)} title={t("admin.sendChat")}>
                             <MessageSquare className="h-4 w-4" />
@@ -304,15 +315,28 @@ const AdminMembers = () => {
                   </Button>
                 ))}
               </div>
-              <div className="pt-2 border-t">
+              <div className="pt-2 border-t flex gap-2">
                 <Button variant="outline" size="sm" className="gap-1" onClick={() => openChatWithMember(selectedMember)}>
                   <MessageSquare className="h-4 w-4" /> {t("admin.sendChat")}
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1" onClick={() => { setDetailOpen(false); openBalance(selectedMember); }}>
+                  <Wallet className="h-4 w-4" /> 캐시/포인트 관리
                 </Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {balanceMember && (
+        <MemberBalanceDialog
+          open={balanceOpen}
+          onOpenChange={setBalanceOpen}
+          memberId={balanceMember.id}
+          memberName={balanceMember.name}
+          memberEmail={balanceMember.email}
+        />
+      )}
     </AdminLayout>
   );
 };
