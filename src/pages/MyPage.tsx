@@ -465,129 +465,77 @@ const MyPage = () => {
 
   return (
     <MainLayout>
-      {/* Sub-navigation bar */}
-      <div className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-0 h-[46px] overflow-x-auto">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-[14px] whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                  activeTab === item.id
-                    ? "border-primary text-primary font-medium"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-                {item.count !== undefined && item.count > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{item.count}</Badge>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
+      {/* Sub-navigation bar (shared component) */}
+      <MyPageSubNav projectsCount={realProjects.length} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ==== 프로필 영역 (개선) ==== */}
-        <Card className="mb-8 overflow-hidden border-0 shadow-lg">
-          <div className="relative bg-gradient-to-br from-primary via-primary/90 to-purple-600 px-6 pt-8 pb-20 sm:pt-10 sm:pb-24">
-            <div className="absolute inset-0 opacity-20" style={{
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ==== 프로필 영역 (컴팩트) ==== */}
+        <Card className="mb-6 overflow-hidden border-0 shadow-md">
+          <div className="relative bg-gradient-to-r from-primary via-primary/95 to-purple-600 p-4 sm:p-5">
+            <div className="absolute inset-0 opacity-15" style={{
               backgroundImage: "radial-gradient(circle at 20% 50%, white 0%, transparent 50%), radial-gradient(circle at 80% 80%, white 0%, transparent 50%)"
             }} />
-            <div className="relative flex items-center justify-between flex-wrap gap-4">
-              <div className="text-primary-foreground">
-                <p className="text-xs font-medium opacity-90 mb-1">AI팩토리 회원</p>
-                <h1 className="text-2xl sm:text-3xl font-bold">{displayName}님, 환영합니다 ✨</h1>
-                <p className="text-sm opacity-90 mt-1">{user?.email}</p>
-              </div>
-              <div className="flex gap-3 text-primary-foreground">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleTabChange("profile")}
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-                >
-                  <User className="h-4 w-4 mr-1" /> 정보 수정
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <CardContent className="relative p-6 -mt-16">
-            <div className="flex items-end justify-between flex-wrap gap-6 mb-6">
+            <div className="relative flex items-center gap-4 flex-wrap">
               {/* 아바타 (편집 가능) */}
-              <div className="relative">
-                <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden bg-card flex items-center justify-center border-4 border-card shadow-xl">
+              <div className="relative shrink-0">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-card flex items-center justify-center border-2 border-white/40 shadow-lg">
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-200 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-primary">{displayName.charAt(0).toUpperCase()}</span>
+                    <div className="w-full h-full bg-gradient-to-br from-primary/30 to-purple-200 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{displayName.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
                 </div>
-                <label className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md ring-2 ring-card">
-                  <Camera className="h-4 w-4" />
+                <label className="absolute -bottom-0.5 -right-0.5 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow ring-2 ring-card">
+                  <Camera className="h-3.5 w-3.5" />
                   <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
                 </label>
               </div>
 
-              {/* 통계 */}
-              <div className="flex flex-1 items-center justify-end gap-3 sm:gap-6 flex-wrap">
-                <div className="text-center min-w-[72px]">
-                  <p className="text-2xl font-bold text-primary">{realProjects.length}</p>
-                  <p className="text-xs text-muted-foreground">신청건수</p>
+              {/* 이름·이메일 */}
+              <div className="text-primary-foreground min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl font-bold truncate">{displayName}님 ✨</h1>
+                <p className="text-xs sm:text-sm opacity-90 truncate">{user?.email}</p>
+              </div>
+
+              {/* 통계 (가로) */}
+              <div className="flex items-center gap-3 sm:gap-5 text-primary-foreground">
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl font-bold leading-none">{realProjects.length}</p>
+                  <p className="text-[10px] opacity-80 mt-0.5">신청</p>
                 </div>
-                <div className="w-px h-10 bg-border hidden sm:block" />
-                <div className="text-center min-w-[72px]">
-                  <p className="text-2xl font-bold text-green-600">{completedProjects.length}</p>
-                  <p className="text-xs text-muted-foreground">완료</p>
+                <div className="w-px h-7 bg-white/30" />
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl font-bold leading-none">{completedProjects.length}</p>
+                  <p className="text-[10px] opacity-80 mt-0.5">완료</p>
                 </div>
-                <div className="w-px h-10 bg-border hidden sm:block" />
-                <div className="text-center min-w-[100px]">
-                  <p className="text-xl font-bold">{totalSpent.toLocaleString()}<span className="text-xs font-normal">원</span></p>
-                  <p className="text-xs text-muted-foreground">총 결제액</p>
+                <div className="w-px h-7 bg-white/30" />
+                <div className="text-center">
+                  <p className="text-base sm:text-lg font-bold leading-none">{(totalSpent / 10000).toFixed(0)}<span className="text-[10px] font-normal ml-0.5">만원</span></p>
+                  <p className="text-[10px] opacity-80 mt-0.5">결제액</p>
                 </div>
               </div>
-            </div>
 
-            {/* 캐시·포인트 미니 위젯 */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleTabChange("wallet")}
-                className="flex items-center justify-between p-4 rounded-xl border bg-gradient-to-br from-blue-50 to-blue-100/50 hover:shadow-md transition-shadow text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-                    <Wallet className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">충전 캐시</p>
-                    <p className="font-bold text-blue-700">{balance.cash_balance.toLocaleString()}원</p>
-                  </div>
-                </div>
-                <Plus className="h-4 w-4 text-blue-600" />
-              </button>
-              <button
-                onClick={() => handleTabChange("wallet")}
-                className="flex items-center justify-between p-4 rounded-xl border bg-gradient-to-br from-amber-50 to-amber-100/50 hover:shadow-md transition-shadow text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-500 flex items-center justify-center text-white">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">적립 포인트</p>
-                    <p className="font-bold text-amber-700">{balance.point_balance.toLocaleString()}P</p>
-                  </div>
-                </div>
-                <Ticket className="h-4 w-4 text-amber-600" />
-              </button>
+              {/* 캐시·포인트 미니 (우측) */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleTabChange("wallet")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold">{balance.cash_balance.toLocaleString()}원</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("wallet")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold">{balance.point_balance.toLocaleString()}P</span>
+                </button>
+              </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
         <LazyMount rootMargin="200px" minHeight={500}>
