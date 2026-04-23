@@ -270,12 +270,6 @@ const MyPage = () => {
     loadBalance();
   }, [user, loadBalance]);
 
-  // 진입 즉시 잔액/거래내역 로드 (탭 무관, 결제내역에서도 사용)
-  useEffect(() => {
-    if (!user) return;
-    loadBalance();
-  }, [user, loadBalance]);
-
   // 결제내역/지갑 탭 진입 시 항상 최신 데이터로 재조회
   useEffect(() => {
     if (!user) return;
