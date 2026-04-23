@@ -4,6 +4,7 @@ import { Send, Paperclip, Plus, FolderOpen, X, Film, MessageCirclePlus, Clipboar
 import { useTranslation } from "react-i18next";
 import { formatPrice } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
+import MyPageSubNav from "@/components/layout/MyPageSubNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChat, ChatMessage } from "@/hooks/useChat";
