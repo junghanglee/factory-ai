@@ -1363,6 +1363,14 @@ const MyPage = () => {
         </Tabs>
         </LazyMount>
       </div>
+
+      {/* 거래 상세 모달 */}
+      <TransactionDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        tx={detailTx}
+        kind={detailKind}
+      />
     </MainLayout>
   );
 };
