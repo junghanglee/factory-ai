@@ -323,7 +323,7 @@ const MyPage = () => {
               </div>
               <div className="hidden sm:flex items-center gap-6 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-primary">{projects.length}</p>
+                  <p className="text-2xl font-bold text-primary">{realProjects.length}</p>
                   <p className="text-xs text-muted-foreground">전체 프로젝트</p>
                 </div>
                 <div className="w-px h-10 bg-border" />
