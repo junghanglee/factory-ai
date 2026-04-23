@@ -270,6 +270,33 @@ const MyPage = () => {
     loadBalance();
   }, [user, loadBalance]);
 
+  // 진입 즉시 잔액/거래내역 로드 (탭 무관, 결제내역에서도 사용)
+  useEffect(() => {
+    if (!user) return;
+    loadBalance();
+  }, [user, loadBalance]);
+
+  // 결제내역/지갑 탭 진입 시 항상 최신 데이터로 재조회
+  useEffect(() => {
+    if (!user) return;
+    if (activeTab === "payments" || activeTab === "wallet") {
+      loadBalance();
+    }
+  }, [activeTab, user, loadBalance]);
+
+  // 창 포커스/탭 가시성 복귀 시 최신화 (다른 탭/관리자 화면에서 조정 후 복귀 케이스 대응)
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => loadBalance();
+    const onVisible = () => { if (document.visibilityState === "visible") loadBalance(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user, loadBalance]);
+
   // 실시간 구독: 관리자가 캐시/포인트를 조정하면 즉시 반영
   useEffect(() => {
     if (!user) return;
