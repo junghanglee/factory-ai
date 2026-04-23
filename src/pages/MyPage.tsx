@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageCircle, Package, Receipt, HelpCircle, User,
   CheckCircle2, Send, Camera, Wallet, Sparkles, Ticket,
-  Mail, Phone, Calendar, FileText, CreditCard, Filter, Plus
+  Mail, Phone, Calendar, FileText, CreditCard, Filter, Plus,
+  Building2, Briefcase, Banknote, KeyRound
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
+import MyPageSubNav from "@/components/layout/MyPageSubNav";
 import LazyMount from "@/components/LazyMount";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
