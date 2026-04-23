@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Search, Eye, MessageSquare, Store } from "lucide-react";
+import { Search, Eye, MessageSquare, Store, Wallet } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
+import MemberBalanceDialog from "@/components/admin/MemberBalanceDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,13 @@ const AdminMembers = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [balanceOpen, setBalanceOpen] = useState(false);
+  const [balanceMember, setBalanceMember] = useState<MemberRow | null>(null);
+
+  const openBalance = (m: MemberRow) => {
+    setBalanceMember(m);
+    setBalanceOpen(true);
+  };
 
   const fetchData = async () => {
     setLoading(true);
