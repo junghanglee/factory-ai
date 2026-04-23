@@ -998,28 +998,49 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          company_name: string | null
           created_at: string
+          department: string | null
           id: string
+          kakao_id: string | null
           name: string | null
           phone: string | null
+          position: string | null
+          refund_bank_account: string | null
+          refund_bank_holder: string | null
+          refund_bank_name: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string
+          department?: string | null
           id?: string
+          kakao_id?: string | null
           name?: string | null
           phone?: string | null
+          position?: string | null
+          refund_bank_account?: string | null
+          refund_bank_holder?: string | null
+          refund_bank_name?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string
+          department?: string | null
           id?: string
+          kakao_id?: string | null
           name?: string | null
           phone?: string | null
+          position?: string | null
+          refund_bank_account?: string | null
+          refund_bank_holder?: string | null
+          refund_bank_name?: string | null
           updated_at?: string
           user_id?: string
         }
