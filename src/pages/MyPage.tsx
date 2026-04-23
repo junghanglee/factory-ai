@@ -160,12 +160,8 @@ const MyPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
-  // Auto-redirect to /chat when entering with chat tab and chat rooms exist
-  useEffect(() => {
-    if (!loading && user && activeTab === "chat" && !loadingChatRooms && chatRooms.length > 0) {
-      navigate("/chat", { replace: true });
-    }
-  }, [loading, user, activeTab, loadingChatRooms, chatRooms, navigate]);
+  // Per requirement #2: removed auto-redirect to /chat so MyPage sub-nav stays visible.
+  // Chat tab now navigates explicitly via the sub-nav link.
 
   // Load projects
   useEffect(() => {
@@ -182,19 +178,27 @@ const MyPage = () => {
     })();
   }, [user]);
 
-  // Load profile
+  // Load profile (incl. extra fields)
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, phone, avatar_url")
+        .select("name, phone, avatar_url, company_name, department, position, kakao_id, refund_bank_name, refund_bank_account, refund_bank_holder")
         .eq("user_id", user.id)
         .single();
       if (data) {
-        setProfile(data);
+        setProfile(data as any);
         setEditName(data.name || "");
         setEditPhone(data.phone || "");
+        const d = data as any;
+        setEditCompany(d.company_name || "");
+        setEditDepartment(d.department || "");
+        setEditPosition(d.position || "");
+        setEditKakao(d.kakao_id || "");
+        setEditBankName(d.refund_bank_name || "");
+        setEditBankAccount(d.refund_bank_account || "");
+        setEditBankHolder(d.refund_bank_holder || "");
       }
     })();
   }, [user]);
