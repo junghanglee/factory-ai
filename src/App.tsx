@@ -54,6 +54,9 @@ const AdminFeatureSettings = lazy(() => import("./pages/admin/AdminFeatureSettin
 const AdminRefunds = lazy(() => import("./pages/admin/AdminRefunds"));
 const AdminPaddle = lazy(() => import("./pages/admin/AdminPaddle"));
 const AdminPaddleDiagnostics = lazy(() => import("./pages/admin/AdminPaddleDiagnostics"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminPopups = lazy(() => import("./pages/admin/AdminPopups"));
+import PopupDisplay from "./components/PopupDisplay";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +99,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <PaddleOutcomeDialog />
+          <PopupDisplay />
           <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -136,6 +140,8 @@ const App = () => (
             <Route path="/admin/refunds" element={<ProtectedRoute requireAdmin><AdminRefunds /></ProtectedRoute>} />
             <Route path="/admin/paddle" element={<ProtectedRoute requireAdmin><AdminPaddle /></ProtectedRoute>} />
             <Route path="/admin/paddle/diagnostics" element={<ProtectedRoute requireAdmin><AdminPaddleDiagnostics /></ProtectedRoute>} />
+            <Route path="/admin/coupons" element={<ProtectedRoute requireAdmin><AdminCoupons /></ProtectedRoute>} />
+            <Route path="/admin/popups" element={<ProtectedRoute requireAdmin><AdminPopups /></ProtectedRoute>} />
             <Route path="/admin/chat-popup" element={<AdminChatPopup />} />
             <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
             <Route path="*" element={<NotFound />} />
