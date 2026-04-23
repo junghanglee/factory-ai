@@ -1028,6 +1028,7 @@ const MyPage = () => {
           <TabsContent value="profile">
             <h2 className="text-lg font-bold mb-4">내 정보</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 기본 프로필 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">프로필 정보</CardTitle>
@@ -1068,6 +1069,7 @@ const MyPage = () => {
                 </CardContent>
               </Card>
 
+              {/* 계정 관리 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">계정 관리</CardTitle>
@@ -1095,8 +1097,98 @@ const MyPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* 비밀번호 변경 */}
+                  <div className="p-4 border rounded-lg space-y-3">
+                    <p className="text-sm font-medium flex items-center gap-1.5">
+                      <KeyRound className="h-4 w-4 text-primary" /> 비밀번호 변경
+                    </p>
+                    <Input
+                      type="password"
+                      placeholder="새 비밀번호 (6자 이상)"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Input
+                      type="password"
+                      placeholder="새 비밀번호 확인"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Button onClick={handleChangePassword} disabled={changingPassword || !newPassword || !confirmPassword} size="sm" className="w-full">
+                      {changingPassword ? "변경 중..." : "비밀번호 변경"}
+                    </Button>
+                  </div>
+
                   <Button variant="outline" className="w-full" onClick={handleSignOut}>
                     로그아웃
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* 추가 정보 (콘텐츠 거래용) - full width */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-primary" /> 추가 정보 (콘텐츠 거래용)
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    회사·소속·연락 수단·환불 계좌 등 거래에 필요한 정보를 등록해주세요. (선택 입력)
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <Building2 className="h-3.5 w-3.5" /> 회사 / 소속
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">회사명</label>
+                        <Input value={editCompany} onChange={(e) => setEditCompany(e.target.value)} placeholder="(주)회사명" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">부서</label>
+                        <Input value={editDepartment} onChange={(e) => setEditDepartment(e.target.value)} placeholder="마케팅팀" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">직급</label>
+                        <Input value={editPosition} onChange={(e) => setEditPosition(e.target.value)} placeholder="대리" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <MessageCircle className="h-3.5 w-3.5" /> 카카오톡 ID
+                    </p>
+                    <Input value={editKakao} onChange={(e) => setEditKakao(e.target.value)} placeholder="카톡 ID" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <Banknote className="h-3.5 w-3.5" /> 캐시 환불용 계좌
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">은행명</label>
+                        <Input value={editBankName} onChange={(e) => setEditBankName(e.target.value)} placeholder="국민은행" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">계좌번호</label>
+                        <Input value={editBankAccount} onChange={(e) => setEditBankAccount(e.target.value)} placeholder="000-0000-0000" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">예금주</label>
+                        <Input value={editBankHolder} onChange={(e) => setEditBankHolder(e.target.value)} placeholder="홍길동" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">※ 캐시 환불 시 이 계좌로 입금됩니다.</p>
+                  </div>
+
+                  <Button onClick={handleSaveExtraInfo} disabled={savingExtra} className="w-full sm:w-auto">
+                    {savingExtra ? "저장 중..." : "추가 정보 저장"}
                   </Button>
                 </CardContent>
               </Card>
