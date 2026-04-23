@@ -365,9 +365,8 @@ const MyPage = () => {
   const totalSpent = paidProjects.reduce((sum, p) => sum + p.price, 0);
 
   // Filtered projects
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(realProjects.map((p) => p.service_title.split(" ")[0]).filter(Boolean))),
-    [realProjects]
+  const categoryOptions = Array.from(
+    new Set(realProjects.map((p) => p.service_title.split(" ")[0]).filter(Boolean))
   );
 
   const filteredProjects = realProjects.filter((p) => {
