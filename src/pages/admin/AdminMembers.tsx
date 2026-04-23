@@ -315,15 +315,28 @@ const AdminMembers = () => {
                   </Button>
                 ))}
               </div>
-              <div className="pt-2 border-t">
+              <div className="pt-2 border-t flex gap-2">
                 <Button variant="outline" size="sm" className="gap-1" onClick={() => openChatWithMember(selectedMember)}>
                   <MessageSquare className="h-4 w-4" /> {t("admin.sendChat")}
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1" onClick={() => { setDetailOpen(false); openBalance(selectedMember); }}>
+                  <Wallet className="h-4 w-4" /> 캐시/포인트 관리
                 </Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {balanceMember && (
+        <MemberBalanceDialog
+          open={balanceOpen}
+          onOpenChange={setBalanceOpen}
+          memberId={balanceMember.id}
+          memberName={balanceMember.name}
+          memberEmail={balanceMember.email}
+        />
+      )}
     </AdminLayout>
   );
 };
