@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { compressImage } from "@/utils/imageCompression";
+import TransactionDetailDialog, { TxDetail } from "@/components/mypage/TransactionDetailDialog";
 
 interface ProjectRow {
   id: string;
@@ -51,6 +52,7 @@ interface TxRow {
   balance_after: number;
   description: string | null;
   created_at: string;
+  reference_id: string | null;
 }
 
 const statusConfig: Record<string, { color: string; key: string }> = {
@@ -130,6 +132,17 @@ const MyPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+
+  // 거래 상세 모달
+  const [detailTx, setDetailTx] = useState<TxDetail | null>(null);
+  const [detailKind, setDetailKind] = useState<"cash" | "point">("cash");
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openTxDetail = (tx: TxRow, kind: "cash" | "point") => {
+    setDetailTx(tx);
+    setDetailKind(kind);
+    setDetailOpen(true);
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -255,6 +268,27 @@ const MyPage = () => {
   useEffect(() => {
     if (!user) return;
     loadBalance();
+  }, [user, loadBalance]);
+
+  // 결제내역/지갑 탭 진입 시 항상 최신 데이터로 재조회
+  useEffect(() => {
+    if (!user) return;
+    if (activeTab === "payments" || activeTab === "wallet") {
+      loadBalance();
+    }
+  }, [activeTab, user, loadBalance]);
+
+  // 창 포커스/탭 가시성 복귀 시 최신화 (다른 탭/관리자 화면에서 조정 후 복귀 케이스 대응)
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => loadBalance();
+    const onVisible = () => { if (document.visibilityState === "visible") loadBalance(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [user, loadBalance]);
 
   // 실시간 구독: 관리자가 캐시/포인트를 조정하면 즉시 반영
@@ -792,7 +826,11 @@ const MyPage = () => {
                       </thead>
                       <tbody>
                         {cashTx.map((tx) => (
-                          <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <tr
+                            key={tx.id}
+                            onClick={() => openTxDetail(tx, "cash")}
+                            className="border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors"
+                          >
                             <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleString("ko-KR")}</td>
                             <td className="p-3">
                               <Badge variant="outline" className="text-xs">
@@ -839,7 +877,11 @@ const MyPage = () => {
                       </thead>
                       <tbody>
                         {pointTx.map((tx) => (
-                          <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <tr
+                            key={tx.id}
+                            onClick={() => openTxDetail(tx, "point")}
+                            className="border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors"
+                          >
                             <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleString("ko-KR")}</td>
                             <td className="p-3">
                               <Badge variant="outline" className="text-xs">
@@ -982,7 +1024,11 @@ const MyPage = () => {
                   ) : (
                     <ul className="divide-y">
                       {cashTx.map((tx) => (
-                        <li key={tx.id} className="py-2.5 flex items-center justify-between">
+                        <li
+                          key={tx.id}
+                          onClick={() => openTxDetail(tx, "cash")}
+                          className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-muted/40 -mx-2 px-2 rounded transition-colors"
+                        >
                           <div>
                             <p className="text-sm font-medium">{tx.description || tx.transaction_type}</p>
                             <p className="text-[11px] text-muted-foreground">{new Date(tx.created_at).toLocaleString("ko-KR")}</p>
@@ -1009,7 +1055,11 @@ const MyPage = () => {
                   ) : (
                     <ul className="divide-y">
                       {pointTx.map((tx) => (
-                        <li key={tx.id} className="py-2.5 flex items-center justify-between">
+                        <li
+                          key={tx.id}
+                          onClick={() => openTxDetail(tx, "point")}
+                          className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-muted/40 -mx-2 px-2 rounded transition-colors"
+                        >
                           <div>
                             <p className="text-sm font-medium">{tx.description || tx.transaction_type}</p>
                             <p className="text-[11px] text-muted-foreground">{new Date(tx.created_at).toLocaleString("ko-KR")}</p>
@@ -1313,6 +1363,14 @@ const MyPage = () => {
         </Tabs>
         </LazyMount>
       </div>
+
+      {/* 거래 상세 모달 */}
+      <TransactionDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        tx={detailTx}
+        kind={detailKind}
+      />
     </MainLayout>
   );
 };
