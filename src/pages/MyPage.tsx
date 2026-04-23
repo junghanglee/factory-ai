@@ -262,11 +262,18 @@ const MyPage = () => {
 
   if (loading) return null;
 
-  const completedProjects = projects.filter((p) => p.status === "완료");
-  const totalSpent = projects.reduce((sum, p) => sum + p.price, 0);
+  // ✅ 신청내역: 실제 의뢰하기를 클릭한 주문(ORD-prefixed) 또는 결제완료 건만
+  const realProjects = projects.filter(
+    (p) => p.payment_status === "입금완료" || p.order_number?.startsWith("ORD-")
+  );
+  // ✅ 결제내역: 결제완료(입금완료)만
+  const paidProjects = projects.filter((p) => p.payment_status === "입금완료");
+  const completedProjects = realProjects.filter((p) => p.status === "완료");
+  // ✅ 총 결제액: 결제완료 금액만 합산
+  const totalSpent = paidProjects.reduce((sum, p) => sum + p.price, 0);
 
   const menuItems = [
-    { id: "projects", label: "신청내역", icon: Package, count: projects.length },
+    { id: "projects", label: "신청내역", icon: Package, count: realProjects.length },
     { id: "payments", label: "결제내역", icon: Receipt },
     { id: "invoice", label: "계산서 요청", icon: FileText },
     { id: "inquiries", label: "1:1 문의", icon: HelpCircle },

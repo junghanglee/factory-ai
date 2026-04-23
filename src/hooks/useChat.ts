@@ -147,9 +147,31 @@ export function useChat() {
     }
   }, [selectedRoomId, rooms, fetchProject]);
 
-  // Create a new chat room
+  // Create a new chat room (or reuse existing room for same customer+service)
   const createRoom = useCallback(async (title: string, serviceId?: string, metadata?: Record<string, any>) => {
     if (!user) return null;
+
+    // ✅ One room per (customer, service): if a room already exists for this
+    // customer and service, reuse it. Add-on orders/inquiries land in same room.
+    if (serviceId) {
+      const { data: existing } = await supabase
+        .from("chat_rooms")
+        .select("*")
+        .eq("customer_id", user.id)
+        .eq("service_id", serviceId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existing) {
+        // Optionally merge new metadata (e.g. latest order info) without losing existing
+        if (metadata && Object.keys(metadata).length > 0) {
+          const merged = { ...((existing as any).metadata || {}), ...metadata };
+          await supabase.from("chat_rooms").update({ metadata: merged } as any).eq("id", (existing as any).id);
+        }
+        await fetchRooms();
+        return existing as ChatRoom;
+      }
+    }
 
     // Auto-lookup seller_id from the service
     let sellerId: string | null = null;
