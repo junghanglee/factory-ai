@@ -240,8 +240,11 @@ const AdminMembers = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)} title="상세">
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openBalance(member)} title="캐시/포인트">
+                            <Wallet className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openChatWithMember(member)} title={t("admin.sendChat")}>
                             <MessageSquare className="h-4 w-4" />
