@@ -52,6 +52,7 @@ interface TxRow {
   balance_after: number;
   description: string | null;
   created_at: string;
+  reference_id: string | null;
 }
 
 const statusConfig: Record<string, { color: string; key: string }> = {
