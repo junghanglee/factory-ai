@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageCircle, Package, Receipt, HelpCircle, User,
   CheckCircle2, Send, Camera, Wallet, Sparkles, Ticket,
-  Mail, Phone, Calendar, FileText, CreditCard, Filter, Plus
+  Mail, Phone, Calendar, FileText, CreditCard, Filter, Plus,
+  Building2, Briefcase, Banknote, KeyRound
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
+import MyPageSubNav from "@/components/layout/MyPageSubNav";
 import LazyMount from "@/components/LazyMount";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -71,7 +73,18 @@ const MyPage = () => {
 
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  const [profile, setProfile] = useState<{ name: string | null; phone: string | null; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<{
+    name: string | null;
+    phone: string | null;
+    avatar_url: string | null;
+    company_name?: string | null;
+    department?: string | null;
+    position?: string | null;
+    kakao_id?: string | null;
+    refund_bank_name?: string | null;
+    refund_bank_account?: string | null;
+    refund_bank_holder?: string | null;
+  } | null>(null);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
   const [chatRooms, setChatRooms] = useState<any[]>([]);
@@ -102,8 +115,21 @@ const MyPage = () => {
   // Profile edit
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editCompany, setEditCompany] = useState("");
+  const [editDepartment, setEditDepartment] = useState("");
+  const [editPosition, setEditPosition] = useState("");
+  const [editKakao, setEditKakao] = useState("");
+  const [editBankName, setEditBankName] = useState("");
+  const [editBankAccount, setEditBankAccount] = useState("");
+  const [editBankHolder, setEditBankHolder] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [savingExtra, setSavingExtra] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Password change
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,12 +160,8 @@ const MyPage = () => {
     if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
-  // Auto-redirect to /chat when entering with chat tab and chat rooms exist
-  useEffect(() => {
-    if (!loading && user && activeTab === "chat" && !loadingChatRooms && chatRooms.length > 0) {
-      navigate("/chat", { replace: true });
-    }
-  }, [loading, user, activeTab, loadingChatRooms, chatRooms, navigate]);
+  // Per requirement #2: removed auto-redirect to /chat so MyPage sub-nav stays visible.
+  // Chat tab now navigates explicitly via the sub-nav link.
 
   // Load projects
   useEffect(() => {
@@ -156,19 +178,27 @@ const MyPage = () => {
     })();
   }, [user]);
 
-  // Load profile
+  // Load profile (incl. extra fields)
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, phone, avatar_url")
+        .select("name, phone, avatar_url, company_name, department, position, kakao_id, refund_bank_name, refund_bank_account, refund_bank_holder")
         .eq("user_id", user.id)
         .single();
       if (data) {
-        setProfile(data);
+        setProfile(data as any);
         setEditName(data.name || "");
         setEditPhone(data.phone || "");
+        const d = data as any;
+        setEditCompany(d.company_name || "");
+        setEditDepartment(d.department || "");
+        setEditPosition(d.position || "");
+        setEditKakao(d.kakao_id || "");
+        setEditBankName(d.refund_bank_name || "");
+        setEditBankAccount(d.refund_bank_account || "");
+        setEditBankHolder(d.refund_bank_holder || "");
       }
     })();
   }, [user]);
@@ -282,6 +312,49 @@ const MyPage = () => {
     setSavingProfile(false);
   };
 
+  const handleSaveExtraInfo = async () => {
+    if (!user) return;
+    setSavingExtra(true);
+    const payload = {
+      company_name: editCompany || null,
+      department: editDepartment || null,
+      position: editPosition || null,
+      kakao_id: editKakao || null,
+      refund_bank_name: editBankName || null,
+      refund_bank_account: editBankAccount || null,
+      refund_bank_holder: editBankHolder || null,
+    };
+    const { error } = await supabase.from("profiles").update(payload).eq("user_id", user.id);
+    if (error) {
+      toast.error("추가 정보 저장에 실패했습니다.");
+    } else {
+      toast.success("추가 정보가 저장되었습니다.");
+      setProfile((prev) => prev ? { ...prev, ...payload } : prev);
+    }
+    setSavingExtra(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      toast.error("비밀번호 변경에 실패했습니다: " + error.message);
+    } else {
+      toast.success("비밀번호가 변경되었습니다.");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+    setChangingPassword(false);
+  };
+
   const handleSubmitInquiry = async () => {
     if (!user || !inquiryForm.message.trim()) return;
     setSubmittingInquiry(true);
@@ -392,129 +465,77 @@ const MyPage = () => {
 
   return (
     <MainLayout>
-      {/* Sub-navigation bar */}
-      <div className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-0 h-[46px] overflow-x-auto">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-[14px] whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                  activeTab === item.id
-                    ? "border-primary text-primary font-medium"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-                {item.count !== undefined && item.count > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{item.count}</Badge>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
+      {/* Sub-navigation bar (shared component) */}
+      <MyPageSubNav projectsCount={realProjects.length} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ==== 프로필 영역 (개선) ==== */}
-        <Card className="mb-8 overflow-hidden border-0 shadow-lg">
-          <div className="relative bg-gradient-to-br from-primary via-primary/90 to-purple-600 px-6 pt-8 pb-20 sm:pt-10 sm:pb-24">
-            <div className="absolute inset-0 opacity-20" style={{
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ==== 프로필 영역 (컴팩트) ==== */}
+        <Card className="mb-6 overflow-hidden border-0 shadow-md">
+          <div className="relative bg-gradient-to-r from-primary via-primary/95 to-purple-600 p-4 sm:p-5">
+            <div className="absolute inset-0 opacity-15" style={{
               backgroundImage: "radial-gradient(circle at 20% 50%, white 0%, transparent 50%), radial-gradient(circle at 80% 80%, white 0%, transparent 50%)"
             }} />
-            <div className="relative flex items-center justify-between flex-wrap gap-4">
-              <div className="text-primary-foreground">
-                <p className="text-xs font-medium opacity-90 mb-1">AI팩토리 회원</p>
-                <h1 className="text-2xl sm:text-3xl font-bold">{displayName}님, 환영합니다 ✨</h1>
-                <p className="text-sm opacity-90 mt-1">{user?.email}</p>
-              </div>
-              <div className="flex gap-3 text-primary-foreground">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleTabChange("profile")}
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-                >
-                  <User className="h-4 w-4 mr-1" /> 정보 수정
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <CardContent className="relative p-6 -mt-16">
-            <div className="flex items-end justify-between flex-wrap gap-6 mb-6">
+            <div className="relative flex items-center gap-4 flex-wrap">
               {/* 아바타 (편집 가능) */}
-              <div className="relative">
-                <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden bg-card flex items-center justify-center border-4 border-card shadow-xl">
+              <div className="relative shrink-0">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-card flex items-center justify-center border-2 border-white/40 shadow-lg">
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-200 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-primary">{displayName.charAt(0).toUpperCase()}</span>
+                    <div className="w-full h-full bg-gradient-to-br from-primary/30 to-purple-200 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{displayName.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
                 </div>
-                <label className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md ring-2 ring-card">
-                  <Camera className="h-4 w-4" />
+                <label className="absolute -bottom-0.5 -right-0.5 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow ring-2 ring-card">
+                  <Camera className="h-3.5 w-3.5" />
                   <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
                 </label>
               </div>
 
-              {/* 통계 */}
-              <div className="flex flex-1 items-center justify-end gap-3 sm:gap-6 flex-wrap">
-                <div className="text-center min-w-[72px]">
-                  <p className="text-2xl font-bold text-primary">{realProjects.length}</p>
-                  <p className="text-xs text-muted-foreground">신청건수</p>
+              {/* 이름·이메일 */}
+              <div className="text-primary-foreground min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl font-bold truncate">{displayName}님 ✨</h1>
+                <p className="text-xs sm:text-sm opacity-90 truncate">{user?.email}</p>
+              </div>
+
+              {/* 통계 (가로) */}
+              <div className="flex items-center gap-3 sm:gap-5 text-primary-foreground">
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl font-bold leading-none">{realProjects.length}</p>
+                  <p className="text-[10px] opacity-80 mt-0.5">신청</p>
                 </div>
-                <div className="w-px h-10 bg-border hidden sm:block" />
-                <div className="text-center min-w-[72px]">
-                  <p className="text-2xl font-bold text-green-600">{completedProjects.length}</p>
-                  <p className="text-xs text-muted-foreground">완료</p>
+                <div className="w-px h-7 bg-white/30" />
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl font-bold leading-none">{completedProjects.length}</p>
+                  <p className="text-[10px] opacity-80 mt-0.5">완료</p>
                 </div>
-                <div className="w-px h-10 bg-border hidden sm:block" />
-                <div className="text-center min-w-[100px]">
-                  <p className="text-xl font-bold">{totalSpent.toLocaleString()}<span className="text-xs font-normal">원</span></p>
-                  <p className="text-xs text-muted-foreground">총 결제액</p>
+                <div className="w-px h-7 bg-white/30" />
+                <div className="text-center">
+                  <p className="text-base sm:text-lg font-bold leading-none">{(totalSpent / 10000).toFixed(0)}<span className="text-[10px] font-normal ml-0.5">만원</span></p>
+                  <p className="text-[10px] opacity-80 mt-0.5">결제액</p>
                 </div>
               </div>
-            </div>
 
-            {/* 캐시·포인트 미니 위젯 */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleTabChange("wallet")}
-                className="flex items-center justify-between p-4 rounded-xl border bg-gradient-to-br from-blue-50 to-blue-100/50 hover:shadow-md transition-shadow text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-                    <Wallet className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">충전 캐시</p>
-                    <p className="font-bold text-blue-700">{balance.cash_balance.toLocaleString()}원</p>
-                  </div>
-                </div>
-                <Plus className="h-4 w-4 text-blue-600" />
-              </button>
-              <button
-                onClick={() => handleTabChange("wallet")}
-                className="flex items-center justify-between p-4 rounded-xl border bg-gradient-to-br from-amber-50 to-amber-100/50 hover:shadow-md transition-shadow text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-500 flex items-center justify-center text-white">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">적립 포인트</p>
-                    <p className="font-bold text-amber-700">{balance.point_balance.toLocaleString()}P</p>
-                  </div>
-                </div>
-                <Ticket className="h-4 w-4 text-amber-600" />
-              </button>
+              {/* 캐시·포인트 미니 (우측) */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleTabChange("wallet")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold">{balance.cash_balance.toLocaleString()}원</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("wallet")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold">{balance.point_balance.toLocaleString()}P</span>
+                </button>
+              </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
         <LazyMount rootMargin="200px" minHeight={500}>
@@ -1007,6 +1028,7 @@ const MyPage = () => {
           <TabsContent value="profile">
             <h2 className="text-lg font-bold mb-4">내 정보</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 기본 프로필 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">프로필 정보</CardTitle>
@@ -1047,6 +1069,7 @@ const MyPage = () => {
                 </CardContent>
               </Card>
 
+              {/* 계정 관리 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">계정 관리</CardTitle>
@@ -1074,8 +1097,98 @@ const MyPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* 비밀번호 변경 */}
+                  <div className="p-4 border rounded-lg space-y-3">
+                    <p className="text-sm font-medium flex items-center gap-1.5">
+                      <KeyRound className="h-4 w-4 text-primary" /> 비밀번호 변경
+                    </p>
+                    <Input
+                      type="password"
+                      placeholder="새 비밀번호 (6자 이상)"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Input
+                      type="password"
+                      placeholder="새 비밀번호 확인"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <Button onClick={handleChangePassword} disabled={changingPassword || !newPassword || !confirmPassword} size="sm" className="w-full">
+                      {changingPassword ? "변경 중..." : "비밀번호 변경"}
+                    </Button>
+                  </div>
+
                   <Button variant="outline" className="w-full" onClick={handleSignOut}>
                     로그아웃
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* 추가 정보 (콘텐츠 거래용) - full width */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-primary" /> 추가 정보 (콘텐츠 거래용)
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    회사·소속·연락 수단·환불 계좌 등 거래에 필요한 정보를 등록해주세요. (선택 입력)
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <Building2 className="h-3.5 w-3.5" /> 회사 / 소속
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">회사명</label>
+                        <Input value={editCompany} onChange={(e) => setEditCompany(e.target.value)} placeholder="(주)회사명" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">부서</label>
+                        <Input value={editDepartment} onChange={(e) => setEditDepartment(e.target.value)} placeholder="마케팅팀" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">직급</label>
+                        <Input value={editPosition} onChange={(e) => setEditPosition(e.target.value)} placeholder="대리" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <MessageCircle className="h-3.5 w-3.5" /> 카카오톡 ID
+                    </p>
+                    <Input value={editKakao} onChange={(e) => setEditKakao(e.target.value)} placeholder="카톡 ID" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                      <Banknote className="h-3.5 w-3.5" /> 캐시 환불용 계좌
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">은행명</label>
+                        <Input value={editBankName} onChange={(e) => setEditBankName(e.target.value)} placeholder="국민은행" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">계좌번호</label>
+                        <Input value={editBankAccount} onChange={(e) => setEditBankAccount(e.target.value)} placeholder="000-0000-0000" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">예금주</label>
+                        <Input value={editBankHolder} onChange={(e) => setEditBankHolder(e.target.value)} placeholder="홍길동" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">※ 캐시 환불 시 이 계좌로 입금됩니다.</p>
+                  </div>
+
+                  <Button onClick={handleSaveExtraInfo} disabled={savingExtra} className="w-full sm:w-auto">
+                    {savingExtra ? "저장 중..." : "추가 정보 저장"}
                   </Button>
                 </CardContent>
               </Card>
