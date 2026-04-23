@@ -251,10 +251,25 @@ const MyPage = () => {
     setPointTx((ptx || []) as TxRow[]);
   }, [user]);
 
+  // 진입 즉시 잔액/거래내역 로드 (탭 무관, 결제내역에서도 사용)
   useEffect(() => {
     if (!user) return;
-    if (activeTab === "wallet" || activeTab === "profile") loadBalance();
-  }, [user, activeTab, loadBalance]);
+    loadBalance();
+  }, [user, loadBalance]);
+
+  // 실시간 구독: 관리자가 캐시/포인트를 조정하면 즉시 반영
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`mypage-balance-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_balances", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cash_transactions", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "point_transactions", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadBalance]);
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
@@ -693,42 +708,48 @@ const MyPage = () => {
 
           {/* ============ 결제내역 (계산서요청 버튼 통합) ============ */}
           <TabsContent value="payments">
-            <h2 className="text-lg font-bold mb-4">결제내역</h2>
-            {paidProjects.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Receipt className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground">결제 완료된 내역이 없습니다.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-0">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-lg font-bold">결제·캐시·포인트 내역</h2>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5 text-primary" /> 캐시 <b className="text-foreground">₩{balance.cash_balance.toLocaleString()}</b></span>
+                <span className="flex items-center gap-1"><Sparkles className="h-3.5 w-3.5 text-primary" /> 포인트 <b className="text-foreground">{balance.point_balance.toLocaleString()}P</b></span>
+              </div>
+            </div>
+
+            {/* 1) 결제완료 프로젝트 */}
+            <Card className="mb-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2"><CreditCard className="h-4 w-4 text-primary" /> 서비스 결제내역</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {paidProjects.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">결제 완료된 내역이 없습니다.</p>
+                ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b bg-muted/50">
-                          <th className="text-left p-4 font-medium">주문번호</th>
-                          <th className="text-left p-4 font-medium">서비스</th>
-                          <th className="text-left p-4 font-medium">결제일</th>
-                          <th className="text-right p-4 font-medium">금액</th>
-                          <th className="text-center p-4 font-medium">상태</th>
-                          <th className="text-center p-4 font-medium">계산서</th>
+                          <th className="text-left p-3 font-medium">주문번호</th>
+                          <th className="text-left p-3 font-medium">서비스</th>
+                          <th className="text-left p-3 font-medium">결제일</th>
+                          <th className="text-right p-3 font-medium">금액</th>
+                          <th className="text-center p-3 font-medium">상태</th>
+                          <th className="text-center p-3 font-medium">계산서</th>
                         </tr>
                       </thead>
                       <tbody>
                         {paidProjects.map((p) => (
                           <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="p-4 font-mono text-xs">{p.order_number}</td>
-                            <td className="p-4">{p.service_title}</td>
-                            <td className="p-4 text-muted-foreground">{new Date(p.order_date).toLocaleDateString("ko-KR")}</td>
-                            <td className="p-4 text-right font-medium">{p.price.toLocaleString()}원</td>
-                            <td className="p-4 text-center">
+                            <td className="p-3 font-mono text-xs">{p.order_number}</td>
+                            <td className="p-3">{p.service_title}</td>
+                            <td className="p-3 text-muted-foreground">{new Date(p.order_date).toLocaleDateString("ko-KR")}</td>
+                            <td className="p-3 text-right font-medium">{p.price.toLocaleString()}원</td>
+                            <td className="p-3 text-center">
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${(statusConfig[p.status] || statusConfig["대기"]).color}`}>
                                 {p.status}
                               </span>
                             </td>
-                            <td className="p-4 text-center">
+                            <td className="p-3 text-center">
                               <Button size="sm" variant="outline" onClick={() => requestInvoice(p)}>
                                 <FileText className="h-3.5 w-3.5 mr-1" /> 요청
                               </Button>
@@ -738,16 +759,111 @@ const MyPage = () => {
                       </tbody>
                       <tfoot>
                         <tr className="bg-muted/50 font-medium">
-                          <td colSpan={3} className="p-4">합계</td>
-                          <td className="p-4 text-right text-primary font-bold">{totalSpent.toLocaleString()}원</td>
+                          <td colSpan={3} className="p-3">합계</td>
+                          <td className="p-3 text-right text-primary font-bold">{totalSpent.toLocaleString()}원</td>
                           <td colSpan={2} />
                         </tr>
                       </tfoot>
                     </table>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 2) 캐시 거래내역 */}
+            <Card className="mb-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2"><Wallet className="h-4 w-4 text-primary" /> 캐시 내역</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {cashTx.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">캐시 내역이 없습니다.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="text-left p-3 font-medium">일시</th>
+                          <th className="text-left p-3 font-medium">유형</th>
+                          <th className="text-left p-3 font-medium">설명</th>
+                          <th className="text-right p-3 font-medium">금액</th>
+                          <th className="text-right p-3 font-medium">잔액</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cashTx.map((tx) => (
+                          <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleString("ko-KR")}</td>
+                            <td className="p-3">
+                              <Badge variant="outline" className="text-xs">
+                                {tx.transaction_type === "charge" ? "충전" :
+                                 tx.transaction_type === "use" ? "사용" :
+                                 tx.transaction_type === "refund" ? "환불" :
+                                 tx.transaction_type === "admin_grant" ? "관리자지급" :
+                                 tx.transaction_type === "admin_deduct" ? "관리자차감" : tx.transaction_type}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-muted-foreground">{tx.description || "-"}</td>
+                            <td className={`p-3 text-right font-bold ${tx.amount > 0 ? "text-green-600" : "text-destructive"}`}>
+                              {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()}원
+                            </td>
+                            <td className="p-3 text-right text-muted-foreground">₩{tx.balance_after.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 3) 포인트 거래내역 */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> 포인트 내역</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {pointTx.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">포인트 내역이 없습니다.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="text-left p-3 font-medium">일시</th>
+                          <th className="text-left p-3 font-medium">유형</th>
+                          <th className="text-left p-3 font-medium">설명</th>
+                          <th className="text-right p-3 font-medium">포인트</th>
+                          <th className="text-right p-3 font-medium">잔액</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pointTx.map((tx) => (
+                          <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleString("ko-KR")}</td>
+                            <td className="p-3">
+                              <Badge variant="outline" className="text-xs">
+                                {tx.transaction_type === "earn" ? "구매적립" :
+                                 tx.transaction_type === "coupon" ? "쿠폰" :
+                                 tx.transaction_type === "use" ? "사용" :
+                                 tx.transaction_type === "admin_grant" ? "관리자지급" :
+                                 tx.transaction_type === "admin_deduct" ? "관리자차감" : tx.transaction_type}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-muted-foreground">{tx.description || "-"}</td>
+                            <td className={`p-3 text-right font-bold ${tx.amount > 0 ? "text-green-600" : "text-destructive"}`}>
+                              {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()}P
+                            </td>
+                            <td className="p-3 text-right text-muted-foreground">{tx.balance_after.toLocaleString()}P</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <p className="text-xs text-muted-foreground mt-3">
               ※ 계산서 발행은 요청 후 영업일 1~2일 내 처리됩니다. 문의: junghanglee@gmail.com
             </p>
