@@ -73,7 +73,18 @@ const MyPage = () => {
 
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  const [profile, setProfile] = useState<{ name: string | null; phone: string | null; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<{
+    name: string | null;
+    phone: string | null;
+    avatar_url: string | null;
+    company_name?: string | null;
+    department?: string | null;
+    position?: string | null;
+    kakao_id?: string | null;
+    refund_bank_name?: string | null;
+    refund_bank_account?: string | null;
+    refund_bank_holder?: string | null;
+  } | null>(null);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
   const [chatRooms, setChatRooms] = useState<any[]>([]);
@@ -104,8 +115,21 @@ const MyPage = () => {
   // Profile edit
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editCompany, setEditCompany] = useState("");
+  const [editDepartment, setEditDepartment] = useState("");
+  const [editPosition, setEditPosition] = useState("");
+  const [editKakao, setEditKakao] = useState("");
+  const [editBankName, setEditBankName] = useState("");
+  const [editBankAccount, setEditBankAccount] = useState("");
+  const [editBankHolder, setEditBankHolder] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [savingExtra, setSavingExtra] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Password change
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
