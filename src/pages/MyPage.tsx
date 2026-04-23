@@ -312,6 +312,49 @@ const MyPage = () => {
     setSavingProfile(false);
   };
 
+  const handleSaveExtraInfo = async () => {
+    if (!user) return;
+    setSavingExtra(true);
+    const payload = {
+      company_name: editCompany || null,
+      department: editDepartment || null,
+      position: editPosition || null,
+      kakao_id: editKakao || null,
+      refund_bank_name: editBankName || null,
+      refund_bank_account: editBankAccount || null,
+      refund_bank_holder: editBankHolder || null,
+    };
+    const { error } = await supabase.from("profiles").update(payload).eq("user_id", user.id);
+    if (error) {
+      toast.error("추가 정보 저장에 실패했습니다.");
+    } else {
+      toast.success("추가 정보가 저장되었습니다.");
+      setProfile((prev) => prev ? { ...prev, ...payload } : prev);
+    }
+    setSavingExtra(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      toast.error("비밀번호 변경에 실패했습니다: " + error.message);
+    } else {
+      toast.success("비밀번호가 변경되었습니다.");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+    setChangingPassword(false);
+  };
+
   const handleSubmitInquiry = async () => {
     if (!user || !inquiryForm.message.trim()) return;
     setSubmittingInquiry(true);
