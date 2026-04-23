@@ -1055,7 +1055,11 @@ const MyPage = () => {
                   ) : (
                     <ul className="divide-y">
                       {pointTx.map((tx) => (
-                        <li key={tx.id} className="py-2.5 flex items-center justify-between">
+                        <li
+                          key={tx.id}
+                          onClick={() => openTxDetail(tx, "point")}
+                          className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-muted/40 -mx-2 px-2 rounded transition-colors"
+                        >
                           <div>
                             <p className="text-sm font-medium">{tx.description || tx.transaction_type}</p>
                             <p className="text-[11px] text-muted-foreground">{new Date(tx.created_at).toLocaleString("ko-KR")}</p>
