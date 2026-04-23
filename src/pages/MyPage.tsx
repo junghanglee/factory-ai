@@ -251,10 +251,25 @@ const MyPage = () => {
     setPointTx((ptx || []) as TxRow[]);
   }, [user]);
 
+  // 진입 즉시 잔액/거래내역 로드 (탭 무관, 결제내역에서도 사용)
   useEffect(() => {
     if (!user) return;
-    if (activeTab === "wallet" || activeTab === "profile") loadBalance();
-  }, [user, activeTab, loadBalance]);
+    loadBalance();
+  }, [user, loadBalance]);
+
+  // 실시간 구독: 관리자가 캐시/포인트를 조정하면 즉시 반영
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`mypage-balance-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_balances", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cash_transactions", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "point_transactions", filter: `user_id=eq.${user.id}` }, () => loadBalance())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadBalance]);
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
