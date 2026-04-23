@@ -355,7 +355,7 @@ const MyPage = () => {
             <h2 className="text-lg font-bold mb-4">신청내역</h2>
             {loadingProjects ? (
               <p className="text-center text-muted-foreground py-12">로딩 중...</p>
-            ) : projects.length === 0 ? (
+            ) : realProjects.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
@@ -365,7 +365,7 @@ const MyPage = () => {
               </Card>
             ) : (
               <div className="space-y-3">
-                {projects.map((project) => {
+                {realProjects.map((project) => {
                   const sc = statusConfig[project.status] || statusConfig["대기"];
                   return (
                     <Card key={project.id} className="hover:shadow-md transition-shadow">
@@ -417,11 +417,11 @@ const MyPage = () => {
           {/* 결제내역 */}
           <TabsContent value="payments">
             <h2 className="text-lg font-bold mb-4">결제내역</h2>
-            {projects.length === 0 ? (
+            {paidProjects.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Receipt className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground">결제 내역이 없습니다.</p>
+                  <p className="text-muted-foreground">결제 완료된 내역이 없습니다.</p>
                 </CardContent>
               </Card>
             ) : (
@@ -439,7 +439,7 @@ const MyPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {projects.map((p) => (
+                        {paidProjects.map((p) => (
                           <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
                             <td className="p-4 font-mono text-xs">{p.order_number}</td>
                             <td className="p-4">{p.service_title}</td>
