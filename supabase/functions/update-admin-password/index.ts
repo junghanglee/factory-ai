@@ -33,16 +33,15 @@ serve(async (req) => {
       });
     }
 
-    // Check admin or super_admin role
-    const { data: roleData } = await supabaseAdmin
+    // Caller must be super_admin
+    const { data: callerRoles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
-      .in("role", ["admin", "super_admin"])
-      .limit(1);
+      .eq("user_id", caller.id);
 
-    if (!roleData || roleData.length === 0) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
+    const callerIsSuper = (callerRoles || []).some((r: any) => r.role === "super_admin");
+    if (!callerIsSuper) {
+      return new Response(JSON.stringify({ error: "Super admin access required" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -52,6 +51,18 @@ serve(async (req) => {
     if (!user_id || !new_password || new_password.length < 6) {
       return new Response(JSON.stringify({ error: "user_id and new_password (6+ chars) required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Prevent resetting another super_admin's password (only self-reset allowed for super_admins)
+    const { data: targetRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user_id);
+    const targetIsSuper = (targetRoles || []).some((r: any) => r.role === "super_admin");
+    if (targetIsSuper && user_id !== caller.id) {
+      return new Response(JSON.stringify({ error: "Cannot reset another super admin's password" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
