@@ -373,6 +373,13 @@ export type Database = {
             foreignKeyName: "chat_rooms_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_rooms_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
@@ -1216,6 +1223,13 @@ export type Database = {
             foreignKeyName: "projects_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
@@ -1359,6 +1373,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "seller_notifications_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "seller_notifications_seller_id_fkey"
             columns: ["seller_id"]
@@ -1641,6 +1662,13 @@ export type Database = {
             foreignKeyName: "services_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
@@ -1699,6 +1727,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlements_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1893,6 +1928,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
             referencedRelation: "seller_profiles"
             referencedColumns: ["id"]
           },
@@ -1907,6 +1949,36 @@ export type Database = {
       }
     }
     Views: {
+      public_seller_profiles: {
+        Row: {
+          bio: string | null
+          business_name: string | null
+          created_at: string | null
+          id: string | null
+          profile_image: string | null
+          status: string | null
+          total_sales: number | null
+        }
+        Insert: {
+          bio?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          id?: string | null
+          profile_image?: string | null
+          status?: string | null
+          total_sales?: number | null
+        }
+        Update: {
+          bio?: string | null
+          business_name?: string | null
+          created_at?: string | null
+          id?: string | null
+          profile_image?: string | null
+          status?: string | null
+          total_sales?: number | null
+        }
+        Relationships: []
+      }
       seller_profiles_public: {
         Row: {
           bio: string | null
@@ -1968,6 +2040,10 @@ export type Database = {
         Returns: boolean
       }
       redeem_coupon: { Args: { _code: string }; Returns: Json }
+      send_auto_messages: {
+        Args: { _room_id: string; _trigger_type: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "super_admin" | "seller"
