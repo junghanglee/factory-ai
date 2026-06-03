@@ -19,11 +19,10 @@ const SellerProfilePage = () => {
     queryKey: ["seller-public", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
-        .from("seller_profiles")
+      const { data, error } = await (supabase as any)
+        .from("public_seller_profiles")
         .select("*")
         .eq("id", id)
-        .eq("status", "승인")
         .maybeSingle();
       if (error) throw error;
       return data;
