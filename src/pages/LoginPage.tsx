@@ -48,7 +48,7 @@ const LoginPage = () => {
   const handleOAuth = async (provider: "google" | "apple") => {
     setSocialLoading(provider);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + redirectTo });
       if (result.error) {
         toast.error(provider === "google" ? t("login.googleFailed") : t("login.appleFailed"));
         setSocialLoading(null);
@@ -56,7 +56,7 @@ const LoginPage = () => {
       }
       if (result.redirected) return;
       toast.success(t("login.loginSuccess"));
-      navigate("/");
+      navigate(redirectTo);
     } catch {
       toast.error(t("login.socialError"));
       setSocialLoading(null);
