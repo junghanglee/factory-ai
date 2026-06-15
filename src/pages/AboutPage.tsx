@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import aiFactoryLogoWhite from "@/assets/ai-factory-logo-white.png";
 import MainLayout from "@/components/layout/MainLayout";
+import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
 import { DollarSign, Users, Zap, Globe, Film, Settings, Smartphone, GraduationCap, Handshake, MapPin, MessageCircle, Mail, Phone, ChevronDown, ArrowRight, Send, Loader2, UserCheck, Code, Video, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
