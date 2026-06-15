@@ -222,14 +222,20 @@ export function useChat() {
   // Send text message
   const sendMessage = useCallback(async (text: string, overrideRoomId?: string) => {
     const roomId = overrideRoomId || selectedRoomId;
-    if (!user || !roomId || !text.trim()) return;
+    if (!user) { toast.error("로그인이 필요합니다."); return; }
+    if (!roomId) { toast.error("채팅방을 먼저 선택해주세요."); return; }
+    if (!text.trim()) return;
     const { error } = await supabase.from("chat_messages").insert({
       room_id: roomId,
       sender_id: user.id,
       message: text.trim(),
       message_type: "text",
     });
-    if (error) { console.error(error); toast.error("메시지 전송에 실패했습니다."); return; }
+    if (error) {
+      console.error("sendMessage error:", error);
+      toast.error(`메시지 전송 실패: ${error.message}`);
+      return;
+    }
     await supabase.from("chat_rooms").update({
       last_message: text.trim(),
       last_message_at: new Date().toISOString(),
