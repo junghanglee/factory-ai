@@ -197,6 +197,15 @@ export function useChat() {
       .single();
     if (error) { console.error(error); return null; }
     toast.success("채팅방이 생성되었습니다.");
+    // Fire-and-forget Telegram notification to admin
+    supabase.functions.invoke("notify-new-chat", {
+      body: {
+        roomId: (data as any)?.id,
+        title,
+        serviceTitle: title,
+        customerName: (user as any)?.user_metadata?.name || user.email || "고객",
+      },
+    }).catch((e) => console.warn("notify-new-chat failed", e));
     await fetchRooms();
     return data as ChatRoom;
   }, [user, fetchRooms]);
