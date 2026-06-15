@@ -147,7 +147,7 @@ export const useAllServicesWithPackages = () => {
     queryFn: async () => {
       const { data: services, error: sErr } = await supabase
         .from("services")
-        .select("*, seller_profiles:seller_id(id, business_name)")
+        .select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name)")
         .order("created_at", { ascending: false });
       if (sErr) throw sErr;
 
