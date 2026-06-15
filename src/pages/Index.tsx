@@ -7,6 +7,7 @@ import CategoryGrid from "@/components/home/CategoryGrid";
 import PopularServices from "@/components/home/PopularServices";
 import USPBanner from "@/components/home/USPBanner";
 import LazyMount from "@/components/LazyMount";
+import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 
 // Below-the-fold sections — code-split out of the initial bundle
@@ -43,6 +44,23 @@ const Index = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title="링크투 AI팩토리 — AI 콘텐츠 디지털 마켓플레이스"
+        description="검증된 크리에이터의 AI 이미지·영상·웹툰·음악·광고·AI비서·미니게임을 반값 가격과 빠른 납기로. 한국 대표 AI 콘텐츠 마켓플레이스 링크투 AI팩토리."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "링크투 AI팩토리",
+          url: "https://linktofactory.com/",
+          inLanguage: "ko-KR",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://linktofactory.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       <HeroSection />
       <CategoryGrid />
       <PopularServices />
