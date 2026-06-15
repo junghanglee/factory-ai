@@ -142,8 +142,13 @@ const AdminChatPopup = () => {
     groupedMessages.push({ date: g.date, items: groupMessages(g.msgs) });
   });
 
+  const location = useLocation();
   if (loading) return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
-  if (!user || !isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
+  if (!user) {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
+  }
+  if (!isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
 
   const showSidePanel = showFileDrawer || showInfoPanel || (!!project && !showFileDrawer && !showInfoPanel);
 
