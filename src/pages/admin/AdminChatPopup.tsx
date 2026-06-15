@@ -12,7 +12,7 @@ import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { groupMessages } from "@/utils/messageGrouping";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Film as FilmIcon, Video as VideoIcon } from "lucide-react";
@@ -142,8 +142,13 @@ const AdminChatPopup = () => {
     groupedMessages.push({ date: g.date, items: groupMessages(g.msgs) });
   });
 
+  const location = useLocation();
   if (loading) return <div className="h-screen flex items-center justify-center text-muted-foreground">로딩 중...</div>;
-  if (!user || !isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
+  if (!user) {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
+  }
+  if (!isAdmin) return <div className="h-screen flex items-center justify-center text-muted-foreground">접근 권한이 없습니다.</div>;
 
   const showSidePanel = showFileDrawer || showInfoPanel || (!!project && !showFileDrawer && !showInfoPanel);
 
@@ -264,15 +269,22 @@ const AdminChatPopup = () => {
         </div>
 
         {/* Side panels */}
+        {/* Side panels - overlay on mobile, side-by-side on desktop */}
         {selectedRoom && showFileDrawer && (
-          <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+          <div className="fixed inset-0 top-[57px] z-30 bg-card md:static md:inset-auto md:z-auto md:w-auto">
+            <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+          </div>
         )}
         {selectedRoom && showInfoPanel && user && (
-          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
+          <div className="fixed inset-0 top-[57px] z-30 bg-card md:static md:inset-auto md:z-auto md:w-auto overflow-auto">
+            <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
+          </div>
         )}
         {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
-          <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
-            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+          <div className="hidden md:block">
+            <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
+              onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+          </div>
         )}
       </div>
 

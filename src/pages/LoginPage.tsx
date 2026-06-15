@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,8 @@ const LoginPage = () => {
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,13 +42,13 @@ const LoginPage = () => {
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) { toast.error(t("login.loginFailed") + error.message); }
-    else { toast.success(t("login.loginSuccess")); navigate("/"); }
+    else { toast.success(t("login.loginSuccess")); navigate(redirectTo); }
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
     setSocialLoading(provider);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + redirectTo });
       if (result.error) {
         toast.error(provider === "google" ? t("login.googleFailed") : t("login.appleFailed"));
         setSocialLoading(null);
@@ -54,7 +56,7 @@ const LoginPage = () => {
       }
       if (result.redirected) return;
       toast.success(t("login.loginSuccess"));
-      navigate("/");
+      navigate(redirectTo);
     } catch {
       toast.error(t("login.socialError"));
       setSocialLoading(null);
