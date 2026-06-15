@@ -91,7 +91,7 @@ export const useServices = (categoryId?: string) => {
   return useQuery({
     queryKey: ["services", categoryId],
     queryFn: async () => {
-      let query = supabase.from("services").select("*, seller_profiles:seller_id(id, business_name, status)").order("created_at", { ascending: false });
+      let query = supabase.from("services").select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name, status)").order("created_at", { ascending: false });
       if (categoryId) query = query.eq("category_id", categoryId);
       const { data, error } = await query;
       if (error) throw error;
@@ -110,7 +110,7 @@ export const useService = (id?: string) => {
       if (!id) return null;
       const { data, error } = await supabase
         .from("services")
-        .select("*, seller_profiles:seller_id(id, business_name, bio, profile_image, status, total_sales)")
+        .select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name, bio, profile_image, status, total_sales)")
         .eq("id", id)
         .single();
       if (error) throw error;
@@ -147,7 +147,7 @@ export const useAllServicesWithPackages = () => {
     queryFn: async () => {
       const { data: services, error: sErr } = await supabase
         .from("services")
-        .select("*, seller_profiles:seller_id(id, business_name)")
+        .select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name)")
         .order("created_at", { ascending: false });
       if (sErr) throw sErr;
 

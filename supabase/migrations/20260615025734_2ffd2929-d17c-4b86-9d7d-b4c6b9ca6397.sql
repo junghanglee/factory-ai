@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Approved seller basic info readable" ON public.seller_profiles;
