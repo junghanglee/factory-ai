@@ -211,13 +211,12 @@ const ServiceDetailPage = () => {
           <div className="space-y-2 pt-2">
             {pkg.price > 0 ? (
               <>
-                <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => handleDirectPayment(pkg)}><CreditCard className="h-4 w-4" /> 바로 결제</Button>
+                <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 상담 후 결제</Button>
                 <Button className="w-full gap-2" variant="outline" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
               </>
             ) : (
               <Button className="w-full gap-2" onClick={() => handleQuoteRequest(pkg)}><FileText className="h-4 w-4" /> 견적 요청하기</Button>
             )}
-            <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
           </div>
         </div>
       );
@@ -254,13 +253,12 @@ const ServiceDetailPage = () => {
             <div className="space-y-2 pt-2">
               {pkg.price > 0 ? (
                 <>
-                  <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => handleDirectPayment(pkg)}><CreditCard className="h-4 w-4" /> 바로 결제</Button>
+                  <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> 상담 후 결제</Button>
                   <Button className="w-full gap-2" variant="outline" onClick={() => handleOrder(pkg)}><ShoppingCart className="h-4 w-4" /> {t("serviceDetail.order")}</Button>
                 </>
               ) : (
                 <Button className="w-full gap-2" onClick={() => handleQuoteRequest(pkg)}><FileText className="h-4 w-4" /> 견적 요청하기</Button>
               )}
-              <Button variant="ghost" className="w-full gap-2 text-muted-foreground" onClick={handleInquiry}><MessageCircle className="h-4 w-4" /> {t("serviceDetail.chat")}</Button>
             </div>
           </TabsContent>
         ))}
