@@ -45,21 +45,38 @@ const Index = () => {
   return (
     <MainLayout>
       <SEO
-        title="링크투 AI팩토리 — AI 콘텐츠 디지털 마켓플레이스"
-        description="검증된 크리에이터의 AI 이미지·영상·웹툰·음악·광고·AI비서·미니게임을 반값 가격과 빠른 납기로. 한국 대표 AI 콘텐츠 마켓플레이스 링크투 AI팩토리."
+        title="AI 영상제작·웹툰제작 반값 | 링크투 AI팩토리"
+        description="AI 영상제작·웹툰제작·콘텐츠제작을 한국 에이전시 대비 반값으로. 숙련된 해외 작업자의 자동화·대량생산으로 매우 저렴한 가격과 빠른 납기, 최적화된 품질을 보장합니다."
         path="/"
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "링크투 AI팩토리",
-          url: "https://linktofactory.com/",
-          inLanguage: "ko-KR",
-          potentialAction: {
-            "@type": "SearchAction",
-            target: "https://linktofactory.com/search?q={search_term_string}",
-            "query-input": "required name=search_term_string",
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "링크투 AI팩토리",
+            url: "https://linktofactory.com/",
+            inLanguage: "ko-KR",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://linktofactory.com/search?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
           },
-        }}
+          {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            serviceType: "AI 영상·웹툰·콘텐츠 제작 외주",
+            provider: { "@type": "Organization", name: "링크투 AI팩토리", url: "https://linktofactory.com/" },
+            areaServed: "South Korea",
+            description:
+              "AI 영상제작·웹툰제작·광고·이미지·챗봇 구축을 숙련된 해외 작업자와 자동화 워크플로우로 대량 생산. 한국 에이전시 대비 약 50% 반값 가격과 빠른 납기를 제공합니다.",
+            offers: {
+              "@type": "AggregateOffer",
+              priceCurrency: "KRW",
+              lowPrice: "9900",
+              availability: "https://schema.org/InStock",
+            },
+          },
+        ]}
       />
       <HeroSection />
       <CategoryGrid />

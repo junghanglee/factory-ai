@@ -10,6 +10,20 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# Naver (한국 검색 SEO)
+User-agent: Yeti
+Allow: /
+
+User-agent: NaverBot
+Allow: /
+
+# Daum / Kakao
+User-agent: Daum
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
 # AI / GEO crawlers (Generative Engine Optimization)
 User-agent: GPTBot
 Allow: /

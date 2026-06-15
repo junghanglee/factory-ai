@@ -42,8 +42,8 @@ const AboutPage = () => {
   return (
     <MainLayout>
       <SEO
-        title="회사소개 — 링크투 AI팩토리"
-        description="링크투 AI팩토리의 브랜드 스토리, 팀, 강점, 서비스, 아카데미 소개. 검증된 크리에이터와 함께하는 한국 대표 AI 콘텐츠 마켓플레이스."
+        title="회사소개 — 링크투 AI팩토리 | 해외 자동화 AI 영상·웹툰 제작"
+        description="링크투 AI팩토리는 숙련된 해외 작업자와 AI 자동화 대량생산 라인으로 AI 영상제작·웹툰제작·콘텐츠제작을 한국 에이전시 대비 반값에 제공하는 마켓플레이스입니다."
         path="/about"
       />
       {/* Hero */}
