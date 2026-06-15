@@ -12,7 +12,7 @@ import AdminInfoPanel from "@/components/chat/AdminInfoPanel";
 import ProjectPanel from "@/components/chat/ProjectPanel";
 import QuickPhrases from "@/components/chat/QuickPhrases";
 import { groupMessages } from "@/utils/messageGrouping";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Film as FilmIcon, Video as VideoIcon } from "lucide-react";
