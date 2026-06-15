@@ -4,6 +4,7 @@ import { Star, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import LazyMount from "@/components/LazyMount";
+import SEO from "@/components/SEO";
 import { useCategories, useServices } from "@/hooks/useSupabaseData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,15 @@ const CategoryPage = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title={isAll ? "전체 AI 콘텐츠 서비스" : `${category ? localize(category, "name") : "카테고리"} 서비스`}
+        description={
+          isAll
+            ? "링크투 AI팩토리의 모든 AI 콘텐츠 서비스를 한눈에. 이미지·영상·웹툰·음악·광고·AI비서 등 검증된 크리에이터의 작품을 만나보세요."
+            : `${category ? localize(category, "name") : ""} 카테고리의 AI 콘텐츠 서비스를 반값 가격, 빠른 납기로 만나보세요.`
+        }
+        path={`/category/${id}`}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-foreground">{t("common.home")}</Link>

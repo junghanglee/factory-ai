@@ -9,6 +9,7 @@ import { localize } from "@/utils/localize";
 import { formatPrice, displayServicePrice, formatOriginalPrice, getPaymentAmount } from "@/utils/formatPrice";
 import MainLayout from "@/components/layout/MainLayout";
 import LazyMount from "@/components/LazyMount";
+import SEO from "@/components/SEO";
 import { useService, useServicePackages, useCategories } from "@/hooks/useSupabaseData";
 import { useServiceReviews } from "@/hooks/useServiceReviews";
 import { Button } from "@/components/ui/button";
@@ -273,6 +274,36 @@ const ServiceDetailPage = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title={`${localize(service, "title")} — ${category ? localize(category, "name") : "AI 콘텐츠"}`}
+        description={(service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 155)}
+        path={`/service/${service.id}`}
+        image={service.thumbnail || undefined}
+        type="product"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: localize(service, "title"),
+          image: service.thumbnail ? [service.thumbnail] : undefined,
+          description: (service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 300),
+          category: category ? localize(category, "name") : undefined,
+          brand: { "@type": "Brand", name: "링크투 AI팩토리" },
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "KRW",
+            price: service.price,
+            availability: "https://schema.org/InStock",
+            url: `https://linktofactory.com/service/${service.id}`,
+          },
+          ...(reviews.length > 0 && {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: (reviews.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviews.length).toFixed(1),
+              reviewCount: reviews.length,
+            },
+          }),
+        }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">

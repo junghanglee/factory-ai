@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import aiFactoryLogoWhite from "@/assets/ai-factory-logo-white.png";
 import MainLayout from "@/components/layout/MainLayout";
+import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
 import { DollarSign, Users, Zap, Globe, Film, Settings, Smartphone, GraduationCap, Handshake, MapPin, MessageCircle, Mail, Phone, ChevronDown, ArrowRight, Send, Loader2, UserCheck, Code, Video, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,11 @@ const AboutPage = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title="회사소개 — 링크투 AI팩토리"
+        description="링크투 AI팩토리의 브랜드 스토리, 팀, 강점, 서비스, 아카데미 소개. 검증된 크리에이터와 함께하는 한국 대표 AI 콘텐츠 마켓플레이스."
+        path="/about"
+      />
       {/* Hero */}
       <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
         <img src={aboutHero} alt="AI Factory Team" className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
