@@ -91,7 +91,7 @@ export const useServices = (categoryId?: string) => {
   return useQuery({
     queryKey: ["services", categoryId],
     queryFn: async () => {
-      let query = supabase.from("services").select("*, seller_profiles:seller_id(id, business_name, status)").order("created_at", { ascending: false });
+      let query = supabase.from("services").select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name, status)").order("created_at", { ascending: false });
       if (categoryId) query = query.eq("category_id", categoryId);
       const { data, error } = await query;
       if (error) throw error;
