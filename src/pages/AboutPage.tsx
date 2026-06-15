@@ -41,6 +41,11 @@ const AboutPage = () => {
 
   return (
     <MainLayout>
+      <SEO
+        title="회사소개 — 링크투 AI팩토리"
+        description="링크투 AI팩토리의 브랜드 스토리, 팀, 강점, 서비스, 아카데미 소개. 검증된 크리에이터와 함께하는 한국 대표 AI 콘텐츠 마켓플레이스."
+        path="/about"
+      />
       {/* Hero */}
       <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
         <img src={aboutHero} alt="AI Factory Team" className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
