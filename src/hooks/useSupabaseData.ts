@@ -110,7 +110,7 @@ export const useService = (id?: string) => {
       if (!id) return null;
       const { data, error } = await supabase
         .from("services")
-        .select("*, seller_profiles:seller_id(id, business_name, bio, profile_image, status, total_sales)")
+        .select("*, seller_profiles:public_seller_profiles!seller_id(id, business_name, bio, profile_image, status, total_sales)")
         .eq("id", id)
         .single();
       if (error) throw error;
