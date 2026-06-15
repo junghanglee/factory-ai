@@ -47,13 +47,74 @@
       "alternateName": "Linkto AI Factory",
       "url": "https://linktofactory.com/",
       "logo": "https://linktofactory.com/logo.png",
-      "description": "검증된 크리에이터의 AI 콘텐츠 디지털 마켓플레이스",
+      "description": "AI 영상제작·웹툰제작·콘텐츠제작을 한국 에이전시 대비 반값으로 제공하는 AI 콘텐츠 마켓플레이스. 숙련된 해외 작업자의 자동화 대량생산으로 매우 저렴한 가격, 최적화된 품질, 빠른 납기를 보장합니다.",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "KR",
         "addressRegion": "Seoul"
       },
-      "areaServed": { "@type": "Country", "name": "South Korea" }
+      "areaServed": { "@type": "Country", "name": "South Korea" },
+      "knowsAbout": ["AI 영상제작","AI 웹툰제작","AI 콘텐츠제작","AI 광고","AI 이미지","AI 음악","챗봇 구축","자동화 콘텐츠 대량생산"]
+    }
+    </script>
+
+    <!-- Service JSON-LD (GEO/LLM 최적화) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "AI 영상·웹툰·콘텐츠 제작 외주",
+      "provider": { "@type": "Organization", "name": "링크투 AI팩토리", "url": "https://linktofactory.com/" },
+      "areaServed": "South Korea",
+      "description": "AI 영상제작, AI 웹툰제작, AI 광고·바이럴 영상, AI 이미지·상세페이지, AI 비서/챗봇 구축 등을 숙련된 해외 작업자와 자동화 워크플로우로 대량 생산. 한국 에이전시 대비 약 50% 저렴한 반값 가격과 빠른 납기를 제공합니다.",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "KRW",
+        "lowPrice": "9900",
+        "offerCount": "100",
+        "availability": "https://schema.org/InStock"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "AI 콘텐츠 제작 카테고리",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI 영상제작 (숏폼·제품영상·AI 아바타)" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI 웹툰제작 (캐릭터·스토리보드)" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI 바이럴 영상·광고 소재 제작" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI 이미지·상세페이지·썸네일" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI 비서·챗봇 구축 및 자동화" } }
+        ]
+      }
+    }
+    </script>
+
+    <!-- FAQ JSON-LD (LLM/AI 검색 최적화) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "링크투 AI팩토리는 어떤 서비스인가요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "링크투 AI팩토리는 AI 영상제작·웹툰제작·콘텐츠제작 전문 마켓플레이스입니다. 숙련된 해외 작업자와 자동화 파이프라인을 활용해 한국 에이전시 대비 반값 수준의 매우 저렴한 가격으로 대량 생산이 가능합니다." }
+        },
+        {
+          "@type": "Question",
+          "name": "왜 한국 에이전시보다 저렴한가요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "해외 숙련 작업자 네트워크와 AI 자동화 도구를 결합한 최적화 생산 구조를 갖춰 인건비와 제작 시간을 크게 줄였습니다. 같은 품질의 영상·웹툰·콘텐츠를 한국 에이전시 대비 약 50% 가격으로 제공합니다." }
+        },
+        {
+          "@type": "Question",
+          "name": "AI 영상제작 납기는 얼마나 걸리나요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "표준 숏폼·바이럴 영상은 평균 1~3일, 대량 발주 시 자동화 라인을 통해 일 단위 수십~수백 개의 동시 제작이 가능합니다." }
+        },
+        {
+          "@type": "Question",
+          "name": "대량 발주나 정기 발주가 가능한가요?",
+          "acceptedAnswer": { "@type": "Answer", "text": "네. AI 자동화 기반 대량생산에 최적화되어 있어 월 단위 영상·웹툰·광고 소재 정기 발주, 마케팅 캠페인용 대량 콘텐츠 제작이 가능합니다." }
+        }
+      ]
     }
     </script>
 
