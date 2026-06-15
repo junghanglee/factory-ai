@@ -85,7 +85,7 @@ const HeroSection = () => {
                   onKeyDown={handleSearchKeyDown}
                   className="w-full h-[52px] pl-6 pr-16 rounded-full border-2 border-white/30 bg-black/40 backdrop-blur-sm text-white text-[16px] placeholder:text-white/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-colors shadow-lg"
                 />
-                <button onClick={handleSearch} className="absolute right-2 top-2 h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors">
+                <button onClick={handleSearch} aria-label={t("hero.searchPlaceholder")} className="absolute right-2 top-2 h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/80 transition-colors">
                   <Search className="h-5 w-5" />
                 </button>
               </div>
@@ -123,8 +123,8 @@ const HeroSection = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] text-white/70">{safeIndex + 1} / {displayBanners.length}</span>
                     <div className="flex gap-1">
-                      <button onClick={prevBanner} className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"><ChevronLeft className="h-3.5 w-3.5" /></button>
-                      <button onClick={nextBanner} className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"><ChevronRight className="h-3.5 w-3.5" /></button>
+                      <button onClick={prevBanner} aria-label="이전 배너" className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                      <button onClick={nextBanner} aria-label="다음 배너" className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"><ChevronRight className="h-3.5 w-3.5" /></button>
                     </div>
                   </div>
                 </div>
