@@ -32,6 +32,8 @@ const LoginPage = () => {
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +42,7 @@ const LoginPage = () => {
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) { toast.error(t("login.loginFailed") + error.message); }
-    else { toast.success(t("login.loginSuccess")); navigate("/"); }
+    else { toast.success(t("login.loginSuccess")); navigate(redirectTo); }
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
