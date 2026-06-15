@@ -168,6 +168,15 @@ export function useChat() {
           const merged = { ...((existing as any).metadata || {}), ...metadata };
           await supabase.from("chat_rooms").update({ metadata: merged } as any).eq("id", (existing as any).id);
         }
+        // Fire-and-forget Telegram notification (also for reused rooms)
+        supabase.functions.invoke("notify-new-chat", {
+          body: {
+            roomId: (existing as any).id,
+            title,
+            serviceTitle: title,
+            customerName: (user as any)?.user_metadata?.name || user.email || "고객",
+          },
+        }).catch((e) => console.warn("notify-new-chat failed", e));
         await fetchRooms();
         return existing as ChatRoom;
       }
