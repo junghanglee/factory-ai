@@ -269,15 +269,22 @@ const AdminChatPopup = () => {
         </div>
 
         {/* Side panels */}
+        {/* Side panels - overlay on mobile, side-by-side on desktop */}
         {selectedRoom && showFileDrawer && (
-          <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+          <div className="fixed inset-0 top-[57px] z-30 bg-card md:static md:inset-auto md:z-auto md:w-auto">
+            <FileDrawer messages={messages} onClose={() => setShowFileDrawer(false)} />
+          </div>
         )}
         {selectedRoom && showInfoPanel && user && (
-          <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
+          <div className="fixed inset-0 top-[57px] z-30 bg-card md:static md:inset-auto md:z-auto md:w-auto overflow-auto">
+            <AdminInfoPanel customerId={selectedRoom.customer_id} roomId={selectedRoom.id} currentUserId={user.id} metadata={selectedRoom.metadata} />
+          </div>
         )}
         {selectedRoom && project && !showFileDrawer && !showInfoPanel && (
-          <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
-            onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+          <div className="hidden md:block">
+            <ProjectPanel project={project} projectFiles={projectFiles} isAdmin={true}
+              onUpdateStatus={updateProjectStatus} onUploadDeliverable={uploadDeliverable} />
+          </div>
         )}
       </div>
 
