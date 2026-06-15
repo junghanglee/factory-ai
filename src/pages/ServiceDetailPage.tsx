@@ -276,7 +276,7 @@ const ServiceDetailPage = () => {
     <MainLayout>
       <SEO
         title={`${localize(service, "title")} — ${category ? localize(category, "name") : "AI 콘텐츠"}`}
-        description={(service.short_description || service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 155)}
+        description={(service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 155)}
         path={`/service/${service.id}`}
         image={service.thumbnail || undefined}
         type="product"
@@ -285,7 +285,7 @@ const ServiceDetailPage = () => {
           "@type": "Product",
           name: localize(service, "title"),
           image: service.thumbnail ? [service.thumbnail] : undefined,
-          description: (service.short_description || service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 300),
+          description: (service.description || "").toString().replace(/<[^>]+>/g, "").slice(0, 300),
           category: category ? localize(category, "name") : undefined,
           brand: { "@type": "Brand", name: "링크투 AI팩토리" },
           offers: {
